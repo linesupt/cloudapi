@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lineying.mapper.MenuClassMapper">
+
+    <!-- 新增菜单分类 -->
+    <insert id="addMenuClass" parameterType="java.util.List">
+        insert into menu_class (classid,name,parentid,create_time)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.classId},#{item.name},#{item.parentid},now())
+        </foreach>
+    </insert>
+    <!-- 查询菜谱类型分页 -->
+    <select id="selectMenuClassPage" parameterType="java.util.Map" resultType="com.lineying.entity.MenuClassEntity">
+        select *
+        from menu_class
+        <where>
+            <if test="parentid !=null and parentid !=''">
+                parentid = #{parentid}
+            </if>
+            <if test="name !=null and name !=''">
+                and name like concat("%",#{name},"%")
+            </if>
+        </where>
+    </select>
+    <!-- 更新菜单类根据id -->
+    <update id="updateMenuClassById" parameterType="com.lineying.entity.MenuClassEntity">
+        update menu_class
+        <set>
+            <if test="classId !=null and classId !=''">
+                classid = #{classId},
+            </if>
+            <if test="name !=null and name !=''">
+                name = #{name},
+            </if>
+            <if test="parentid !=null and parentid !=''">
+                parentid = #{parentid},
+            </if>
+            update_time = now()
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

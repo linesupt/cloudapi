@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lineying.mapper.MenuMapper">
+    <!-- 新增菜譜 -->
+    <insert id="addMenuInfo" parameterType="com.lineying.entity.MenuInfoEntity">
+        insert into menu_info(sid,name,peoplenum,classid,preparetime,cookingtime,
+        content,pic,tag,create_time,pic_isEmpty)
+        values(#{sid},#{name},#{peoplenum},#{classId},#{preparetime},#{cookingtime},
+        #{content},#{pic},#{tag},now(),#{pic_isEmpty})
+    </insert>
+    <!-- 新增菜谱流程 -->
+    <insert id="addMenuMaterial" parameterType="java.util.List">
+        insert into menu_material(mid,mname,type,amount,create_time)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.mid},#{item.mname},#{item.type},#{item.amount},now())
+        </foreach>
+    </insert>
+    <!-- 新增菜谱素材 -->
+    <insert id="addMenuProcess" parameterType="java.util.List">
+        insert into menu_process(mid,pcontent,pic,create_time,pic_isEmpty)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.mid},#{item.pcontent},#{item.pic},now(),#{item.pic_isEmpty})
+        </foreach>
+    </insert>
+    <!-- 查询菜单详情 -->
+    <select id="selectMenuDetailById" parameterType="java.util.Map" resultType="com.lineying.entity.MenuInfoEntity">
+        select mi.id,mi.sid,mi.name,mi.peoplenum,mi.classid,
+        mi.preparetime,mi.cookingtime,mi.content,concat(#{pic},pic) as pic,
+        mi.tag,mi.create_time,mi.update_time
+        from menu_info mi
+        where sid = #{id}
+    </select>
+    <!-- 查询菜单图片详情 -->
+    <select id="selectProcessDetailById" parameterType="java.util.Map" resultType="com.lineying.entity.MenuProcessEntity">
+        select id,mid,pcontent,concat(#{pic},pic) as pic,pic_isEmpty
+        from menu_process
+        where mid = #{id}
+    </select>
+    <!-- 查询菜单图片详情 -->
+    <select id="selectMaterialDetailById" parameterType="string" resultType="com.lineying.entity.MenuMaterialEntity">
+        select id,mid,mname,type,amount
+        from menu_material
+        where mid = #{id}
+    </select>
+    <!-- 查询推荐菜谱 -->
+    <select id="selectRecommendListPage" resultType="com.lineying.entity.MenuInfoEntity">
+        select *
+        from menu_info
+        where is_recommend = 1
+    </select>
+    <select id="selectRecommendList" parameterType="java.util.Map" resultType="com.lineying.entity.MenuInfoEntity">
+        select mi.id,mi.sid,mi.name,mi.peoplenum,mi.classid,
+        mi.preparetime,mi.cookingtime,mi.content,concat(#{pic},pic) as pic,
+        mi.tag,mi.create_time,mi.update_time
+        from menu_info mi
+        left join menu_material mm on mi.sid = mm.mid
+        where is_recommend = 1
+        group by mi.id
+    </select>
+    <!-- 修改推荐菜谱 -->
+    <update id="updateRecommend" parameterType="java.util.Map">
+        update menu_info
+        set is_recommend = #{status}
+        where id = #{id}
+    </update>
+    <!-- 查询未推荐列表 -->
+    <select id="selectNoRecommendList" parameterType="java.util.Map" resultType="com.lineying.entity.MenuInfoEntity">
+        select id,name
+        from menu_info
+        <where>
+            is_recommend = 0
+            <if test="id !=null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="name !=null and name != ''">
+                and name like concat("%",#{name},"%")
+            </if>
+        </where>
+    </select>
+</mapper>
