@@ -1,5 +1,5 @@
 server:
-  port: 80
+  port: 8080
   servlet:
     context-path: /api
 spring:
@@ -7,8 +7,8 @@ spring:
     # 使用druid数据源
     type: com.alibaba.druid.pool.DruidDataSource
     url: jdbc:mysql://43.142.4.80:3306/cloudapi?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: data1990
+    username: cloudapi
+    password: 'NDxmQ==LF2g8'
   thymeleaf:
     mode: LEGACYHTML5
     encoding: UTF-8

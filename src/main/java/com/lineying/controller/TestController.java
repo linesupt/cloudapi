@@ -2,21 +2,22 @@ package com.lineying.controller;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
  * 测试使用
  */
-//@RestController
+@RestController
+@RequestMapping("test")
 public class TestController {
 
     /**
      * @return
      */
     @RequestMapping("test")
-    public ModelAndView test() {
-        ModelAndView mv = new ModelAndView("hello");
-        return mv;
+    public String test() {
+        return "hello";
     }
 
     /**
@@ -28,7 +29,7 @@ public class TestController {
      * @param sign
      * @return
      */
-    @RequestMapping("sign")
+    //@RequestMapping("sign")
     public String sign(String a, String b, String time, String sign) {
         //String key = "123456";
         //先排序a-z得到的参数。参数名a的值为c.以a=c&b=d的格式(a参数名，c为参数值),time为随机参数或者时间
