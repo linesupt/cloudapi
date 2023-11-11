@@ -3,7 +3,6 @@ package com.lineying.controller;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * 测试使用
@@ -18,6 +17,15 @@ public class TestController {
     @RequestMapping("test")
     public String test() {
         return "hello";
+    }
+
+    /**
+     * 服务器时间
+     * @return
+     */
+    @RequestMapping("timestamp")
+    public long timestamp() {
+        return System.currentTimeMillis();
     }
 
     /**
