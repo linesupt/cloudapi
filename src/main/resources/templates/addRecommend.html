@@ -11,14 +11,14 @@
             media="all"> -->
 </head>
 <body>
-<form action="/recipe/addRecommend">
+<form action="/api/addRecommend">
     菜谱名称:<input id="name" name="name" th:value="${name}"/>
     当前页码:<input id="pageNum" name="pageNum" th:value="${pageNum}"/>
     每页记录数:<input id="pageSize" name="pageSize" th:value="${pageSize}"/>
     <input type="submit" value="查询"/>
 </form>
 <br/>
-<a href="/recipe/selectRecommendList">跳转推荐列表页面</a><br/>
+<a href="/api/selectRecommendList">跳转推荐列表页面</a><br/>
 <table border="1" width="90%" bgcolor="#e9faff" cellpadding="2">
     <caption>推送菜谱设置页面</caption>
     <br/><span>请输入密码:<input type="password" value="" id="password"/></span>
@@ -47,7 +47,7 @@
         $.ajax({
             type: 'post',
             dataType: 'json',
-            url: '/recipe/updateRecommend?status=1&id=' + obj + '&password=' + password,
+            url: '/api/updateRecommend?status=1&id=' + obj + '&password=' + password,
             contentType: "application/json;charset=utf-8",
             success: function (data) {
                 if (data.status == 10000) {

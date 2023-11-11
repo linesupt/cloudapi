@@ -26,9 +26,9 @@
             <input type="button" th:onclick="'javascript:deleteR(\''+${emp.id}+'\');'" value="删除推荐"/></td>
     </tr>
 </table>
-<a href="/recipe/addRecommend?pageNum=1&pageSize=20&name=">跳转新增推荐页面</a>
+<a href="/api/addRecommend?pageNum=1&pageSize=20&name=">跳转新增推荐页面</a>
 </body>
-<script src="/recipe/jquery-3.1.1.js"></script>
+<script src="/api/jquery-3.1.1.js"></script>
 <script type="text/javascript">
     function deleteR(obj, password) {
         var password = $("#password").val();
@@ -39,7 +39,7 @@
         $.ajax({
             type: 'post',
             dataType: 'json',
-            url: '/recipe/updateRecommend?status=0&id=' + obj + '&password=' + password,
+            url: '/api/updateRecommend?status=0&id=' + obj + '&password=' + password,
             contentType: "application/json;charset=utf-8",
             success: function (data) {
                 if (data.status == 10000) {

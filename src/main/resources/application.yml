@@ -10,7 +10,7 @@ spring:
     username: cloudapi
     password: 'NDxmQ==LF2g8'
   thymeleaf:
-    mode: LEGACYHTML5
+    mode: HTML5
     encoding: UTF-8
     cache: false
     servlet:
@@ -20,7 +20,7 @@ spring:
 # mybatis打印sql语句日志
 mybatis:
   # pom中已经配置了过滤
-  # mapper-locations: classpath:mapping/*.xml
+  mapper-locations: classpath*:com/lineying/mapper/*.xml
   # type-aliases-package: com.fg.entity
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.lineying.entity.MaterialClassEntity;
 import com.lineying.entity.MaterialMainClass;
+import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Map;
 /**
  * 食材分類
  */
-@Component
+@Mapper
 public interface MaterialClassMapper {
     /**
      * ********************************************************

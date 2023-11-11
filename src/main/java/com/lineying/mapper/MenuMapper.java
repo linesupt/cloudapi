@@ -3,6 +3,7 @@ package com.lineying.mapper;
 import com.lineying.entity.MenuInfoEntity;
 import com.lineying.entity.MenuMaterialEntity;
 import com.lineying.entity.MenuProcessEntity;
+import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.Map;
 /**
  * 菜品信息访问
  */
-@Component
+@Mapper
 public interface MenuMapper {
 
     /**

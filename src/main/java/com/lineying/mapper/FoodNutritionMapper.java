@@ -9,9 +9,10 @@ import com.lineying.entity.NutritionCompareEntity;
 import com.lineying.entity.NutritionHealthAppraiseInfo;
 import com.lineying.entity.NutritionIngredientEntity;
 import com.lineying.entity.NutritionLightsEntity;
+import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
 
-@Component
+@Mapper
 public interface FoodNutritionMapper {
     /**
      * ********************************************************
