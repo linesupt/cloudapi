@@ -26,12 +26,10 @@ public class ApiV4Controller {
         long timestamp = jsonObject.getLong("timestamp");
         String table = jsonObject.getString("table");
         String column = jsonObject.getString("column");
-        String where = jsonObject.getString("where");
-        String sort = jsonObject.getString("sort");
-        String sort_column = jsonObject.getString("sort_column");
+        String value = jsonObject.getString("value");
 
         Logger.getGlobal().info("执行添加 " + key + " - " + data + " - " + signature + " - "
-                + timestamp + " - " + table + " - " + column + " - " + where + " - " + sort + " - " + sort_column);
+                + timestamp + " - " + table + " - " + column + " - " + value);
         return key;
     }
 
@@ -42,7 +40,13 @@ public class ApiV4Controller {
         String data = request.getParameter("data");
         String signature = request.getParameter("signature");
 
-        Logger.getGlobal().info("执行删除 " + key + " - " + data + " - " + signature);
+        JSONObject jsonObject = JSON.parseObject(data);
+        long timestamp = jsonObject.getLong("timestamp");
+        String table = jsonObject.getString("table");
+        String where = jsonObject.getString("where");
+
+        Logger.getGlobal().info("执行删除 " + key + " - " + data + " - " + signature
+                + " - " + timestamp + " - " + table + " - " + where);
         return key;
     }
 
@@ -56,13 +60,11 @@ public class ApiV4Controller {
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
         String table = jsonObject.getString("table");
-        String column = jsonObject.getString("column");
+        String set = jsonObject.getString("set");
         String where = jsonObject.getString("where");
-        String sort = jsonObject.getString("sort");
-        String sort_column = jsonObject.getString("sort_column");
 
         Logger.getGlobal().info("执行更新 " + key + " - " + data + " - " + signature + " - "
-                + timestamp + " - " + table + " - " + column + " - " + where + " - " + sort + " - " + sort_column);
+                + timestamp + " - " + table + " - " + set + " - " + where);
         return key;
     }
 
@@ -93,7 +95,12 @@ public class ApiV4Controller {
         String data = request.getParameter("data");
         String signature = request.getParameter("signature");
 
-        Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature);
+        JSONObject jsonObject = JSON.parseObject(data);
+        long timestamp = jsonObject.getLong("timestamp");
+        String sql = jsonObject.getString("sql");
+
+        Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature + " - "
+                + + timestamp + " - " + sql);
         return key;
     }
 

@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.service.ICommonService;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,8 +20,10 @@ import java.util.logging.Logger;
 @RestController
 @RequestMapping("mysql")
 public class ApiTestController {
+
     @Resource
     ICommonService commonService;
+
     @RequestMapping("/select")
     public String select(HttpServletRequest request) {
 
