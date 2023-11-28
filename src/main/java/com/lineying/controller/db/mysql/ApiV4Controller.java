@@ -3,8 +3,11 @@ package com.lineying.controller.db.mysql;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonQueryEntity;
+import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -66,7 +69,9 @@ public class ApiV4Controller {
 
         Logger.getGlobal().info("执行添加 " + key + " - " + data + " - " + signature + " - "
                 + timestamp + " - " + table + " - " + column + " - " + value);
-        return key;
+        CommonAddEntity addEntity = new CommonAddEntity();
+        commonService.add(addEntity);
+        return "新增成功";
     }
 
     @RequestMapping("/delete")
@@ -83,7 +88,11 @@ public class ApiV4Controller {
 
         Logger.getGlobal().info("执行删除 " + key + " - " + data + " - " + signature
                 + " - " + timestamp + " - " + table + " - " + where);
-        return key;
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setWhere(where);
+        commonService.delete(entity);
+        return "删除成功";
     }
 
     @RequestMapping("/update")
@@ -101,7 +110,13 @@ public class ApiV4Controller {
 
         Logger.getGlobal().info("执行更新 " + key + " - " + data + " - " + signature + " - "
                 + timestamp + " - " + table + " - " + set + " - " + where);
-        return key;
+
+        CommonUpdateEntity entity = new CommonUpdateEntity();
+        entity.setSet(set);
+        entity.setWhere(where);
+        entity.setTable(table);
+        commonService.update(entity);
+        return "更新成功";
     }
 
     @RequestMapping("/command")
@@ -116,7 +131,7 @@ public class ApiV4Controller {
         String sql = jsonObject.getString("sql");
 
         Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature + " - "
-                + + timestamp + " - " + sql);
+                + +timestamp + " - " + sql);
         return key;
     }
 

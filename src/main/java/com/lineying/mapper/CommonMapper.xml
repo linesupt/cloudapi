@@ -9,6 +9,17 @@
         where ${where}
         order by ${sortColumn} ${sort}
     </select>
-
-
+    <insert id="add" parameterType="com.lineying.entity.CommonAddEntity">
+        insert into ${table}
+                    (${column})
+        value (${value})
+    </insert>
+    <delete id="delete"  parameterType="com.lineying.entity.CommonQueryEntity">
+        delete from ${table} where ${where}
+    </delete>
+    <update id="update" parameterType="com.lineying.entity.CommonUpdateEntity">
+        update ${table}
+        set ${set}
+        where ${where}
+    </update>
 </mapper>
