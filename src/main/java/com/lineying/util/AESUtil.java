@@ -26,7 +26,8 @@ public class AESUtil {
     /**
      * 算法定义
      */
-    private static final String AES_ALGORITHM = "AES";
+    private static final String HASH_ALGORITHM = "AES";
+
     /**
      * 指定填充方式
      */
@@ -41,24 +42,24 @@ public class AESUtil {
      * AES加密
      *
      * @param content 待加密内容
-     * @param aesKey  密码
+     * @param secret  密码
      * @return
      */
-    public static String encrypt(String content, String aesKey) {
+    public static String encrypt(String content, String secret) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES encrypt: the content is null!");
             return null;
         }
         //判断秘钥是否为16位
-        if (aesKey == null || aesKey.length() != 16) {
-            LOGGER.info("AES encrypt: the aesKey is null or error!");
+        if (secret == null || secret.length() != 16) {
+            LOGGER.info("AES encrypt: the secret is null or error!");
             return null;
         }
         try {
             //对密码进行编码
-            byte[] bytes = aesKey.getBytes(ENCODING);
+            byte[] bytes = secret.getBytes(ENCODING);
             //设置加密算法，生成秘钥
-            SecretKeySpec skeySpec = new SecretKeySpec(bytes, AES_ALGORITHM);
+            SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
             // "算法/模式/补码方式"
             Cipher cipher = Cipher.getInstance(CIPHER_PADDING);
             //选择加密
@@ -77,24 +78,24 @@ public class AESUtil {
      * 解密
      *
      * @param content 待解密内容
-     * @param aesKey  密码
+     * @param secret  密码
      * @return
      */
-    public static String decrypt(String content, String aesKey) {
+    public static String decrypt(String content, String secret) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES decrypt: the content is null!");
             return null;
         }
         //判断秘钥是否为16位
-        if (aesKey == null || aesKey.length() != 16) {
-            LOGGER.info("AES decrypt: the aesKey is null or error!");
+        if (secret == null || secret.length() != 16) {
+            LOGGER.info("AES decrypt: the secret is null or error!");
             return null;
         }
         try {
             //对密码进行编码
-            byte[] bytes = aesKey.getBytes(ENCODING);
+            byte[] bytes = secret.getBytes(ENCODING);
             //设置解密算法，生成秘钥
-            SecretKeySpec skeySpec = new SecretKeySpec(bytes, AES_ALGORITHM);
+            SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
             // "算法/模式/补码方式"
             Cipher cipher = Cipher.getInstance(CIPHER_PADDING);
             //选择解密
@@ -117,23 +118,23 @@ public class AESUtil {
      * AES_CBC加密
      *
      * @param content 待加密内容
-     * @param aesKey  密码
+     * @param secret  密码
      * @return
      */
-    public static String encryptCBC(String content, String aesKey) {
+    public static String encryptCBC(String content, String secret) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES_CBC encrypt: the content is null!");
             return null;
         }
-        if (aesKey == null || aesKey.length() != 16) {
-            LOGGER.info("AES_CBC encrypt: the aesKey is null or error!");
+        if (secret == null || secret.length() != 16) {
+            LOGGER.info("AES_CBC encrypt: the secret is null or error!");
             return null;
         }
         try {
             //对密码进行编码
-            byte[] bytes = aesKey.getBytes(ENCODING);
+            byte[] bytes = secret.getBytes(ENCODING);
             //设置加密算法，生成秘钥
-            SecretKeySpec skeySpec = new SecretKeySpec(bytes, AES_ALGORITHM);
+            SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
             // "算法/模式/补码方式"
             Cipher cipher = Cipher.getInstance(CIPHER_CBC_PADDING);
             //偏移
@@ -154,23 +155,23 @@ public class AESUtil {
      * AES_CBC解密
      *
      * @param content 待解密内容
-     * @param aesKey  密码
+     * @param secret  密码
      * @return
      */
-    public static String decryptCBC(String content, String aesKey) {
+    public static String decryptCBC(String content, String secret) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES_CBC decrypt: the content is null!");
             return null;
         }
-        if (aesKey == null || aesKey.length() != 16) {
-            LOGGER.info("AES_CBC decrypt: the aesKey is null or error!");
+        if (secret == null || secret.length() != 16) {
+            LOGGER.info("AES_CBC decrypt: the secret is null or error!");
             return null;
         }
         try {
             //对密码进行编码
-            byte[] bytes = aesKey.getBytes(ENCODING);
+            byte[] bytes = secret.getBytes(ENCODING);
             //设置解密算法，生成秘钥
-            SecretKeySpec skeySpec = new SecretKeySpec(bytes, AES_ALGORITHM);
+            SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
             //偏移
             IvParameterSpec iv = new IvParameterSpec(IV_SEED.getBytes(ENCODING));
             // "算法/模式/补码方式"
