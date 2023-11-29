@@ -42,8 +42,7 @@ public class ApiV4Controller {
         String sort = jsonObject.getString("sort");
         String sort_column = jsonObject.getString("sort_column");
 
-        Logger.getGlobal().info("执行查询 " + key + " - " + data + " - " + signature + " - "
-                + timestamp + " - " + table + " - " + column + " - " + where + " - " + sort + " - " + sort_column);
+        Logger.getGlobal().info("执行查询 " + key + " - " + data + " - " + signature);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setColumn(column);
         entity.setWhere(where);
@@ -67,9 +66,11 @@ public class ApiV4Controller {
         String column = jsonObject.getString("column");
         String value = jsonObject.getString("value");
 
-        Logger.getGlobal().info("执行添加 " + key + " - " + data + " - " + signature + " - "
-                + timestamp + " - " + table + " - " + column + " - " + value);
+        Logger.getGlobal().info("执行添加 " + key + " - " + data + " - " + signature);
         CommonAddEntity addEntity = new CommonAddEntity();
+        addEntity.setTable(table);
+        addEntity.setColumn(column);
+        addEntity.setValue(value);
         commonService.add(addEntity);
         return "新增成功";
     }
@@ -86,8 +87,7 @@ public class ApiV4Controller {
         String table = jsonObject.getString("table");
         String where = jsonObject.getString("where");
 
-        Logger.getGlobal().info("执行删除 " + key + " - " + data + " - " + signature
-                + " - " + timestamp + " - " + table + " - " + where);
+        Logger.getGlobal().info("执行删除 " + key + " - " + data + " - " + signature);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setWhere(where);
@@ -108,8 +108,7 @@ public class ApiV4Controller {
         String set = jsonObject.getString("set");
         String where = jsonObject.getString("where");
 
-        Logger.getGlobal().info("执行更新 " + key + " - " + data + " - " + signature + " - "
-                + timestamp + " - " + table + " - " + set + " - " + where);
+        Logger.getGlobal().info("执行更新 " + key + " - " + data + " - " + signature);
 
         CommonUpdateEntity entity = new CommonUpdateEntity();
         entity.setSet(set);
@@ -130,8 +129,7 @@ public class ApiV4Controller {
         long timestamp = jsonObject.getLong("timestamp");
         String sql = jsonObject.getString("sql");
 
-        Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature + " - "
-                + +timestamp + " - " + sql);
+        Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature);
         return key;
     }
 
