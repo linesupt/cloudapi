@@ -3,6 +3,7 @@ package com.lineying.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.lineying.entity.FoodNutritionInfo;
 import com.lineying.entity.MaterialClassEntity;
 import com.lineying.entity.MenuClassEntity;
@@ -12,7 +13,9 @@ import com.lineying.entity.MenuProcessEntity;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * json对象
@@ -20,6 +23,73 @@ import java.util.List;
  * @author ganjing
  */
 public class JsonUtil {
+
+    /**
+     * 生成结果
+     * @param result true：成功 false：失败
+     * @return
+     */
+    public static String makeResult(boolean result) {
+        int code = result ? 1 : 0;
+        String msg = result ? "success" : "fail";
+        return makeResult(code, msg, null);
+    }
+
+    /**
+     * 时间错误
+     * @return
+     */
+    public static String makeFailTime() {
+        return makeResult(0, "fail, err: timestamp error", null);
+    }
+
+    /**
+     * 生成失败结果
+     * @param cause 原因
+     * @return
+     */
+    public static String makeFail(String cause) {
+        return makeResult(0, "fail", cause);
+    }
+
+    /**
+     * 生成失败结果
+     * @param err 失败备注
+     * @param cause 原因
+     * @return
+     */
+    public static String makeFail(String err, String cause) {
+        return makeResult(0, "fail, err: " + err, cause);
+    }
+
+    /**
+     * 生成结果
+     * @param code 0：失败 1：成功
+     * @param msg 备注： succes、fail, err:+原因
+     * @param data
+     * @return
+     */
+    public static String makeResult(int code, String msg, String data) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("code", code);
+        jsonMap.put("msg", msg);
+        jsonMap.put("data", data);
+        return JSON.toJSONString(jsonMap, SerializerFeature.WriteMapNullValue);
+    }
+
+    /**
+     * 返回结果
+     * @param data 返回实际数据
+     * @return
+     */
+    public static String makeSuccess(Object data) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("code", 1);
+        jsonMap.put("msg", "success");
+        jsonMap.put("data", data);
+        return JSON.toJSONString(jsonMap, SerializerFeature.WriteMapNullValue);
+    }
+
     /**
      * 得到菜单信息
      *

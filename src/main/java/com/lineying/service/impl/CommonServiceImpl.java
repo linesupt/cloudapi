@@ -1,6 +1,7 @@
 package com.lineying.service.impl;
 
 import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.mapper.CommonMapper;
@@ -56,5 +57,8 @@ public class CommonServiceImpl implements ICommonService {
         return commonMapper.update(entity);
     }
 
-
+    @Override
+    public boolean command(CommonCommandEntity entity) {
+        return commonMapper.command(entity);
+    }
 }

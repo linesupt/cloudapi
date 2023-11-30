@@ -18,6 +18,8 @@ public class CommonConstant {
     public static String PIC_PATH = "";
     public static boolean SIGN_TEST_ENABLED = false;
     public static String API_SERVER_BASE_URL = "";
+    // 时间误差内允许请求
+    public static long TIME_INTERVAL = 60 * 5;
 
     @Value("${config.image_path}")
     public void setImagePath(String imagesPath) {

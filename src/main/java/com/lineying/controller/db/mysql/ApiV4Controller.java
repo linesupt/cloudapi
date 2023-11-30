@@ -3,11 +3,13 @@ package com.lineying.controller.db.mysql;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.lineying.common.CommonConstant;
 import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
-import org.springframework.web.bind.annotation.RequestBody;
+import com.lineying.util.JsonUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,6 +29,19 @@ public class ApiV4Controller {
     @Resource
     ICommonService commonService;
 
+    private long getCurrentTime() {
+        return System.currentTimeMillis() / 1000;
+    }
+
+    /**
+     * 验证是否执行请求
+     * @param timestamp
+     * @return
+     */
+    private boolean checkRequest(long timestamp) {
+        return Math.abs(getCurrentTime() - timestamp) < CommonConstant.TIME_INTERVAL;
+    }
+
     @RequestMapping("/select")
     public String select(HttpServletRequest request) {
 
@@ -36,13 +51,17 @@ public class ApiV4Controller {
 
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
+        if (!checkRequest(timestamp)) {
+            return JsonUtil.makeFailTime();
+        }
+
         String table = jsonObject.getString("table");
         String column = jsonObject.getString("column");
         String where = jsonObject.getString("where");
         String sort = jsonObject.getString("sort");
         String sort_column = jsonObject.getString("sort_column");
 
-        Logger.getGlobal().info("执行查询 " + key + " - " + data + " - " + signature);
+        Logger.getGlobal().info("执行查询 " + getCurrentTime() + " - " + timestamp + " - " + key + " - " + data + " - " + signature);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setColumn(column);
         entity.setWhere(where);
@@ -50,7 +69,7 @@ public class ApiV4Controller {
         entity.setSort(sort);
         entity.setSortColumn(sort_column);
         List<Map<String, Object>> list = commonService.list(entity);
-        return JSONUtil.toJsonStr(list);
+        return JsonUtil.makeSuccess(JSON.toJSON(list));
     }
 
     @RequestMapping("/insert")
@@ -62,6 +81,9 @@ public class ApiV4Controller {
 
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
+        if (!checkRequest(timestamp)) {
+            return JsonUtil.makeFailTime();
+        }
         String table = jsonObject.getString("table");
         String column = jsonObject.getString("column");
         String value = jsonObject.getString("value");
@@ -71,8 +93,8 @@ public class ApiV4Controller {
         addEntity.setTable(table);
         addEntity.setColumn(column);
         addEntity.setValue(value);
-        commonService.add(addEntity);
-        return "新增成功";
+        boolean result = commonService.add(addEntity);
+        return JsonUtil.makeResult(result);
     }
 
     @RequestMapping("/delete")
@@ -84,6 +106,9 @@ public class ApiV4Controller {
 
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
+        if (!checkRequest(timestamp)) {
+            return JsonUtil.makeFailTime();
+        }
         String table = jsonObject.getString("table");
         String where = jsonObject.getString("where");
 
@@ -91,8 +116,8 @@ public class ApiV4Controller {
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setWhere(where);
-        commonService.delete(entity);
-        return "删除成功";
+        boolean result = commonService.delete(entity);
+        return JsonUtil.makeResult(result);
     }
 
     @RequestMapping("/update")
@@ -104,6 +129,9 @@ public class ApiV4Controller {
 
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
+        if (!checkRequest(timestamp)) {
+            return JsonUtil.makeFailTime();
+        }
         String table = jsonObject.getString("table");
         String set = jsonObject.getString("set");
         String where = jsonObject.getString("where");
@@ -114,8 +142,8 @@ public class ApiV4Controller {
         entity.setSet(set);
         entity.setWhere(where);
         entity.setTable(table);
-        commonService.update(entity);
-        return "更新成功";
+        boolean result = commonService.update(entity);
+        return JsonUtil.makeResult(result);
     }
 
     @RequestMapping("/command")
@@ -127,10 +155,16 @@ public class ApiV4Controller {
 
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
+        if (!checkRequest(timestamp)) {
+            return JsonUtil.makeFailTime();
+        }
         String sql = jsonObject.getString("sql");
 
         Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature);
-        return key;
+        CommonCommandEntity entity = new CommonCommandEntity();
+        entity.setRawSql(sql);
+        boolean result = commonService.command(entity);
+        return JsonUtil.makeResult(result);
     }
 
 }

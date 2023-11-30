@@ -1,6 +1,7 @@
 package com.lineying.mapper;
 
 import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import org.apache.ibatis.annotations.Mapper;
@@ -38,4 +39,12 @@ public interface CommonMapper {
      * @return
      */
     boolean update(CommonUpdateEntity entity);
+
+    /**
+     * 执行原始sql
+     * @param entity
+     * @return
+     */
+    boolean command(CommonCommandEntity entity);
+
 }

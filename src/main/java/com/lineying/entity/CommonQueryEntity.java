@@ -2,8 +2,6 @@ package com.lineying.entity;
 
 import lombok.Data;
 
-import javax.annotation.sql.DataSourceDefinition;
-
 @Data
 public class CommonQueryEntity {
 

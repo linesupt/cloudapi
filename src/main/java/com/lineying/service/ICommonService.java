@@ -1,6 +1,7 @@
 package com.lineying.service;
 
 import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.CommonUpdateEntity;
 
@@ -34,4 +35,12 @@ public interface ICommonService {
      * @return
      */
     boolean update(CommonUpdateEntity entity);
+
+    /**
+     * 执行原始sql
+     * @param entity
+     * @return
+     */
+    boolean command(CommonCommandEntity entity);
+
 }

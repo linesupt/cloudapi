@@ -14,7 +14,7 @@
                     (${column})
         value (${value})
     </insert>
-    <delete id="delete"  parameterType="com.lineying.entity.CommonQueryEntity">
+    <delete id="delete" parameterType="com.lineying.entity.CommonQueryEntity">
         delete from ${table} where ${where}
     </delete>
     <update id="update" parameterType="com.lineying.entity.CommonUpdateEntity">
@@ -22,4 +22,8 @@
         set ${set}
         where ${where}
     </update>
+
+    <!--<sql id="command" parameterType="com.lineying.entity.CommonCommandEntity">
+        ${rawSql}
+    </sql>-->
 </mapper>
