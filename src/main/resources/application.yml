@@ -44,6 +44,6 @@ pagehelper:
   params: count=countSql
 config:
   # 这里是服务商的接口-使用时对接接口服务商
-  db_api_key: d4dac59fc796e9b53a0390c8407984fb
-  db_secret_key: 54a4d0039108e936336194b321c9fdd1
-  iv_seed: t1ivk4o9t1ivk4o9
+  db_api_key: dad4c59fc796e9b53a0390c8407984fb
+  db_secret_key: 45a4d0039108e936336194b321c9fdd1
+  iv_seed: lyivk4o9lyivk4o9
