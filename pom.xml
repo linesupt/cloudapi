@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.lineying</groupId>
-    <artifactId>api</artifactId>
+    <artifactId>cloud</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>api</name>
-    <description>API data service</description>
+    <name>cloud</name>
+    <description>Cloud API data service</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -26,7 +26,7 @@
 
     <build>
         <!-- 应与application.properties(或application.yml)中context-path保持一致 -->
-        <finalName>api</finalName>
+        <finalName>cloud</finalName>
         <plugins>
          <!-- 已添加插件 -->
         <plugin>

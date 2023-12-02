@@ -23,7 +23,7 @@ public class CloudController {
      * 服务器时间戳（ms）
      * @return
      */
-    @RequestMapping("/timestampms")
+    @RequestMapping("/mstimestamp")
     public long timestampMillis() {
         return System.currentTimeMillis();
     }
