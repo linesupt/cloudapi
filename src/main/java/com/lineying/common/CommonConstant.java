@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonConstant {
 
-    // api key，用于查找所属项目，暂未使用
+    // 公钥，用于查找所属项目
     public static String DB_API_KEY = "";
     // 加密密钥
     public static String DB_SECRET_KEY = "";

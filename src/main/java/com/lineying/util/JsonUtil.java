@@ -25,6 +25,22 @@ public class JsonUtil {
     }
 
     /**
+     * 公钥不匹配
+     * @return
+     */
+    public static String makeFailKey() {
+        return makeResult(0, "fail, err: key error", null);
+    }
+
+    /**
+     * 签名验证错误
+     * @return
+     */
+    public static String makeFailSign() {
+        return makeResult(0, "fail, err: sign error", null);
+    }
+
+    /**
      * 时间错误
      * @return
      */

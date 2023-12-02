@@ -1,5 +1,6 @@
 package com.lineying.util;
 
+import com.lineying.common.CommonConstant;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -150,6 +151,15 @@ public class AESUtil {
             LOGGER.info("AES_CBC encrypt exception:" + e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 解码
+     * @param content
+     * @return
+     */
+    public static String decrypt(String content) {
+        return decrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, content);
     }
 
     /**
