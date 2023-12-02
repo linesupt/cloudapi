@@ -114,7 +114,9 @@ public class ApiV4Controller {
         entity.setSort(sort);
         entity.setSortColumn(sort_column);
         List<Map<String, Object>> list = commonService.list(entity);
-        return JsonCryptUtil.makeSuccess(JSON.toJSON(list));
+        JSONObject obj = new JSONObject();
+        obj.put("data", JSON.toJSON(list));
+        return JsonCryptUtil.makeSuccess(obj);
     }
 
     @RequestMapping("/insert")

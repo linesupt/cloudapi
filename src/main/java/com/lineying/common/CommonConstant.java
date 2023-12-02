@@ -18,7 +18,7 @@ public class CommonConstant {
     // 首次分块加密偏移量
     public static String IV_SEED = "";
     // 时间误差内允许请求
-    public static long TIME_INTERVAL = 24 * 60 * 500;
+    public static long TIME_INTERVAL = 60 * 2;
 
     @Value("${config.db_api_key}")
     public void setDbApiKey(String dbApiKey) {
