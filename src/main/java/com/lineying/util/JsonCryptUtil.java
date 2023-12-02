@@ -7,7 +7,6 @@ import com.lineying.common.CommonConstant;
  */
 public class JsonCryptUtil {
 
-
     /**
      * 返回时间错误结果
      * @return
@@ -15,6 +14,7 @@ public class JsonCryptUtil {
     public static String makeFailTime() {
 
         String result = JsonUtil.makeFailTime();
+        System.out.println("时间错误原始结果::" + result);
         return AESUtil.encryptCBC(CommonConstant.DB_SECRET_KEY, result);
     }
 
@@ -25,6 +25,7 @@ public class JsonCryptUtil {
      */
     public static String makeResult(boolean flag) {
         String result = JsonUtil.makeResult(flag);
+        System.out.println("原始结果::" + result);
         return AESUtil.encryptCBC(CommonConstant.DB_SECRET_KEY, result);
     }
 
@@ -35,6 +36,7 @@ public class JsonCryptUtil {
      */
     public static String makeSuccess(Object obj) {
         String result = JsonUtil.makeSuccess(obj);
+        System.out.println("成功原始结果::" + result);
         return AESUtil.encryptCBC(CommonConstant.DB_SECRET_KEY, result);
     }
 

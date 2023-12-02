@@ -21,7 +21,7 @@ public class CommonConstant {
     public static String DB_API_KEY = "";
     public static String DB_SECRET_KEY = "";
     // 时间误差内允许请求
-    public static long TIME_INTERVAL = 60 * 5;
+    public static long TIME_INTERVAL = 24 * 60 * 500;
 
     @Value("${config.image_path}")
     public void setImagePath(String imagesPath) {
