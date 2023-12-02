@@ -1,6 +1,5 @@
 package com.lineying.util;
 
-import com.lineying.common.CommonConstant;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +20,7 @@ public class SignUtil {
      * @param request
      * @return
      */
-    public static Map<String, String> getHttpParamMap(HttpServletRequest request) {
+    public static Map<String, String> getHttpParamMap(String key, HttpServletRequest request) {
         Map<String, String> map = new HashMap<String, String>();
         Enumeration<String> paramNames = request.getParameterNames();
         while (paramNames.hasMoreElements()) {
@@ -34,7 +33,7 @@ public class SignUtil {
                 }
             }
         }
-        map.put("key", CommonConstant.KEY);
+        map.put("key", key);
         Map<String, String> resultMap = sortMapByKey(map);
         return resultMap;
     }
@@ -53,19 +52,19 @@ public class SignUtil {
 
     /**
      * 验证签名
-     *
+     * @param signp
      * @param map
      * @return
      */
-    public static boolean validateSign(Map<String, String> map) {
+    public static boolean validateSign(String signp, Map<String, String> map) {
         String str = "";
-        if (null == map.get(CommonConstant.SIGN)) {
+        if (null == map.get(signp)) {
             return false;
         } else {
-            String sign = String.valueOf(map.get(CommonConstant.SIGN));
-            map.remove(CommonConstant.SIGN);
+            String sign = String.valueOf(map.get(signp));
+            map.remove(signp);
 
-            if (CommonConstant.SIGN_TEST_ENABLED && "-1".equals(sign)) {
+            if ("-1".equals(sign)) {
                 return true;
             }
             for (String s : map.keySet()) {

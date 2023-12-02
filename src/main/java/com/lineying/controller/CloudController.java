@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CloudController {
 
     /**
-     * 服务器时间戳
+     * 服务器时间戳（s）
      * @return
      */
     @RequestMapping("/timestamp")
@@ -19,6 +19,10 @@ public class CloudController {
         return System.currentTimeMillis() / 1000;
     }
 
+    /**
+     * 服务器时间戳（ms）
+     * @return
+     */
     @RequestMapping("/timestampms")
     public long timestampMillis() {
         return System.currentTimeMillis();
