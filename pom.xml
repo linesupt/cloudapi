@@ -5,7 +5,7 @@
 
     <groupId>com.lineying</groupId>
     <artifactId>cloud</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>cloud</name>
@@ -32,6 +32,9 @@
         <plugin>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <includeSystemScope>true</includeSystemScope>
+            </configuration>
             <executions>
                 <execution>
                     <goals>
