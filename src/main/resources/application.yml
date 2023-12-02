@@ -48,5 +48,7 @@ config:
   common-pic: http://43.142.4.80/image/
   image_path: /www/server/recipe_image
   sign_test_enabled: true
+  db_api_key: d4dac59fc796e9b53a0390c8407984fb
+  db_secret_key: 54a4d0039108e936336194b321c9fdd1
   appkey: 449a9b6f2a5bda2f
   key: 11458977997

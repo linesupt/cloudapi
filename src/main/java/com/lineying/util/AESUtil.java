@@ -1,5 +1,6 @@
 package com.lineying.util;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Base64Utils;
@@ -7,6 +8,7 @@ import org.springframework.util.Base64Utils;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.Security;
 
 /**
  * AES加密工具类
@@ -15,6 +17,11 @@ import javax.crypto.spec.SecretKeySpec;
  * @since 2021-06-18 19:11:03
  */
 public class AESUtil {
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
     /**
      * 日志相关
      */
@@ -31,39 +38,40 @@ public class AESUtil {
     /**
      * 指定填充方式
      */
-    private static final String CIPHER_PADDING = "AES/ECB/PKCS5Padding";
-    private static final String CIPHER_CBC_PADDING = "AES/CBC/PKCS5Padding";
+    private static final String AES_EBC_MODE = "AES/ECB/PKCS5Padding";
     /**
-     * 偏移量(CBC中使用，增强加密算法强度)
+     * CBC模式支持偏移
      */
-    private static final String IV_SEED = "1234567812345678";
+    private static final String AES_CBC_MODE = "AES/CBC/PKCS7Padding";
+    /**
+     * 首次加密偏移量(CBC中使用，增强加密算法强度)
+     */
+    private static final String IV_SEED = "t1ivk4o9t1ivk4o9";
 
     /**
      * AES加密
      *
+     * @param secret  密钥key
      * @param content 待加密内容
-     * @param secret  密码
      * @return
      */
-    public static String encrypt(String content, String secret) {
+    public static String encrypt(String secret, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES encrypt: the content is null!");
             return null;
         }
         //判断秘钥是否为16位
-        if (secret == null || secret.length() != 16) {
+        if (secret == null) {
             LOGGER.info("AES encrypt: the secret is null or error!");
             return null;
         }
         try {
-            //对密码进行编码
-            byte[] bytes = secret.getBytes(ENCODING);
             //设置加密算法，生成秘钥
-            SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
+            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(ENCODING), HASH_ALGORITHM);
             // "算法/模式/补码方式"
-            Cipher cipher = Cipher.getInstance(CIPHER_PADDING);
+            Cipher cipher = Cipher.getInstance(AES_EBC_MODE);
             //选择加密
-            cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
             //根据待加密内容生成字节数组
             byte[] encrypted = cipher.doFinal(content.getBytes(ENCODING));
             //返回base64字符串
@@ -77,33 +85,29 @@ public class AESUtil {
     /**
      * 解密
      *
+     * @param secret  密钥key
      * @param content 待解密内容
-     * @param secret  密码
      * @return
      */
-    public static String decrypt(String content, String secret) {
+    public static String decrypt(String secret, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES decrypt: the content is null!");
             return null;
         }
         //判断秘钥是否为16位
-        if (secret == null || secret.length() != 16) {
+        if (secret == null) {
             LOGGER.info("AES decrypt: the secret is null or error!");
             return null;
         }
         try {
-            //对密码进行编码
-            byte[] bytes = secret.getBytes(ENCODING);
-            //设置解密算法，生成秘钥
-            SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
-            // "算法/模式/补码方式"
-            Cipher cipher = Cipher.getInstance(CIPHER_PADDING);
-            //选择解密
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec);
-
             //先进行Base64解码
             byte[] decodeBase64 = Base64Utils.decodeFromString(content);
-
+            //设置解密算法，生成秘钥
+            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(ENCODING), HASH_ALGORITHM);
+            // "算法/模式/补码方式"
+            Cipher cipher = Cipher.getInstance(AES_EBC_MODE);
+            //选择解密
+            cipher.init(Cipher.DECRYPT_MODE, keySpec);
             //根据待解密内容进行解密
             byte[] decrypted = cipher.doFinal(decodeBase64);
             //将字节数组转成字符串
@@ -117,16 +121,16 @@ public class AESUtil {
     /**
      * AES_CBC加密
      *
+     * @param secret  密钥key
      * @param content 待加密内容
-     * @param secret  密码
      * @return
      */
-    public static String encryptCBC(String content, String secret) {
+    public static String encryptCBC(String secret, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES_CBC encrypt: the content is null!");
             return null;
         }
-        if (secret == null || secret.length() != 16) {
+        if (secret == null) {
             LOGGER.info("AES_CBC encrypt: the secret is null or error!");
             return null;
         }
@@ -135,12 +139,12 @@ public class AESUtil {
             byte[] bytes = secret.getBytes(ENCODING);
             //设置加密算法，生成秘钥
             SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
-            // "算法/模式/补码方式"
-            Cipher cipher = Cipher.getInstance(CIPHER_CBC_PADDING);
             //偏移
-            IvParameterSpec iv = new IvParameterSpec(IV_SEED.getBytes(ENCODING));
+            IvParameterSpec ivSpec = new IvParameterSpec(IV_SEED.getBytes(ENCODING));
+            //"算法/模式/补码方式"
+            Cipher cipher = Cipher.getInstance(AES_CBC_MODE);
             //选择加密
-            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivSpec);
             //根据待加密内容生成字节数组
             byte[] encrypted = cipher.doFinal(content.getBytes(ENCODING));
             //返回base64字符串
@@ -154,16 +158,16 @@ public class AESUtil {
     /**
      * AES_CBC解密
      *
+     * @param secret  密钥key
      * @param content 待解密内容
-     * @param secret  密码
      * @return
      */
-    public static String decryptCBC(String content, String secret) {
+    public static String decryptCBC(String secret, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES_CBC decrypt: the content is null!");
             return null;
         }
-        if (secret == null || secret.length() != 16) {
+        if (secret == null) {
             LOGGER.info("AES_CBC decrypt: the secret is null or error!");
             return null;
         }
@@ -171,17 +175,15 @@ public class AESUtil {
             //对密码进行编码
             byte[] bytes = secret.getBytes(ENCODING);
             //设置解密算法，生成秘钥
-            SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
+            SecretKeySpec keySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
             //偏移
             IvParameterSpec iv = new IvParameterSpec(IV_SEED.getBytes(ENCODING));
-            // "算法/模式/补码方式"
-            Cipher cipher = Cipher.getInstance(CIPHER_CBC_PADDING);
+            //"算法/模式/补码方式"
+            Cipher cipher = Cipher.getInstance(AES_CBC_MODE);
             //选择解密
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
-
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
             //先进行Base64解码
             byte[] decodeBase64 = Base64Utils.decodeFromString(content);
-
             //根据待解密内容进行解密
             byte[] decrypted = cipher.doFinal(decodeBase64);
             //将字节数组转成字符串
@@ -193,30 +195,31 @@ public class AESUtil {
     }
 
     public static void main(String[] args) {
+
         // AES支持三种长度的密钥：128位、192位、256位。
         // 代码中这种就是128位的加密密钥，16字节 * 8位/字节 = 128位。
-        String random = "abcdyz1234567890";
-        System.out.println("随机key:" + random);
+        String secret = "54a4d0039108e936336194b321c9fdd1";
+        System.out.println("随机key:" + secret);
         System.out.println();
 
         System.out.println("---------加密---------");
-        String aesResult = encrypt("测试AES加密12", random);
+        String aesResult = encrypt("测试AES加密12", secret);
         System.out.println("aes加密结果:" + aesResult);
         System.out.println();
 
         System.out.println("---------解密---------");
-        String decrypt = decrypt(aesResult, random);
+        String decrypt = decrypt(aesResult, secret);
         System.out.println("aes解密结果:" + decrypt);
         System.out.println();
 
 
         System.out.println("--------AES_CBC加密解密---------");
-        String cbcResult = encryptCBC("测试AES加密12456", random);
+        String cbcResult = encryptCBC("测试AES加密12456", secret);
         System.out.println("aes_cbc加密结果:" + cbcResult);
         System.out.println();
 
         System.out.println("---------解密CBC---------");
-        String cbcDecrypt = decryptCBC(cbcResult, random);
+        String cbcDecrypt = decryptCBC(cbcResult, secret);
         System.out.println("aes解密结果:" + cbcDecrypt);
         System.out.println();
     }

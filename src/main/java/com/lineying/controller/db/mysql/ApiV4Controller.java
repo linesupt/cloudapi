@@ -1,6 +1,5 @@
 package com.lineying.controller.db.mysql;
 
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lineying.common.CommonConstant;
@@ -9,6 +8,7 @@ import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
+import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,7 +52,7 @@ public class ApiV4Controller {
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
         if (!checkRequest(timestamp)) {
-            return JsonUtil.makeFailTime();
+            return JsonCryptUtil.makeFailTime();
         }
 
         String table = jsonObject.getString("table");
@@ -69,7 +69,7 @@ public class ApiV4Controller {
         entity.setSort(sort);
         entity.setSortColumn(sort_column);
         List<Map<String, Object>> list = commonService.list(entity);
-        return JsonUtil.makeSuccess(JSON.toJSON(list));
+        return JsonCryptUtil.makeSuccess(JSON.toJSON(list));
     }
 
     @RequestMapping("/insert")
@@ -94,7 +94,7 @@ public class ApiV4Controller {
         addEntity.setColumn(column);
         addEntity.setValue(value);
         boolean result = commonService.add(addEntity);
-        return JsonUtil.makeResult(result);
+        return JsonCryptUtil.makeResult(result);
     }
 
     @RequestMapping("/delete")
@@ -107,7 +107,7 @@ public class ApiV4Controller {
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
         if (!checkRequest(timestamp)) {
-            return JsonUtil.makeFailTime();
+            return JsonCryptUtil.makeFailTime();
         }
         String table = jsonObject.getString("table");
         String where = jsonObject.getString("where");
@@ -117,7 +117,7 @@ public class ApiV4Controller {
         entity.setTable(table);
         entity.setWhere(where);
         boolean result = commonService.delete(entity);
-        return JsonUtil.makeResult(result);
+        return JsonCryptUtil.makeResult(result);
     }
 
     @RequestMapping("/update")
@@ -130,7 +130,7 @@ public class ApiV4Controller {
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
         if (!checkRequest(timestamp)) {
-            return JsonUtil.makeFailTime();
+            return JsonCryptUtil.makeFailTime();
         }
         String table = jsonObject.getString("table");
         String set = jsonObject.getString("set");
@@ -143,7 +143,7 @@ public class ApiV4Controller {
         entity.setWhere(where);
         entity.setTable(table);
         boolean result = commonService.update(entity);
-        return JsonUtil.makeResult(result);
+        return JsonCryptUtil.makeResult(result);
     }
 
     @RequestMapping("/command")
@@ -156,7 +156,7 @@ public class ApiV4Controller {
         JSONObject jsonObject = JSON.parseObject(data);
         long timestamp = jsonObject.getLong("timestamp");
         if (!checkRequest(timestamp)) {
-            return JsonUtil.makeFailTime();
+            return JsonCryptUtil.makeFailTime();
         }
         String sql = jsonObject.getString("sql");
 
@@ -164,7 +164,7 @@ public class ApiV4Controller {
         CommonCommandEntity entity = new CommonCommandEntity();
         entity.setRawSql(sql);
         boolean result = commonService.command(entity);
-        return JsonUtil.makeResult(result);
+        return JsonCryptUtil.makeResult(result);
     }
 
 }
