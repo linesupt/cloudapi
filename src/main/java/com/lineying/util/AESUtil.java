@@ -43,10 +43,6 @@ public class AESUtil {
      * CBC模式支持偏移
      */
     private static final String AES_CBC_MODE = "AES/CBC/PKCS7Padding";
-    /**
-     * 首次加密偏移量(CBC中使用，增强加密算法强度)
-     */
-    private static final String IV_SEED = "t1ivk4o9t1ivk4o9";
 
     /**
      * AES加密
@@ -55,7 +51,7 @@ public class AESUtil {
      * @param content 待加密内容
      * @return
      */
-    public static String encrypt(String secret, String content) {
+    public static String encryptEBC(String secret, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES encrypt: the content is null!");
             return null;
@@ -89,7 +85,7 @@ public class AESUtil {
      * @param content 待解密内容
      * @return
      */
-    public static String decrypt(String secret, String content) {
+    public static String decryptEBC(String secret, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES decrypt: the content is null!");
             return null;
@@ -122,10 +118,11 @@ public class AESUtil {
      * AES_CBC加密
      *
      * @param secret  密钥key
+     * @param ivSeed  向量偏移
      * @param content 待加密内容
      * @return
      */
-    public static String encryptCBC(String secret, String content) {
+    public static String encrypt(String secret, String ivSeed, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES_CBC encrypt: the content is null!");
             return null;
@@ -140,7 +137,7 @@ public class AESUtil {
             //设置加密算法，生成秘钥
             SecretKeySpec skeySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
             //偏移
-            IvParameterSpec ivSpec = new IvParameterSpec(IV_SEED.getBytes(ENCODING));
+            IvParameterSpec ivSpec = new IvParameterSpec(ivSeed.getBytes(ENCODING));
             //"算法/模式/补码方式"
             Cipher cipher = Cipher.getInstance(AES_CBC_MODE);
             //选择加密
@@ -159,10 +156,11 @@ public class AESUtil {
      * AES_CBC解密
      *
      * @param secret  密钥key
+     * @param ivSeed  向量偏移
      * @param content 待解密内容
      * @return
      */
-    public static String decryptCBC(String secret, String content) {
+    public static String decrypt(String secret, String ivSeed, String content) {
         if (content == null || content.isEmpty()) {
             LOGGER.info("AES_CBC decrypt: the content is null!");
             return null;
@@ -177,11 +175,11 @@ public class AESUtil {
             //设置解密算法，生成秘钥
             SecretKeySpec keySpec = new SecretKeySpec(bytes, HASH_ALGORITHM);
             //偏移
-            IvParameterSpec iv = new IvParameterSpec(IV_SEED.getBytes(ENCODING));
+            IvParameterSpec ivSpec = new IvParameterSpec(ivSeed.getBytes(ENCODING));
             //"算法/模式/补码方式"
             Cipher cipher = Cipher.getInstance(AES_CBC_MODE);
             //选择解密
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             //先进行Base64解码
             byte[] decodeBase64 = Base64Utils.decodeFromString(content);
             //根据待解密内容进行解密
@@ -199,27 +197,28 @@ public class AESUtil {
         // AES支持三种长度的密钥：128位、192位、256位。
         // 代码中这种就是128位的加密密钥，16字节 * 8位/字节 = 128位。
         String secret = "54a4d0039108e936336194b321c9fdd1";
+        String ivSeed = "t1ivk4o9t1ivk4o9";
         System.out.println("随机key:" + secret);
         System.out.println();
 
         System.out.println("---------加密---------");
-        String aesResult = encrypt("测试AES加密12", secret);
+        String aesResult = encryptEBC(secret, "测试AES加密12");
         System.out.println("aes加密结果:" + aesResult);
         System.out.println();
 
         System.out.println("---------解密---------");
-        String decrypt = decrypt(aesResult, secret);
+        String decrypt = decryptEBC(secret, aesResult);
         System.out.println("aes解密结果:" + decrypt);
         System.out.println();
 
 
         System.out.println("--------AES_CBC加密解密---------");
-        String cbcResult = encryptCBC("测试AES加密12456", secret);
+        String cbcResult = encrypt(secret, ivSeed, "测试AES加密12456");
         System.out.println("aes_cbc加密结果:" + cbcResult);
         System.out.println();
 
         System.out.println("---------解密CBC---------");
-        String cbcDecrypt = decryptCBC(cbcResult, secret);
+        String cbcDecrypt = decrypt(secret, ivSeed, cbcResult);
         System.out.println("aes解密结果:" + cbcDecrypt);
         System.out.println();
     }

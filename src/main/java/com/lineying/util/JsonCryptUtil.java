@@ -15,7 +15,7 @@ public class JsonCryptUtil {
 
         String result = JsonUtil.makeFailTime();
         System.out.println("时间错误原始结果::" + result);
-        return AESUtil.encryptCBC(CommonConstant.DB_SECRET_KEY, result);
+        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
     }
 
     /**
@@ -26,7 +26,7 @@ public class JsonCryptUtil {
     public static String makeResult(boolean flag) {
         String result = JsonUtil.makeResult(flag);
         System.out.println("原始结果::" + result);
-        return AESUtil.encryptCBC(CommonConstant.DB_SECRET_KEY, result);
+        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
     }
 
     /**
@@ -37,7 +37,7 @@ public class JsonCryptUtil {
     public static String makeSuccess(Object obj) {
         String result = JsonUtil.makeSuccess(obj);
         System.out.println("成功原始结果::" + result);
-        return AESUtil.encryptCBC(CommonConstant.DB_SECRET_KEY, result);
+        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
     }
 
 }
