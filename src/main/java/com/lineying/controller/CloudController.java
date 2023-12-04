@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 测试使用
+ * 应用级接口
  */
 @RestController
 @RequestMapping("api")

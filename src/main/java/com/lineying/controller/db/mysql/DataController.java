@@ -24,14 +24,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import static com.lineying.controller.db.mysql.ApiV4Controller.SignResult.*;
+import static com.lineying.controller.db.mysql.DataController.SignResult.*;
 
 /**
- * 接口控制
+ * 数据级接口控制
  */
 @RestController
-@RequestMapping("v4/db/mysql")
-public class ApiV4Controller {
+@RequestMapping("api/db/mysql")
+public class DataController {
 
     @Resource
     ICommonService commonService;
