@@ -50,3 +50,5 @@ config:
   mail_sender_name: linesupt
   mail_sender: linesupt@foxmail.com
   mail_password: rrnxgyzerpdfdbfh
+  tencentcloud_secret_id: asdfadf
+  tencentcloud_secret_key: sdfdf

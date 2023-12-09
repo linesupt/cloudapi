@@ -1,5 +1,14 @@
 package com.lineying.sms;
 
+import com.lineying.common.CommonConstant;
+import com.lineying.sms.tencentcloud.SmsClient;
+import com.lineying.sms.tencentcloud.models.SendSmsRequest;
+import com.lineying.sms.tencentcloud.models.SendSmsResponse;
+import com.tencentcloudapi.common.Credential;
+import com.tencentcloudapi.common.exception.TencentCloudSDKException;
+
+import java.util.logging.Logger;
+
 /**
  * 短信发送
  */
@@ -13,5 +22,6 @@ public class SmsSenderManager {
         // TODO
         return 1;
     }
+
 
 }

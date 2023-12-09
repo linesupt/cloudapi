@@ -6,6 +6,7 @@ import com.lineying.bean.VerifyCode;
 import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
 import com.lineying.mail.EmailSenderManager;
+import com.lineying.service.ISmsService;
 import com.lineying.sms.SmsSenderManager;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
@@ -14,6 +15,7 @@ import com.lineying.util.VerifyCodeGenerator;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.logging.Logger;
@@ -34,9 +36,8 @@ public class VerifyController extends BaseController {
     private List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
     private List<String> zhCNs = Arrays.asList("zh-CN");
 
-
-    //@Resource
-    //IVerifyCodeService verifyCodeService;
+    @Resource
+    ISmsService smsService;
 
     /**
      * 执行验证码缓存清除
@@ -110,7 +111,7 @@ public class VerifyController extends BaseController {
             if (zhCNs.contains(locale)) {
                 subject = "短信验证";
             }
-            sendResult = SmsSenderManager.relaySms(subject, content, target);
+            sendResult = smsService.sendCode(appCode, target, sendCode);
             if (sendResult == 0) {
                 Logger.getGlobal().info("短信发送失败!");
             }

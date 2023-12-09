@@ -23,6 +23,9 @@ public class CommonConstant {
     public static String MAIL_SENDER = "";
     // 邮箱发送密码
     public static String MAIL_PASSWORD = "";
+    public static String TENCENTCLOUD_SECRET_ID = "";
+    public static String TENCENTCLOUD_SECRET_KEY = "";
+
     // 时间误差内允许请求
     public static long TIME_INTERVAL = 60 * 2;
 
@@ -54,6 +57,16 @@ public class CommonConstant {
     @Value("${config.mail_password}")
     public void setMailPassword(String mailPassword) {
         MAIL_PASSWORD = mailPassword;
+    }
+
+    @Value("${config.tencentcloud_secret_id}")
+    public void setTencentcloudSecretId(String tencentcloudSecretId) {
+        TENCENTCLOUD_SECRET_ID = tencentcloudSecretId;
+    }
+
+    @Value("${config.tencentcloud_secret_key}")
+    public void setTencentcloudSecretKey(String tencentcloudSecretKey) {
+        TENCENTCLOUD_SECRET_KEY = tencentcloudSecretKey;
     }
 
 }
