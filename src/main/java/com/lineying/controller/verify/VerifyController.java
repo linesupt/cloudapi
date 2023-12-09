@@ -32,6 +32,8 @@ public class VerifyController extends BaseController {
     private static Map<Integer, VerifyCode> mVerifyCodes = new HashMap<>();
 
     private List<String> mAppServers = Arrays.asList("mathcalc", "scancode", "linevideo");
+    private List<String> zhCNs = Arrays.asList("zh-CN");
+
 
     //@Resource
     //IVerifyCodeService verifyCodeService;
@@ -86,7 +88,6 @@ public class VerifyController extends BaseController {
         int uid = jsonObject.getInteger("uid");
         int type = jsonObject.getInteger("type");
         String target = jsonObject.getString("target");
-        String subject = "Verify Code";
         String content = String.format("您的验证码是：%s，请尽快进行验证", sendCode);
         int sendResult = 0;
         if (!mAppServers.contains(app)) {
@@ -95,12 +96,20 @@ public class VerifyController extends BaseController {
         }
         if (type == 1) {
             // 处理邮件发送
+            String subject = "Email verification";
+            if (zhCNs.contains(locale)) {
+                subject = "邮箱验证";
+            }
             sendResult = EmailSenderManager.relayEmail(subject, content, target);
             if (sendResult == 0) {
                 Logger.getGlobal().info("邮件发送失败!");
             }
         } else if (type == 2) {
             // 处理短信发送
+            String subject = "SMS verification";
+            if (zhCNs.contains(locale)) {
+                subject = "短信验证";
+            }
             sendResult = SmsSenderManager.relaySms(subject, content, target);
             if (sendResult == 0) {
                 Logger.getGlobal().info("短信发送失败!");
