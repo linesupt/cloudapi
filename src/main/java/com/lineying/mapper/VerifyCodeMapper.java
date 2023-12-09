@@ -1,6 +1,7 @@
 package com.lineying.mapper;
 
 import com.lineying.entity.VerifyCodeEntity;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Map;
 /**
  * 验证码
  */
+@Mapper
 public interface VerifyCodeMapper {
 
     /**

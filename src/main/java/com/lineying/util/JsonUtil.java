@@ -33,6 +33,14 @@ public class JsonUtil {
     }
 
     /**
+     * 发送验证码错误
+     * @return
+     */
+    public static String makeFailSendVerifyCode() {
+        return makeResult(0, "fail, err: send verify code error", null);
+    }
+
+    /**
      * 验证码成功
      * @return
      */

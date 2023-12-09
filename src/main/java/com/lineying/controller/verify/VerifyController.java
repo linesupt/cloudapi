@@ -7,6 +7,7 @@ import com.lineying.controller.BaseController;
 import com.lineying.entity.VerifyCodeEntity;
 import com.lineying.mail.EmailSenderManager;
 import com.lineying.service.IVerifyCodeService;
+import com.lineying.sms.SmsSenderManager;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
@@ -65,12 +66,25 @@ public class VerifyController extends BaseController {
         String code = jsonObject.getString("code");
         String target = jsonObject.getString("target");
         int type = jsonObject.getInteger("type");
+        String subject = "Verify Code";
+        String content = String.format("您的验证码是：%s，请尽快进行验证", verifyCode);
+        int sendResult = 0;
         if (type == 1) {
             // 处理邮件发送
-            String content = String.format("您的验证码是：%s，请尽快进行验证", verifyCode);
-            EmailSenderManager.INSTANCE.relayEmail("Verify Code", content, target);
+            sendResult = EmailSenderManager.relayEmail(subject, content, target);
+            if (sendResult == 0) {
+                Logger.getGlobal().info("邮件发送失败!");
+            }
         } else if (type == 2) {
             // 处理短信发送
+            sendResult = SmsSenderManager.relaySms(subject, content, target);
+            if (sendResult == 0) {
+                Logger.getGlobal().info("短信发送失败!");
+            }
+        }
+
+        if (sendResult == 0) {
+            return JsonCryptUtil.makeFailSendVerifyCode();
         }
 
         VerifyCodeEntity entity = new VerifyCodeEntity();
@@ -118,7 +132,7 @@ public class VerifyController extends BaseController {
         entity.setColumn("`uid`,`code`,`target`,`type`,`create_time`,`update_time`");
         String value = String.format("'%s','%s','%s','%s','%s','%s'", uid + "", code, target, type + "", timestamp  + "", timestamp + "");
         entity.setValue(value);
-        entity.setWhere("code = " + code + " and create_time > " + limitTimestamp);
+        entity.setWhere("lower(code) = " + code + " and create_time > " + limitTimestamp);
         entity.setSortColumn("create_time");
         entity.setSort("desc");
         List<Map<String, Object>> list = verifyCodeService.list(entity);
