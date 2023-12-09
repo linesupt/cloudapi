@@ -25,6 +25,22 @@ public class JsonUtil {
     }
 
     /**
+     * 验证码错误
+     * @return
+     */
+    public static String makeFailVerifyCode() {
+        return makeResult(0, "fail, err: verify code error", null);
+    }
+
+    /**
+     * 验证码成功
+     * @return
+     */
+    public static String makeSuccess() {
+        return makeResult(true);
+    }
+
+    /**
      * 公钥不匹配
      * @return
      */

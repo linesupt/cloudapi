@@ -8,6 +8,27 @@ import com.lineying.common.CommonConstant;
 public class JsonCryptUtil {
 
     /**
+     * 验证码验证失败
+     * @return
+     */
+    public static String makeFailVerifyCode() {
+
+        String result = JsonUtil.makeFailVerifyCode();
+        System.out.println("验证码错误::" + result);
+        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+    }
+
+    /**
+     * 返回成功
+     * @return
+     */
+    public static String makeSuccess() {
+        String result = JsonUtil.makeSuccess();
+        System.out.println("成功::" + result);
+        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+    }
+
+    /**
      * 公钥不匹配
      * @return
      */

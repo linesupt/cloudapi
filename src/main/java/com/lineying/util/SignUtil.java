@@ -1,12 +1,13 @@
 package com.lineying.util;
 
+import cn.hutool.crypto.digest.MD5;
+import com.lineying.common.CommonConstant;
+import com.lineying.common.SignResult;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * 签名工具类
@@ -14,6 +15,28 @@ import java.util.TreeMap;
  * @author ganjing
  */
 public class SignUtil {
+
+    /**
+     * 验证签名
+     * @param key
+     * @param data
+     * @param signature
+     * @return
+     */
+    @SignResult
+    public static int validateSign(String key, String data, String signature) {
+        if (!Objects.equals(key, CommonConstant.DB_API_KEY)) {
+            return SignResult.KEY_ERROR; // key error
+        }
+        String signText = key + data + CommonConstant.DB_SECRET_KEY;
+        String signatureText = MD5.create().digestHex(signText);
+        Logger.getGlobal().info("执行签名验证 " + signText + " - " + signatureText);
+        if (!Objects.equals(signatureText, signature)) {
+            return SignResult.SIGN_ERROR; // sign error
+        }
+        return SignResult.OK;
+    }
+
     /**
      * 得到httpMap
      *

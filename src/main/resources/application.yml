@@ -47,3 +47,6 @@ config:
   db_api_key: dad4c59fc796e9b53a0390c8407984fb
   db_secret_key: 45a4d0039108e936336194b321c9fdd1
   iv_seed: lyivk4o9lyivk4o9
+  mail_sender_name: linesupt
+  mail_sender: linesupt@foxmail.com
+  mail_password: rrnxgyzerpdfdbfh

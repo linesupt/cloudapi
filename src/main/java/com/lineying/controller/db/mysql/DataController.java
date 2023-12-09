@@ -1,9 +1,8 @@
 package com.lineying.controller.db.mysql;
 
-import cn.hutool.crypto.digest.MD5;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lineying.common.CommonConstant;
+import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
@@ -12,72 +11,27 @@ import com.lineying.service.ICommonService;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;
+import com.lineying.util.SignUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Logger;
 
-import static com.lineying.controller.db.mysql.DataController.SignResult.*;
+import static com.lineying.common.SignResult.*;
 
 /**
  * 数据级接口控制
  */
 @RestController
 @RequestMapping("api/db/mysql")
-public class DataController {
+public class DataController extends BaseController {
 
     @Resource
     ICommonService commonService;
-
-    private long getCurrentTime() {
-        return System.currentTimeMillis() / 1000;
-    }
-
-    /**
-     * 验证是否执行请求
-     * @param timestamp
-     * @return
-     */
-    private boolean checkRequest(long timestamp) {
-        return Math.abs(getCurrentTime() - timestamp) < CommonConstant.TIME_INTERVAL;
-    }
-
-    /**
-     * 签名验证结果
-     */
-    @Retention(RetentionPolicy.SOURCE)
-    @interface SignResult {
-        int OK = 1;
-        int KEY_ERROR = 2; // 公钥不匹配
-        int SIGN_ERROR = 3; // 签名错误
-    }
-
-    /**
-     * 验证签名
-     * @param key
-     * @param data
-     * @param signature
-     * @return
-     */
-    private @SignResult int validateSign(String key, String data, String signature) {
-        if (!Objects.equals(key, CommonConstant.DB_API_KEY)) {
-            return SignResult.KEY_ERROR; // key error
-        }
-        String signText = key + data + CommonConstant.DB_SECRET_KEY;
-        String signatureText = MD5.create().digestHex(signText);
-        Logger.getGlobal().info("执行签名验证 " + signText + " - " + signatureText);
-        if (!Objects.equals(signatureText, signature)) {
-            return SignResult.SIGN_ERROR; // sign error
-        }
-        return OK;
-    }
 
     @RequestMapping("/select")
     public String select(HttpServletRequest request) {
@@ -85,7 +39,7 @@ public class DataController {
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
-        int signResult = validateSign(key, secretData, signature);
+        int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
                 return JsonCryptUtil.makeFailKey();
@@ -125,7 +79,7 @@ public class DataController {
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
-        int signResult = validateSign(key, secretData, signature);
+        int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
                 return JsonCryptUtil.makeFailKey();
@@ -158,7 +112,7 @@ public class DataController {
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
-        int signResult = validateSign(key, secretData, signature);
+        int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
                 return JsonCryptUtil.makeFailKey();
@@ -189,7 +143,7 @@ public class DataController {
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
-        int signResult = validateSign(key, secretData, signature);
+        int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
                 return JsonCryptUtil.makeFailKey();
@@ -224,7 +178,7 @@ public class DataController {
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
 
-        int signResult = validateSign(key, secretData, signature);
+        int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
                 return JsonCryptUtil.makeFailKey();

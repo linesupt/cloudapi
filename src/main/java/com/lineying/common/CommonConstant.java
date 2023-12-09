@@ -17,6 +17,12 @@ public class CommonConstant {
     public static String DB_SECRET_KEY = "";
     // 首次分块加密偏移量
     public static String IV_SEED = "";
+    // 邮箱发送账户名称
+    public static String MAIL_SENDER_NAME = "";
+    // 邮箱发送账户
+    public static String MAIL_SENDER = "";
+    // 邮箱发送密码
+    public static String MAIL_PASSWORD = "";
     // 时间误差内允许请求
     public static long TIME_INTERVAL = 60 * 2;
 
@@ -34,4 +40,20 @@ public class CommonConstant {
     public void setIvSeed(String ivSeed) {
         IV_SEED = ivSeed;
     }
+
+    @Value("${config.mail_sender_name}")
+    public void setMailSenderName(String mailSenderName) {
+        MAIL_SENDER_NAME = mailSenderName;
+    }
+
+    @Value("${config.mail_sender}")
+    public void setMailSender(String mailSender) {
+        MAIL_SENDER = mailSender;
+    }
+
+    @Value("${config.mail_password}")
+    public void setMailPassword(String mailPassword) {
+        MAIL_PASSWORD = mailPassword;
+    }
+
 }
