@@ -1,14 +1,14 @@
 package com.lineying.sms;
 
 import com.lineying.common.CommonConstant;
-import com.lineying.sms.tencentcloud.SmsClient;
-import com.lineying.sms.tencentcloud.models.SendSmsRequest;
-import com.lineying.sms.tencentcloud.models.SendSmsResponse;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
 import com.tencentcloudapi.common.profile.Region;
+import com.tencentcloudapi.sms.v20210111.SmsClient;
+import com.tencentcloudapi.sms.v20210111.models.SendSmsRequest;
+import com.tencentcloudapi.sms.v20210111.models.SendSmsResponse;
 
 import java.util.logging.Logger;
 

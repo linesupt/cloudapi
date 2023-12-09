@@ -150,12 +150,12 @@
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
         </dependency>
-        <!--<dependency>
+        <dependency>
             <groupId>com.tencentcloudapi</groupId>
             <artifactId>tencentcloud-sdk-java</artifactId>
-            &lt;!&ndash; https://search.maven.org/search?q=tencentcloud-sdk-java &ndash;&gt;
-            <version>3.1.923</version>
-        </dependency>-->
+            <!-- https://search.maven.org/search?q=tencentcloud-sdk-java -->
+            <version>3.1.900</version>
+        </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>

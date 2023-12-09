@@ -7,7 +7,6 @@ import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
 import com.lineying.mail.EmailSenderManager;
 import com.lineying.service.ISmsService;
-import com.lineying.sms.SmsSenderManager;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
@@ -34,7 +33,10 @@ public class VerifyController extends BaseController {
     private static Map<Integer, VerifyCode> mVerifyCodes = new HashMap<>();
 
     private List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
-    private List<String> zhCNs = Arrays.asList("zh-CN");
+    // 简体中文
+    private List<String> zhCNs = Arrays.asList("zh-CN", "zh-Hans");
+    // 繁体中文
+    private List<String> zhHants = Arrays.asList("zh-TW", "zh-Hans");
 
     @Resource
     ISmsService smsService;

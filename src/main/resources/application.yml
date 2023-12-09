@@ -52,3 +52,16 @@ config:
   mail_password: rrnxgyzerpdfdbfh
   tencentcloud_secret_id: asdfadf
   tencentcloud_secret_key: sdfdf
+sms:
+    mathcalc:
+      sdkAppId:
+      secretId:
+      secretKey:
+      signName:
+      templateCodeId:
+    scancode:
+      sdkAppId:
+      secretId:
+      secretKey:
+      signName:
+      templateCodeId:
