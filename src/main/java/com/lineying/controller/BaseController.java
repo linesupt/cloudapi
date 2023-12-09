@@ -26,7 +26,7 @@ public class BaseController {
 
     /**
      * 验证是否执行请求
-     * @param timestamp
+     * @param timestamp(ms)
      * @return
      */
     protected boolean checkRequest(long timestamp) {

@@ -2,11 +2,10 @@ package com.lineying.controller.verify;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.lineying.bean.VerifyCode;
 import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
-import com.lineying.entity.VerifyCodeEntity;
 import com.lineying.mail.EmailSenderManager;
-import com.lineying.service.IVerifyCodeService;
 import com.lineying.sms.SmsSenderManager;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
@@ -15,12 +14,9 @@ import com.lineying.util.VerifyCodeGenerator;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
-
 
 /**
  * 应用级接口,验证码验证
@@ -30,10 +26,30 @@ import java.util.logging.Logger;
 public class VerifyController extends BaseController {
 
     // 验证码有效时间
-    public static final int VERIFY_INTERVAL = 2 * 60_000;
+    public static final int VERIFY_INTERVAL = 2 * 60;
+    public static final int VERIFY_INTERVAL_CLEAR = 24 * 3600;
 
-    @Resource
-    IVerifyCodeService verifyCodeService;
+    private static Map<Integer, VerifyCode> mVerifyCodes = new HashMap<>();
+
+    private List<String> mAppServers = Arrays.asList("mathcalc", "scancode", "linevideo");
+
+    //@Resource
+    //IVerifyCodeService verifyCodeService;
+
+    /**
+     * 执行验证码缓存清除
+     */
+    private void clearVerifyCodes() {
+        Set<Integer> keySet = mVerifyCodes.keySet();
+        Iterator<Integer> iterator = keySet.iterator();
+        while (iterator.hasNext()) {
+            int uid = iterator.next();
+            VerifyCode entity = mVerifyCodes.get(uid);
+            if (getCurrentTime() - entity.getTimestamp() > VERIFY_INTERVAL_CLEAR) {
+                mVerifyCodes.remove(uid);
+            }
+        }
+    }
 
     /**
      * 发送短信验证码
@@ -44,6 +60,7 @@ public class VerifyController extends BaseController {
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
+        Logger.getGlobal().info("接收消息::" + key + " - " + secretData + " - " + signature);
         int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case SignResult.KEY_ERROR:
@@ -54,21 +71,25 @@ public class VerifyController extends BaseController {
 
         String data = AESUtil.decrypt(secretData);
         JSONObject jsonObject = JSON.parseObject(data);
+        Logger.getGlobal().info("data::" + data);
         long timestamp = jsonObject.getLong("timestamp");
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String verifyCode = VerifyCodeGenerator.generate();
+        String sendCode = VerifyCodeGenerator.generate();
         // 生成验证码, 执行邮件发送逻辑
-        String table = jsonObject.getString("table");
+        String app = jsonObject.getString("app");
         int uid = jsonObject.getInteger("uid");
-        String code = jsonObject.getString("code");
-        String target = jsonObject.getString("target");
         int type = jsonObject.getInteger("type");
+        String target = jsonObject.getString("target");
         String subject = "Verify Code";
-        String content = String.format("您的验证码是：%s，请尽快进行验证", verifyCode);
+        String content = String.format("您的验证码是：%s，请尽快进行验证", sendCode);
         int sendResult = 0;
+        if (!mAppServers.contains(app)) {
+            Logger.getGlobal().info("不存在当前应用::" + app);
+            return JsonCryptUtil.makeFailSendVerifyCode();
+        }
         if (type == 1) {
             // 处理邮件发送
             sendResult = EmailSenderManager.relayEmail(subject, content, target);
@@ -87,13 +108,18 @@ public class VerifyController extends BaseController {
             return JsonCryptUtil.makeFailSendVerifyCode();
         }
 
-        VerifyCodeEntity entity = new VerifyCodeEntity();
-        entity.setTable(table);
-        entity.setColumn("`uid`,`code`,`target`,`type`,`create_time`,`update_time`");
-        String value = String.format("'%s','%s','%s','%s','%s','%s'", uid + "", code, target, type + "", timestamp  + "", timestamp + "");
-        entity.setValue(value);
-        boolean result = verifyCodeService.add(entity);
-        return JsonCryptUtil.makeResult(result);
+        clearVerifyCodes(); // 执行清理
+
+        Logger.getGlobal().info("生成验证码::" + sendCode);
+        VerifyCode entity = new VerifyCode();
+        entity.setUid(uid);
+        entity.setApp(app);
+        entity.setCode(sendCode);
+        entity.setTarget(target);
+        entity.setType(type);
+        entity.setTimestamp(getCurrentTime());
+        mVerifyCodes.put(uid, entity);
+        return JsonCryptUtil.makeSuccess();
     }
 
     /**
@@ -115,30 +141,39 @@ public class VerifyController extends BaseController {
 
         String data = AESUtil.decrypt(secretData);
         JSONObject jsonObject = JSON.parseObject(data);
+        Logger.getGlobal().info("data::" + data);
         long timestamp = jsonObject.getLong("timestamp");
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String table = jsonObject.getString("table");
+        String app = jsonObject.getString("app");
         int uid = jsonObject.getInteger("uid");
         String code = jsonObject.getString("code");
-        String target = jsonObject.getString("target");
         int type = jsonObject.getInteger("type");
 
-        long limitTimestamp = timestamp - VERIFY_INTERVAL;
-        VerifyCodeEntity entity = new VerifyCodeEntity();
-        entity.setTable(table);
-        entity.setColumn("`uid`,`code`,`target`,`type`,`create_time`,`update_time`");
-        String value = String.format("'%s','%s','%s','%s','%s','%s'", uid + "", code, target, type + "", timestamp  + "", timestamp + "");
-        entity.setValue(value);
-        entity.setWhere("lower(code) = " + code + " and create_time > " + limitTimestamp);
-        entity.setSortColumn("create_time");
-        entity.setSort("desc");
-        List<Map<String, Object>> list = verifyCodeService.list(entity);
-        Logger.getGlobal().info("查询结果::" + list);
-        if (list.size() == 0) {
+        long limitTimestamp = getCurrentTime() - VERIFY_INTERVAL;
+        VerifyCode entity = mVerifyCodes.get(uid);
+        if (entity == null) {
             return JsonCryptUtil.makeFailVerifyCode();
+        } else {
+            if (!Objects.equals(app, entity.getApp())) {
+                return JsonCryptUtil.makeFailVerifyCode();
+            }
+            if (type != entity.getType()) {
+                return JsonCryptUtil.makeFailVerifyCode();
+            }
+            // 对比验证码
+            String serverCode = entity.getCode().toLowerCase();
+            String targetCode = code.toLowerCase();
+            if (!Objects.equals(serverCode, targetCode)) {
+                return JsonCryptUtil.makeFailVerifyCode();
+            }
+            // 对比时间
+            if (entity.getTimestamp() < limitTimestamp) {
+                // 验证码已经过期
+                return JsonCryptUtil.makeFailVerifyTimeout();
+            }
         }
 
         return JsonCryptUtil.makeSuccess();

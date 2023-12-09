@@ -32,6 +32,15 @@ public class JsonUtil {
         return makeResult(0, "fail, err: verify code error", null);
     }
 
+
+    /**
+     * 验证码错误
+     * @return
+     */
+    public static String makeFailVerifyTimeout() {
+        return makeResult(0, "fail, err: verify code timeout", null);
+    }
+
     /**
      * 发送验证码错误
      * @return

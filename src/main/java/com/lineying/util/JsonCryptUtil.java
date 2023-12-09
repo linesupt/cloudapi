@@ -19,6 +19,17 @@ public class JsonCryptUtil {
     }
 
     /**
+     * 验证超时
+     * @return
+     */
+    public static String makeFailVerifyTimeout() {
+
+        String result = JsonUtil.makeFailVerifyTimeout();
+        System.out.println("验证码错误::" + result);
+        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+    }
+
+    /**
      * 发送验证码失败
      * @return
      */
