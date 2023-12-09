@@ -8,11 +8,11 @@ import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
+import com.tencentcloudapi.common.profile.Region;
 
 import java.util.logging.Logger;
 
 public class BaseSmsComponent {
-
 
     /**
      * 获取SmsClient客户端
@@ -31,7 +31,7 @@ public class BaseSmsComponent {
         ClientProfile clientProfile = new ClientProfile();
         clientProfile.setHttpProfile(httpProfile);
         // 实例化要请求产品的client对象,clientProfile是可选的
-        return new SmsClient(cred, "ap-shanghai", clientProfile);
+        return new SmsClient(cred, Region.Shanghai.getValue(), clientProfile);
     }
 
     protected int sendCode(String phone, String code) {
@@ -79,6 +79,5 @@ public class BaseSmsComponent {
         req.setTemplateParamSet(templateParamSet);
         return req;     // 返回请求参数内容
     }
-
 
 }

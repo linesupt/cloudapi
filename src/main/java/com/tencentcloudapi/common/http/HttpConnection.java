@@ -14,7 +14,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.tencentcloudapi.common.http;
 
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
@@ -25,8 +24,6 @@ import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
-
-;
 
 public class HttpConnection {
 
