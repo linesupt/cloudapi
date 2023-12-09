@@ -7,7 +7,7 @@ public class VerifyCode {
 
     private int uid;
     // 对应app
-    private String app;
+    private String appCode;
     private String target;
     private String code;
     private int type;
@@ -17,9 +17,9 @@ public class VerifyCode {
 
     }
 
-    public VerifyCode(int uid, String app, String target, String code, int type, long timestamp) {
+    public VerifyCode(int uid, String appCode, String target, String code, int type, long timestamp) {
         this.uid = uid;
-        this.app = app;
+        this.appCode = appCode;
         this.target = target;
         this.code = code;
         this.type = type;
@@ -34,12 +34,12 @@ public class VerifyCode {
         this.uid = uid;
     }
 
-    public String getApp() {
-        return app;
+    public String getAppCode() {
+        return appCode;
     }
 
-    public void setApp(String app) {
-        this.app = app;
+    public void setAppCode(String appCode) {
+        this.appCode = appCode;
     }
 
     public String getTarget() {

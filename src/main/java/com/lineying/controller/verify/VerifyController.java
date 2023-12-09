@@ -31,7 +31,7 @@ public class VerifyController extends BaseController {
 
     private static Map<Integer, VerifyCode> mVerifyCodes = new HashMap<>();
 
-    private List<String> mAppServers = Arrays.asList("mathcalc", "scancode", "linevideo");
+    private List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
     private List<String> zhCNs = Arrays.asList("zh-CN");
 
 
@@ -84,14 +84,14 @@ public class VerifyController extends BaseController {
 
         String sendCode = VerifyCodeGenerator.generate();
         // 生成验证码, 执行邮件发送逻辑
-        String app = jsonObject.getString("app");
+        String appCode = jsonObject.getString("appcode");
         int uid = jsonObject.getInteger("uid");
         int type = jsonObject.getInteger("type");
         String target = jsonObject.getString("target");
         String content = String.format("您的验证码是：%s，请尽快进行验证", sendCode);
         int sendResult = 0;
-        if (!mAppServers.contains(app)) {
-            Logger.getGlobal().info("不存在当前应用::" + app);
+        if (!mAppCodeServers.contains(appCode)) {
+            Logger.getGlobal().info("不存在当前应用::" + appCode);
             return JsonCryptUtil.makeFailSendVerifyCode();
         }
         if (type == 1) {
@@ -125,7 +125,7 @@ public class VerifyController extends BaseController {
         Logger.getGlobal().info("生成验证码::" + sendCode);
         VerifyCode entity = new VerifyCode();
         entity.setUid(uid);
-        entity.setApp(app);
+        entity.setAppCode(appCode);
         entity.setCode(sendCode);
         entity.setTarget(target);
         entity.setType(type);
@@ -162,7 +162,7 @@ public class VerifyController extends BaseController {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String app = jsonObject.getString("app");
+        String appCode = jsonObject.getString("appcode");
         int uid = jsonObject.getInteger("uid");
         String code = jsonObject.getString("code");
         int type = jsonObject.getInteger("type");
@@ -172,7 +172,7 @@ public class VerifyController extends BaseController {
         if (entity == null) {
             return JsonCryptUtil.makeFailVerifyCode();
         } else {
-            if (!Objects.equals(app, entity.getApp())) {
+            if (!Objects.equals(appCode, entity.getAppCode())) {
                 return JsonCryptUtil.makeFailVerifyCode();
             }
             if (type != entity.getType()) {
