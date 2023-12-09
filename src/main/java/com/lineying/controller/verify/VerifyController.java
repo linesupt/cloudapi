@@ -57,6 +57,9 @@ public class VerifyController extends BaseController {
      */
     @RequestMapping("/send_code")
     public String sendCode(HttpServletRequest request) {
+        String platform = request.getHeader("platform");
+        String locale = request.getHeader("locale");
+        Logger.getGlobal().info("platform:" + platform + " locale:" + locale);
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
@@ -128,6 +131,9 @@ public class VerifyController extends BaseController {
      */
     @RequestMapping("/code_verify")
     public String codeVerify(HttpServletRequest request) {
+        String platform = request.getHeader("platform");
+        String locale = request.getHeader("locale");
+        Logger.getGlobal().info("platform:" + platform + " locale:" + locale);
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
