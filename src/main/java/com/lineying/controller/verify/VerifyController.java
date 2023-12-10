@@ -30,7 +30,7 @@ public class VerifyController extends BaseController {
     public static final int VERIFY_INTERVAL = 2 * 60;
     public static final int VERIFY_INTERVAL_CLEAR = 24 * 3600;
 
-    private static Map<Integer, VerifyCode> mVerifyCodes = new HashMap<>();
+    private static Map<String, VerifyCode> mVerifyCodes = new HashMap<>();
 
     private List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
     // 简体中文
@@ -45,13 +45,13 @@ public class VerifyController extends BaseController {
      * 执行验证码缓存清除
      */
     private void clearVerifyCodes() {
-        Set<Integer> keySet = mVerifyCodes.keySet();
-        Iterator<Integer> iterator = keySet.iterator();
+        Set<String> keySet = mVerifyCodes.keySet();
+        Iterator<String> iterator = keySet.iterator();
         while (iterator.hasNext()) {
-            int uid = iterator.next();
-            VerifyCode entity = mVerifyCodes.get(uid);
+            String target = iterator.next();
+            VerifyCode entity = mVerifyCodes.get(target);
             if (getCurrentTime() - entity.getTimestamp() > VERIFY_INTERVAL_CLEAR) {
-                mVerifyCodes.remove(uid);
+                mVerifyCodes.remove(target);
             }
         }
     }
@@ -88,7 +88,6 @@ public class VerifyController extends BaseController {
         String sendCode = VerifyCodeGenerator.generate();
         // 生成验证码, 执行邮件发送逻辑
         String appCode = jsonObject.getString("appcode");
-        int uid = jsonObject.getInteger("uid");
         int type = jsonObject.getInteger("type");
         String target = jsonObject.getString("target");
         String content = String.format("您的验证码是：%s，请尽快进行验证", sendCode);
@@ -108,11 +107,6 @@ public class VerifyController extends BaseController {
                 Logger.getGlobal().info("邮件发送失败!");
             }
         } else if (type == 2) {
-            // 处理短信发送
-            String subject = "SMS verification";
-            if (zhCNs.contains(locale)) {
-                subject = "短信验证";
-            }
             sendResult = smsService.sendCode(appCode, target, sendCode);
             if (sendResult == 0) {
                 Logger.getGlobal().info("短信发送失败!");
@@ -127,13 +121,12 @@ public class VerifyController extends BaseController {
 
         Logger.getGlobal().info("生成验证码::" + sendCode);
         VerifyCode entity = new VerifyCode();
-        entity.setUid(uid);
         entity.setAppCode(appCode);
         entity.setCode(sendCode);
         entity.setTarget(target);
         entity.setType(type);
         entity.setTimestamp(getCurrentTime());
-        mVerifyCodes.put(uid, entity);
+        mVerifyCodes.put(target, entity);
         return JsonCryptUtil.makeSuccess();
     }
 
@@ -166,12 +159,12 @@ public class VerifyController extends BaseController {
         }
 
         String appCode = jsonObject.getString("appcode");
-        int uid = jsonObject.getInteger("uid");
         String code = jsonObject.getString("code");
+        String target = jsonObject.getString("target");
         int type = jsonObject.getInteger("type");
 
         long limitTimestamp = getCurrentTime() - VERIFY_INTERVAL;
-        VerifyCode entity = mVerifyCodes.get(uid);
+        VerifyCode entity = mVerifyCodes.get(target);
         if (entity == null) {
             return JsonCryptUtil.makeFailVerifyCode();
         } else {
@@ -194,6 +187,7 @@ public class VerifyController extends BaseController {
             }
         }
 
+        mVerifyCodes.remove(target);
         return JsonCryptUtil.makeSuccess();
     }
 

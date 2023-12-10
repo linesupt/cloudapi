@@ -5,7 +5,6 @@ package com.lineying.bean;
  */
 public class VerifyCode {
 
-    private int uid;
     // 对应app
     private String appCode;
     private String target;
@@ -17,21 +16,12 @@ public class VerifyCode {
 
     }
 
-    public VerifyCode(int uid, String appCode, String target, String code, int type, long timestamp) {
-        this.uid = uid;
+    public VerifyCode(String appCode, String target, String code, int type, long timestamp) {
         this.appCode = appCode;
         this.target = target;
         this.code = code;
         this.type = type;
         this.timestamp = timestamp;
-    }
-
-    public int getUid() {
-        return uid;
-    }
-
-    public void setUid(int uid) {
-        this.uid = uid;
     }
 
     public String getAppCode() {
