@@ -120,12 +120,7 @@ public class VerifyController extends BaseController {
         clearVerifyCodes(); // 执行清理
 
         Logger.getGlobal().info("生成验证码::" + sendCode);
-        VerifyCode entity = new VerifyCode();
-        entity.setAppCode(appCode);
-        entity.setCode(sendCode);
-        entity.setTarget(target);
-        entity.setType(type);
-        entity.setTimestamp(getCurrentTime());
+        VerifyCode entity = new VerifyCode(appCode, target, sendCode, type, timestamp);
         mVerifyCodes.put(target, entity);
         return JsonCryptUtil.makeSuccess();
     }

@@ -14,17 +14,6 @@ import java.util.Map;
 public class JsonUtil {
 
     /**
-     * 生成结果
-     * @param result true：成功 false：失败
-     * @return
-     */
-    public static String makeResult(boolean result) {
-        int code = result ? 1 : 0;
-        String msg = result ? "success" : "fail";
-        return makeResult(code, msg, null);
-    }
-
-    /**
      * 验证码错误
      * @return
      */
@@ -82,28 +71,20 @@ public class JsonUtil {
     }
 
     /**
-     * 生成失败结果
-     * @param cause 原因
+     * 生成结果
+     * @param result true：成功 false：失败
      * @return
      */
-    public static String makeFail(String cause) {
-        return makeResult(0, "fail", cause);
-    }
-
-    /**
-     * 生成失败结果
-     * @param err 失败备注
-     * @param cause 原因
-     * @return
-     */
-    public static String makeFail(String err, String cause) {
-        return makeResult(0, "fail, err: " + err, cause);
+    public static String makeResult(boolean result) {
+        int code = result ? 1 : 0;
+        String msg = result ? "success" : "fail";
+        return makeResult(code, msg, null);
     }
 
     /**
      * 生成结果
      * @param code 0：失败 1：成功
-     * @param msg 备注： succes、fail, err:+原因
+     * @param msg 备注： success、fail, err:+原因
      * @param data
      * @return
      */
