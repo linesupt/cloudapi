@@ -7,6 +7,7 @@ import com.lineying.common.CommonConstant;
  */
 public class BaseController {
 
+    protected static final String CHARSET = "utf-8";
 
     /**
      * 获取当前时间
