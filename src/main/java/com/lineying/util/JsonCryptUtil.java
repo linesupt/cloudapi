@@ -84,6 +84,17 @@ public class JsonCryptUtil {
     }
 
     /**
+     * 生成错误原因
+     * @param cause
+     * @return
+     */
+    public static String makeFail(String cause) {
+        String result = JsonUtil.makeFail(cause);
+        System.out.println("原因错误::" + result);
+        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+    }
+
+    /**
      * 返回简单结果
      * @param flag
      * @return

@@ -71,6 +71,15 @@ public class JsonUtil {
     }
 
     /**
+     * 失败
+     * @param cause
+     * @return
+     */
+    public static String makeFail(String cause) {
+        return makeResult(0, "fail, err: " + cause, null);
+    }
+
+    /**
      * 生成结果
      * @param result true：成功 false：失败
      * @return

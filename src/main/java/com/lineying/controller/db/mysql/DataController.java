@@ -67,7 +67,14 @@ public class DataController extends BaseController {
         entity.setTable(table);
         entity.setSort(sort);
         entity.setSortColumn(sort_column);
-        List<Map<String, Object>> list = commonService.list(entity);
+
+        List<Map<String, Object>> list;
+        try {
+            list = commonService.list(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
         JSONObject obj = new JSONObject();
         obj.put("data", JSON.toJSON(list));
         return JsonCryptUtil.makeSuccess(obj);
@@ -98,11 +105,17 @@ public class DataController extends BaseController {
         String value = jsonObject.getString("value");
 
         Logger.getGlobal().info("执行添加 " + key + " - " + data + " - " + signature);
-        CommonAddEntity addEntity = new CommonAddEntity();
-        addEntity.setTable(table);
-        addEntity.setColumn(column);
-        addEntity.setValue(value);
-        boolean result = commonService.add(addEntity);
+        CommonAddEntity entity = new CommonAddEntity();
+        entity.setTable(table);
+        entity.setColumn(column);
+        entity.setValue(value);
+        boolean result = false;
+        try {
+            result = commonService.add(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
         return JsonCryptUtil.makeResult(result);
     }
 
@@ -133,7 +146,13 @@ public class DataController extends BaseController {
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setWhere(where);
-        boolean result = commonService.delete(entity);
+        boolean result = false;
+        try {
+            result = commonService.delete(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
         return JsonCryptUtil.makeResult(result);
     }
 
@@ -167,7 +186,14 @@ public class DataController extends BaseController {
         entity.setSet(set);
         entity.setWhere(where);
         entity.setTable(table);
-        boolean result = commonService.update(entity);
+        boolean result = false;
+        try {
+            result = commonService.update(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
+
         return JsonCryptUtil.makeResult(result);
     }
 
@@ -197,7 +223,13 @@ public class DataController extends BaseController {
         Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature);
         CommonCommandEntity entity = new CommonCommandEntity();
         entity.setRawSql(sql);
-        boolean result = commonService.command(entity);
+        boolean result = false;
+        try {
+            result = commonService.command(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
         return JsonCryptUtil.makeResult(result);
     }
 

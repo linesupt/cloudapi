@@ -33,6 +33,4 @@ public class BaseController {
         return Math.abs(getCurrentTime() - timestamp) < CommonConstant.TIME_INTERVAL;
     }
 
-
-
 }
