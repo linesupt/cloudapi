@@ -20,6 +20,7 @@ public class EmailSenderManager {
     private static final String TAG = "EmailSenderManager";
     public static final int CODE_SUCCESS = 0x1;
     public static final int CODE_FAILED = 0x0;
+    public static final String SEND_HOST = "smtp.qq.com";
     // ssl连接需要设置端口
     private static final String PORT_SSL = "465";
     // 非ssl可以不设置
@@ -48,15 +49,14 @@ public class EmailSenderManager {
 
         String senderAccount = CommonConstant.MAIL_SENDER;
         String senderName = CommonConstant.MAIL_SENDER_NAME;
+        String senderHost = SEND_HOST;
         List<String> emailToAccountList = Arrays.asList(targetMail);
         int flag = CODE_SUCCESS;
         for (String receiveAccount : emailToAccountList) {
             try {
-                String[] srr = receiveAccount.split("@");
-                String host = makeSmtpHost(srr[1]);
-                Logger.getGlobal().info("mail host::" + host);
+                Logger.getGlobal().info("mail host::" + senderHost);
                 EmailMessage emailMessage = createEmailMessage(content, senderAccount, senderName, receiveAccount, subject);
-                int result = doSendEmailMessage(emailMessage, host);
+                int result = doSendEmailMessage(emailMessage, senderHost);
                 if (result != CODE_SUCCESS) {
                     flag = CODE_FAILED;
                 }
@@ -65,6 +65,16 @@ public class EmailSenderManager {
             }
         }
         return flag;
+    }
+
+    /**
+     * 获取邮箱地址
+     * @param email
+     * @return
+     */
+    public static String getEmailHost(String email) {
+        String[] srr = email.split("@");
+        return srr[1];
     }
 
     /**
