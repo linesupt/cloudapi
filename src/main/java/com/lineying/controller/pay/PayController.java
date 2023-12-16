@@ -31,14 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -68,8 +64,6 @@ public class PayController extends BaseController {
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    // 通知地址
-    // public static final String RETURN_PATH = "cloud/api/pay/alipay/return";
     public static final String NOTIFY_PATH = "cloud/api/pay/alipay/notify";
 
     // 签名方式
@@ -108,7 +102,7 @@ public class PayController extends BaseController {
         // 生成订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
         String pay_type = jsonObject.getString("pay_type");
-        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.INSTANCE.datetimeOrder(getCurrentTimeMs());
+        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
         int uid = jsonObject.getIntValue("uid");
         String appcode = jsonObject.getString("appcode");
         String goodsCode = jsonObject.getString("goods_code");
