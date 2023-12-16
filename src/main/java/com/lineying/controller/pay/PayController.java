@@ -38,7 +38,7 @@ public class PayController {
         Logger.getGlobal().info("处理支付宝支付!" + out_trade_no + " - " + total_fee
                 + " - " + mch_id + " - " + body + " - " + sign);
 
-        return "";
+        return "alipay app pay";
     }
 
     /**
@@ -46,9 +46,11 @@ public class PayController {
      * @return
      */
     @RequestMapping("/pay/alipay/notify")
-    public void alipayNotify(HttpServletRequest request) {
+    public String alipayNotify(HttpServletRequest request) {
         // TODO 支付宝通知
         Logger.getGlobal().info("处理支付宝通知!");
+
+        return "alipay notify";
     }
 
     /**
@@ -66,7 +68,7 @@ public class PayController {
 
         Logger.getGlobal().info("处理微信支付!" + app_id + " - " + out_trade_no + " - " + total_fee
                         + " - " + mch_id + " - " + body + " - " + sign);
-        return "";
+        return "wxpay app pay";
     }
 
     /**
@@ -74,9 +76,10 @@ public class PayController {
      * @return
      */
     @RequestMapping("/pay/wxpay/notify")
-    public void wxpayNotify(HttpServletRequest request) {
+    public String wxpayNotify(HttpServletRequest request) {
         // TODO 微信通知
         Logger.getGlobal().info("处理微信通知!");
+        return "wxpay notify";
     }
 
 }
