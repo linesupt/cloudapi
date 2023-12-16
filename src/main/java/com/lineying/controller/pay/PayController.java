@@ -1,5 +1,7 @@
 package com.lineying.controller.pay;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,9 +11,16 @@ import java.util.logging.Logger;
 /**
  * 应用级接口
  */
+@Component
 @RestController
 @RequestMapping("api")
 public class PayController {
+
+    @Value("${pay.app_pub_key}") // 应用公钥
+    private String appPubKey;
+
+    @Value("${pay.alipay.pub_key}") // 支付宝公钥
+    private String alipayPubKey;
 
     /**
      * 创建支付宝支付信息

@@ -65,3 +65,12 @@ sms:
       secretKey:
       signName:
       templateCodeId:
+pay:
+  # 应用公钥
+  app_pub_key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlyJpmWEJQyrbuvgjMqIX28lfi384B1+J0sGWqJqH9yUooKHE1PJbbsRUSjJGJGTI2RyOxijj/GOB5mu8oNdqBndAVjWmfvrSVdV4ct/vDUbJZQGctw3COkWEOp4LvHttpwKrvXp2AmTLmwY4ZbQCqEmujfsEaN+EhK7rt2RU2XMNg1FnaYfdBJGznWCiWuMcdIuzHD2GyvRiG+Q9zpG1j9w2OBIY0ezUsnouwVBPM0hc40UuQDqiYNxA23obvsbHfSsOslaTwCkhNtjeKphRf54CwpQlKZsY4ibl2WMidssWDegHLLsbu5Lg5e+9dz74cy6jt6QIm4jytamkRHejSQIDAQAB
+  alipay:
+    # 支付宝公钥
+    pub_key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtOmEVGMkC4Q7Mq0dia8eS0Y/QmX1YqwpUg6pdhDTea4vOkg96amV1KrKz3jfJXIhm26kiB0/tvPpUaYDzyG2z/aAn8/2xQ3UknPzLMMouzDI5/kCxqw8qd5OPs03OhhqE11GN6JttnYiUUJ2SWLvYijAhIOMyatKZFT3j/hEJj+Q5x+e8RqNTHWCB1/rC4k2D4z2SnJ/dG1ZAZu51H/GEW1ShqWCZIyUf8PhH0k5SvCCjVamWVriS3U16eCH/W3YNVEanPNiN22deWiY+Ut1T6Wk7zU9qXSNZuWIuZZfgyI3u6JwE+ZlqMV/VudxhrguTFxhZYALBZ4DQOidkTgI+wIDAQAB
+  wxpay:
+    # 微信公钥
+    pub_key:
