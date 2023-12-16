@@ -1,5 +1,6 @@
 package com.lineying.controller.pay;
 
+import com.lineying.controller.BaseController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +15,7 @@ import java.util.logging.Logger;
 @Component
 @RestController
 @RequestMapping("api")
-public class PayController {
+public class PayController extends BaseController {
 
     @Value("${pay.app_pub_key}") // 应用公钥
     private String appPubKey;
@@ -26,7 +27,7 @@ public class PayController {
      * 创建支付宝支付信息
      * @return
      */
-    @RequestMapping("/pay/alipay/appPay")
+    @RequestMapping("/pay/alipay/mkpay")
     public String alipayAppPay(HttpServletRequest request) {
 
         String out_trade_no = request.getParameter("out_trade_no");
@@ -57,7 +58,7 @@ public class PayController {
      * 创建微信支付信息
      * @return
      */
-    @RequestMapping("/pay/wxpay/appPay")
+    @RequestMapping("/pay/wxpay/mkpay")
     public String wxpayAppPay(HttpServletRequest request) {
         String app_id = request.getParameter("app_id");
         String out_trade_no = request.getParameter("out_trade_no");
