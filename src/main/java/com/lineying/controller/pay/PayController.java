@@ -6,13 +6,9 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
-import com.alipay.api.domain.AlipayTradeWapPayModel;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
-import com.alipay.api.request.AlipayTradePagePayRequest;
-import com.alipay.api.request.AlipayTradeWapPayRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
-import com.alipay.api.response.AlipayTradePayResponse;
 import com.lineying.bean.Order;
 import com.lineying.common.PayType;
 import com.lineying.common.Platform;
@@ -149,7 +145,10 @@ public class PayController extends BaseController {
         alipayRequest.setBizModel(model);
         AlipayTradeAppPayResponse resp = alipayClient.sdkExecute(alipayRequest);
         String respResult = resp.getBody();
-        return JsonCryptUtil.makeSuccess(respResult);
+        JSONObject resultObj = new JSONObject();
+        resultObj.put("trade_no", outTradeNo);
+        resultObj.put("order_info", respResult);
+        return JsonCryptUtil.makeSuccess(resultObj);
     }
 
     /**
@@ -194,7 +193,7 @@ public class PayController extends BaseController {
             }
 
             CommonUpdateEntity entity = new CommonUpdateEntity();
-            entity.setSet(String.format("trade_no='%s', status='%s',update_time='%s'", out_trade_no, status + "", getCurrentTimeMs()));
+            entity.setSet(String.format("trade_no='%s', status='%s', update_time='%s'", trade_no, status + "", getCurrentTimeMs()));
             entity.setWhere(String.format("out_trade_no=%s", out_trade_no));
             entity.setTable(Order.TABLE);
             boolean result = false;
