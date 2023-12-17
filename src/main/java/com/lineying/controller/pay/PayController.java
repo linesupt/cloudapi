@@ -60,6 +60,7 @@ public class PayController extends BaseController {
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
+    public static final String BASE_URL = "http://api.lineying.cn/";
     public static final String NOTIFY_PATH = "cloud/api/pay/alipay/notify";
 
     // 签名方式
@@ -131,9 +132,7 @@ public class PayController extends BaseController {
         AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, app_id, appPriKey, FORMAT, CHARSET, alipayPubKey, SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
-
-        String baseUrl = String.format("%s://%s:%s/", request.getScheme(), request.getServerName(), request.getServerPort());
-        alipayRequest.setNotifyUrl(baseUrl + NOTIFY_PATH);
+        alipayRequest.setNotifyUrl(BASE_URL + NOTIFY_PATH);
         // 设置订单信息
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
         model.setOutTradeNo(outTradeNo);
