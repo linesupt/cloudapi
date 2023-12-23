@@ -71,6 +71,22 @@ public class JsonUtil {
     }
 
     /**
+     * 数据为空
+     * @return
+     */
+    public static String makeFailNoData() {
+        return makeResult(0, "fail, err: data null", null);
+    }
+
+    /**
+     * 数据过期
+     * @return
+     */
+    public static String makeFailDataExpired() {
+        return makeResult(0, "fail, err: data expired", null);
+    }
+
+    /**
      * 失败
      * @param cause
      * @return
