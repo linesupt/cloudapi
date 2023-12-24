@@ -1,8 +1,5 @@
 package com.lineying.entity;
 
-import lombok.Data;
-
-@Data
 public class CommonQueryEntity {
 
     private String table;

@@ -1,8 +1,5 @@
 package com.lineying.entity;
 
-import lombok.Data;
-
-@Data
 public class CommonCommandEntity {
 
     // 原sql执行语句
@@ -15,5 +12,6 @@ public class CommonCommandEntity {
     public void setRawSql(String rawSql) {
         this.rawSql = rawSql;
     }
+
 
 }
