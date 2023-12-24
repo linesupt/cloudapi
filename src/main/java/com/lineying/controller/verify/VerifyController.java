@@ -11,6 +11,7 @@ import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
 import com.lineying.util.VerifyCodeGenerator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,9 +45,12 @@ public class VerifyController extends BaseController {
     @Resource
     ISmsService smsService;
 
+    @Autowired
+    MessageSource messageSource;
+
     @RequestMapping("/test_locale")
     public void testLocale() {
-        MessageSource messageSource = buildMessageSource();
+        //MessageSource messageSource = buildMessageSource();
         Logger.getGlobal().info("locale===>>" + getLocale("zh-CN") + " - " + getLocale("zh-TW") + " - " + getLocale("en89"));
         System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-CN")));
         System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-CN")));
@@ -63,9 +67,9 @@ public class VerifyController extends BaseController {
      */
     private Locale getLocale(String locale) {
         if (zhCNs.contains(locale)) {
-            return Locale.CHINA;
+            return Locale.SIMPLIFIED_CHINESE;
         } else if (zhHants.contains(locale)) {
-            return Locale.TAIWAN;
+            return Locale.TRADITIONAL_CHINESE;
         }
         return Locale.ENGLISH;
     }
