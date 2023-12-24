@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
@@ -45,16 +44,17 @@ public class VerifyController extends BaseController {
     @Resource
     ISmsService smsService;
 
-//    public static void main(String[] args) {
-//        VerifyController obj = new VerifyController();
-//        MessageSource messageSource = obj.buildMessageSource();
-//        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, obj.getLocale("zh-CN")));
-//        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, obj.getLocale("zh-CN")));
-//        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, obj.getLocale("zh-Hans")));
-//        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, obj.getLocale("zh-Hans")));
-//        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, obj.getLocale("en")));
-//        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, obj.getLocale("en")));
-//    }
+    @RequestMapping("/test_locale")
+    public void testLocale() {
+        MessageSource messageSource = buildMessageSource();
+        Logger.getGlobal().info("locale===>>" + getLocale("zh-CN") + " - " + getLocale("zh-TW") + " - " + getLocale("en89"));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-CN")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-CN")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-Hans")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-Hans")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("en")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("en")));
+    }
 
     /**
      * 获取语言类环境
@@ -67,13 +67,13 @@ public class VerifyController extends BaseController {
         } else if (zhHants.contains(locale)) {
             return Locale.TAIWAN;
         }
-        return Locale.US;
+        return Locale.ENGLISH;
     }
 
     // 创建消息资源
     private MessageSource buildMessageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("i18n/strings");
+        messageSource.setBasename("i18n/messages");
         messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
         messageSource.setFallbackToSystemLocale(true);
         messageSource.setCacheSeconds(-1);
