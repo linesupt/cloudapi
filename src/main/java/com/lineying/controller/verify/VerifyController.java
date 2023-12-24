@@ -11,11 +11,15 @@ import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
 import com.lineying.util.VerifyCodeGenerator;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -40,6 +44,43 @@ public class VerifyController extends BaseController {
 
     @Resource
     ISmsService smsService;
+
+//    public static void main(String[] args) {
+//        VerifyController obj = new VerifyController();
+//        MessageSource messageSource = obj.buildMessageSource();
+//        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, obj.getLocale("zh-CN")));
+//        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, obj.getLocale("zh-CN")));
+//        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, obj.getLocale("zh-Hans")));
+//        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, obj.getLocale("zh-Hans")));
+//        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, obj.getLocale("en")));
+//        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, obj.getLocale("en")));
+//    }
+
+    /**
+     * 获取语言类环境
+     * @param locale
+     * @return
+     */
+    private Locale getLocale(String locale) {
+        if (zhCNs.contains(locale)) {
+            return Locale.CHINA;
+        } else if (zhHants.contains(locale)) {
+            return Locale.TAIWAN;
+        }
+        return Locale.US;
+    }
+
+    // 创建消息资源
+    private MessageSource buildMessageSource() {
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("i18n/strings");
+        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        messageSource.setFallbackToSystemLocale(true);
+        messageSource.setCacheSeconds(-1);
+        messageSource.setAlwaysUseMessageFormat(false);
+        messageSource.setUseCodeAsDefaultMessage(true);
+        return messageSource;
+    }
 
     /**
      * 执行验证码缓存清除
@@ -90,7 +131,10 @@ public class VerifyController extends BaseController {
         String appCode = jsonObject.getString("appcode");
         int type = jsonObject.getInteger("type");
         String target = jsonObject.getString("target");
-        String content = String.format("您的验证码是：%s，请尽快进行验证", sendCode);
+        MessageSource messageSource = buildMessageSource();
+
+        String verifyMsg = messageSource.getMessage("email_verify_msg", null, getLocale(locale));
+        String content = String.format(verifyMsg, sendCode);
         int sendResult = 0;
         if (!mAppCodeServers.contains(appCode)) {
             Logger.getGlobal().info("不存在当前应用::" + appCode);
@@ -98,10 +142,7 @@ public class VerifyController extends BaseController {
         }
         if (type == 1) {
             // 处理邮件发送
-            String subject = "Email verification";
-            if (zhCNs.contains(locale)) {
-                subject = "邮箱验证";
-            }
+            String subject = messageSource.getMessage("email_verify_title", null, getLocale(locale));
             sendResult = EmailSenderManager.relayEmail(subject, content, target);
             if (sendResult == 0) {
                 Logger.getGlobal().info("邮件发送失败!");

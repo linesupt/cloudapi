@@ -17,6 +17,11 @@ spring:
       content-type: text/html
   jmx:
     enabled: false
+  messages:
+    basename: i18n/strings
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
 # mybatis打印sql语句日志
 mybatis:
   # pom中已经配置了过滤
