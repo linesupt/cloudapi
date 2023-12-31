@@ -55,21 +55,17 @@ config:
   mail_sender_name: linesupt
   mail_sender: linesupt@foxmail.com
   mail_password: rrnxgyzerpdfdbfh
-  tencentcloud_secret_id: asdfadf
-  tencentcloud_secret_key: sdfdf
+  tencentcloud_secret_id: AKIDFRQBjCF4iCUdc3JTRAfz584odJoW5bw6
+  tencentcloud_secret_key: EH9nDSUGn7CD8tT3e7PVP6wb3IWgmohS
 sms:
     mathcalc:
-      sdkAppId:
-      secretId:
-      secretKey:
-      signName:
-      templateCodeId:
+      sdkAppId: 1400875159
+      signName: 千维计算器
+      templateId: 2014739
     scancode:
-      sdkAppId:
-      secretId:
-      secretKey:
-      signName:
-      templateCodeId:
+      sdkAppId: 1400875160
+      signName: 简码App
+      templateId: 2014740
 pay:
   # 应用公钥
   app_pub_key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlyJpmWEJQyrbuvgjMqIX28lfi384B1+J0sGWqJqH9yUooKHE1PJbbsRUSjJGJGTI2RyOxijj/GOB5mu8oNdqBndAVjWmfvrSVdV4ct/vDUbJZQGctw3COkWEOp4LvHttpwKrvXp2AmTLmwY4ZbQCqEmujfsEaN+EhK7rt2RU2XMNg1FnaYfdBJGznWCiWuMcdIuzHD2GyvRiG+Q9zpG1j9w2OBIY0ezUsnouwVBPM0hc40UuQDqiYNxA23obvsbHfSsOslaTwCkhNtjeKphRf54CwpQlKZsY4ibl2WMidssWDegHLLsbu5Lg5e+9dz74cy6jt6QIm4jytamkRHejSQIDAQAB
