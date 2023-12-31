@@ -1,30 +1,21 @@
 package com.lineying.service.impl;
 
 import com.lineying.service.ISmsService;
-import com.lineying.sms.MathCalcSmsComponent;
-import com.lineying.sms.ScanCodeSmsComponent;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.lineying.sms.SmsEntity;
+import com.lineying.sms.SmsSender;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 @Service
 public class SmsServiceImpl implements ISmsService {
 
-    @Autowired
-    MathCalcSmsComponent mathCalcSmsComponent;
-    @Autowired
-    ScanCodeSmsComponent scanCodeSmsComponent;
+    private SmsSender makeSender() {
+        return new SmsSender();
+    }
 
     @Override
-    public int sendCode(String appcode, String phone, String code) {
-        int result = 0;
-        if (Objects.equals("mathcalc", appcode)) {
-            result = mathCalcSmsComponent.sendCode(phone, code);
-        } else if (Objects.equals("scancode", appcode)) {
-            result = scanCodeSmsComponent.sendCode(phone, code);
-        }
-        return result;
+    public int sendCode(SmsEntity bean, String phone, String code) {
+        SmsSender sender = makeSender();
+        return sender.sendCode(phone, code, bean.getAppId(), bean.getSignName(), bean.getTemplateId());
     }
 
 }

@@ -7,15 +7,15 @@ import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
 import com.lineying.mail.EmailSenderManager;
 import com.lineying.service.ISmsService;
+import com.lineying.sms.SmsEntity;
+import com.lineying.sms.SmsEntityFactory;
 import com.lineying.util.*;
 import org.springframework.context.MessageSource;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -165,26 +165,31 @@ public class VerifyController extends BaseController {
             Logger.getGlobal().info("不存在当前应用::" + appCode);
             return JsonCryptUtil.makeFailSendVerifyCode();
         }
-        String sendCode = "";
         VerifyCode cacheVerifyCode = getCacheVerifyCode(targetKey);
-        if (cacheVerifyCode == null || isExpired(cacheVerifyCode.getTimestamp())) {
-            sendCode = VerifyCodeGenerator.generate();
-        } else {
+        if (cacheVerifyCode != null && !isExpired(cacheVerifyCode.getTimestamp())) {
             timestamp = cacheVerifyCode.getTimestamp();
             return makeSuccess(timestamp);
         }
+        String sendCode = "";
         if (type == 1) {
             // 处理邮件发送
             MessageSource messageSource = MessageSourceFactory.buildDefaultMessageSource();
             String subject = messageSource.getMessage("email_verify_title", null, getLocale(locale));
             String verifyMsg = messageSource.getMessage("email_verify_msg", null, getLocale(locale));
+            sendCode = VerifyCodeGenerator.generate();
             String content = String.format(verifyMsg, sendCode);
             sendResult = EmailSenderManager.relayEmail(subject, content, target);
             if (sendResult == 0) {
                 Logger.getGlobal().info("邮件发送失败!");
             }
         } else if (type == 2) {
-            sendResult = smsService.sendCode(appCode, target, sendCode);
+            SmsEntity smsEntity = SmsEntityFactory.make(appCode);
+            if (smsEntity == null) {
+                Logger.getGlobal().info("appcode " + appCode + " no supported");
+                return JsonCryptUtil.makeFail("appcode no supported");
+            }
+            sendCode = VerifyCodeGenerator.generateNum();
+            sendResult = smsService.sendCode(smsEntity, target, sendCode);
             if (sendResult == 0) {
                 Logger.getGlobal().info("短信发送失败!");
             }
