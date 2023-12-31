@@ -86,7 +86,7 @@ public class VerifyCode {
      */
     public Map<String, Object> toCallData() {
         Map<String, Object> map = new HashMap<>();
-        map.put("expired", timestamp);
+        map.put("expire_time", timestamp);
         return map;
     }
 
