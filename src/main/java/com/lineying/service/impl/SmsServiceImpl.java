@@ -27,10 +27,4 @@ public class SmsServiceImpl implements ISmsService {
         return result;
     }
 
-    @Override
-    public boolean codeVerify(String appcode, String phone, String code) {
-        return false;
-    }
-
-
 }

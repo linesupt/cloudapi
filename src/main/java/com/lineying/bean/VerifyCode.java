@@ -1,5 +1,10 @@
 package com.lineying.bean;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.lineying.controller.verify.VerifyController.VERIFY_INTERVAL_CLEAR;
+
 /**
  * 验证码信息
  */
@@ -63,4 +68,26 @@ public class VerifyCode {
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
+
+    /**
+     * 是否过期
+     * @return
+     */
+    public boolean isExpired() {
+        if (System.currentTimeMillis() / 1000 - timestamp > VERIFY_INTERVAL_CLEAR) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 转换为数据
+     * @return
+     */
+    public Map<String, Object> toCallData() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("expired", timestamp);
+        return map;
+    }
+
 }

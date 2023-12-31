@@ -11,7 +11,6 @@ import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
 import com.lineying.util.VerifyCodeGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,27 +37,12 @@ public class VerifyController extends BaseController {
 
     private List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
     // 简体中文
-    private List<String> zhCNs = Arrays.asList("zh-CN", "zh-Hans");
+    private List<String> zhCNs = Arrays.asList("zh-CN", "zh_CN", "zh-Hans");
     // 繁体中文
-    private List<String> zhHants = Arrays.asList("zh-TW", "zh-Hans");
+    private List<String> zhHants = Arrays.asList("zh-TW", "zh_TW", "zh-Hant");
 
     @Resource
     ISmsService smsService;
-
-    @Autowired
-    MessageSource messageSource;
-
-    @RequestMapping("/test_locale")
-    public void testLocale() {
-        //MessageSource messageSource = buildMessageSource();
-        Logger.getGlobal().info("locale===>>" + getLocale("zh-CN") + " - " + getLocale("zh-TW") + " - " + getLocale("en89"));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-CN")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-CN")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-Hans")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-Hans")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("en")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("en")));
-    }
 
     /**
      * 获取语言类环境
@@ -86,6 +70,21 @@ public class VerifyController extends BaseController {
         return messageSource;
     }
 
+    @RequestMapping("/test_locale")
+    public void testLocale() {
+        MessageSource messageSource = buildMessageSource();
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-CN")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-CN")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-Hans")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-Hans")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-TW")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-TW")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-Hant")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-Hant")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("en")));
+        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("en")));
+    }
+
     /**
      * 执行验证码缓存清除
      */
@@ -93,12 +92,36 @@ public class VerifyController extends BaseController {
         Set<String> keySet = mVerifyCodes.keySet();
         Iterator<String> iterator = keySet.iterator();
         while (iterator.hasNext()) {
-            String target = iterator.next();
-            VerifyCode entity = mVerifyCodes.get(target);
+            String targetKey = iterator.next();
+            VerifyCode entity = mVerifyCodes.get(targetKey);
             if (getCurrentTime() - entity.getTimestamp() > VERIFY_INTERVAL_CLEAR) {
-                mVerifyCodes.remove(target);
+                mVerifyCodes.remove(targetKey);
             }
         }
+    }
+
+    /**
+     * 获取符合的验证码对象
+     * @param targetKey
+     * @return
+     */
+    private VerifyCode getCacheVerifyCode(String targetKey) {
+        VerifyCode entity = mVerifyCodes.get(targetKey);
+        if (entity == null) {
+            return null;
+        }
+        return entity;
+    }
+
+    /**
+     * 生成缓存key
+     * @param appCode
+     * @param type
+     * @param target
+     * @return
+     */
+    private String makeTargetKey(String appCode, int type, String target) {
+        return String.format("%s_%s_%s", appCode, type + "", target);
     }
 
     /**
@@ -130,23 +153,32 @@ public class VerifyController extends BaseController {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String sendCode = VerifyCodeGenerator.generate();
-        // 生成验证码, 执行邮件发送逻辑
         String appCode = jsonObject.getString("appcode");
         int type = jsonObject.getInteger("type");
         String target = jsonObject.getString("target");
-        MessageSource messageSource = buildMessageSource();
+        String targetKey = makeTargetKey(appCode, type, target);
 
-        String verifyMsg = messageSource.getMessage("email_verify_msg", null, getLocale(locale));
-        String content = String.format(verifyMsg, sendCode);
         int sendResult = 0;
         if (!mAppCodeServers.contains(appCode)) {
             Logger.getGlobal().info("不存在当前应用::" + appCode);
             return JsonCryptUtil.makeFailSendVerifyCode();
         }
+        String sendCode = "";
+        VerifyCode cacheVerifyCode = getCacheVerifyCode(targetKey);
+        if (cacheVerifyCode == null || cacheVerifyCode.isExpired()) {
+            sendCode = VerifyCodeGenerator.generate();
+        } else {
+            sendCode = cacheVerifyCode.getCode();
+            timestamp = cacheVerifyCode.getTimestamp();
+        }
+
+        MessageSource messageSource = buildMessageSource();
+        // 生成验证码, 执行邮件发送逻辑
         if (type == 1) {
             // 处理邮件发送
             String subject = messageSource.getMessage("email_verify_title", null, getLocale(locale));
+            String verifyMsg = messageSource.getMessage("email_verify_msg", null, getLocale(locale));
+            String content = String.format(verifyMsg, sendCode);
             sendResult = EmailSenderManager.relayEmail(subject, content, target);
             if (sendResult == 0) {
                 Logger.getGlobal().info("邮件发送失败!");
@@ -163,11 +195,14 @@ public class VerifyController extends BaseController {
         }
 
         clearVerifyCodes(); // 执行清理
-
         Logger.getGlobal().info("生成验证码::" + sendCode);
         VerifyCode entity = new VerifyCode(appCode, target, sendCode, type, timestamp);
-        mVerifyCodes.put(target, entity);
-        return JsonCryptUtil.makeSuccess();
+        mVerifyCodes.put(targetKey, entity);
+        List<Map<String, Object>> list = new ArrayList<>();
+        list.add(entity.toCallData());
+        JSONObject obj = new JSONObject();
+        obj.put("data", JSON.toJSON(list));
+        return JsonCryptUtil.makeSuccess(obj);
     }
 
     /**
@@ -202,9 +237,9 @@ public class VerifyController extends BaseController {
         String code = jsonObject.getString("code");
         String target = jsonObject.getString("target");
         int type = jsonObject.getInteger("type");
+        String targetKey = makeTargetKey(appCode, type, target);
 
-        long limitTimestamp = getCurrentTime() - VERIFY_INTERVAL;
-        VerifyCode entity = mVerifyCodes.get(target);
+        VerifyCode entity = getCacheVerifyCode(targetKey);
         if (entity == null) {
             return JsonCryptUtil.makeFailVerifyCode();
         } else {
@@ -221,13 +256,13 @@ public class VerifyController extends BaseController {
                 return JsonCryptUtil.makeFailVerifyCode();
             }
             // 对比时间
-            if (entity.getTimestamp() < limitTimestamp) {
+            if (entity.isExpired()) {
                 // 验证码已经过期
                 return JsonCryptUtil.makeFailVerifyTimeout();
             }
         }
 
-        mVerifyCodes.remove(target);
+        mVerifyCodes.remove(targetKey);
         return JsonCryptUtil.makeSuccess();
     }
 

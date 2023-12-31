@@ -112,7 +112,8 @@ public class CloudData {
      * 转换为数据
      * @return
      */
-    public Map<String, Object> toData() {
+    public Map<String, Object>
+    toData() {
         Map<String, Object> map = new HashMap<>();
         map.put("id", 0);
         map.put("uid", uid);

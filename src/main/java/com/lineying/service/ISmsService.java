@@ -10,9 +10,4 @@ public interface ISmsService {
      */
     int sendCode(String appcode, String phone, String code);
 
-    /**
-     * 校验验证码
-     */
-    boolean codeVerify(String appcode, String phone, String code);
-
 }
