@@ -126,14 +126,19 @@ public class VerifyController extends BaseController {
 
     /**
      * 返回成功结果，包含过期时间
-     * @param expireTime
+     * @param timestamp 验证码生成时间
      * @return
      */
-    private String makeSuccess(long expireTime) {
+    private String makeSuccess(long timestamp) {
         // 直接返回、避免用户攻击
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
+        long expireTime = timestamp + VERIFY_INTERVAL;
+        long remainInterval = expireTime - getCurrentTime();
+        // 后端时间不准可能引起问题
         map.put("expire_time", expireTime);
+        // 返回剩余时间更可靠
+        map.put("remain_interval", remainInterval);
         list.add(map);
         JSONObject obj = new JSONObject();
         obj.put("data", JSON.toJSON(list));

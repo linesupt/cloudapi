@@ -1,8 +1,5 @@
 package com.lineying.bean;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.lineying.controller.verify.VerifyController.VERIFY_INTERVAL_CLEAR;
 
 /**
