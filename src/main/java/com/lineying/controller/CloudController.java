@@ -35,45 +35,8 @@ public class CloudController extends BaseController {
      */
     private static Map<String, CloudData> mCloudData = new HashMap<>();
 
-    /**
-     * 上传数据
-     * @param request
-     * @return
-     */
-    @RequestMapping("/cloud/add")
-    public String select(HttpServletRequest request) {
-
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
-        }
-
-        String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
-        int uid = jsonObject.getInteger("uid");
-        String cate = jsonObject.getString("cate");
-        String text = jsonObject.getString("text");
-        String model = jsonObject.getString("model");
-        String ipaddr = jsonObject.getString("ipaddr");
-        CloudData bean = new CloudData(uid, cate, text, model, ipaddr);
-        mCloudData.put(cate, bean);
-
-        return JsonCryptUtil.makeSuccess();
-    }
-
     @RequestMapping("/cloud/select")
-    public String insert(HttpServletRequest request) {
+    public String cloudSelect(HttpServletRequest request) {
 
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
@@ -106,6 +69,43 @@ public class CloudController extends BaseController {
         JSONObject obj = new JSONObject();
         obj.put("data", JSON.toJSON(list));
         return JsonCryptUtil.makeSuccess(obj);
+    }
+
+    /**
+     * 上传数据
+     * @param request
+     * @return
+     */
+    @RequestMapping("/cloud/add")
+    public String cloudAdd(HttpServletRequest request) {
+
+        String key = request.getParameter("key");
+        String secretData = request.getParameter("data");
+        String signature = request.getParameter("signature");
+        int signResult = SignUtil.validateSign(key, secretData, signature);
+        switch (signResult) {
+            case KEY_ERROR:
+                return JsonCryptUtil.makeFailKey();
+            case SIGN_ERROR:
+                return JsonCryptUtil.makeFailSign();
+        }
+
+        String data = AESUtil.decrypt(secretData);
+        JSONObject jsonObject = JSON.parseObject(data);
+        long timestamp = jsonObject.getLong("timestamp");
+        if (!checkRequest(timestamp)) {
+            return JsonCryptUtil.makeFailTime();
+        }
+
+        int uid = jsonObject.getInteger("uid");
+        String cate = jsonObject.getString("cate");
+        String text = jsonObject.getString("text");
+        String model = jsonObject.getString("model");
+        String ipaddr = jsonObject.getString("ipaddr");
+        CloudData bean = new CloudData(uid, cate, text, model, ipaddr);
+        mCloudData.put(cate, bean);
+
+        return JsonCryptUtil.makeSuccess();
     }
 
     /**
