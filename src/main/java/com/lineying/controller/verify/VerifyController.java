@@ -1,7 +1,7 @@
 package com.lineying.controller.verify;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.lineying.bean.VerifyCode;
 import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
@@ -110,6 +110,7 @@ public class VerifyController extends BaseController {
         // 返回剩余时间更可靠
         map.put("remain_interval", remainInterval);
         list.add(map);
+
         JSONObject obj = new JSONObject();
         obj.put("data", JSON.toJSON(list));
         return JsonCryptUtil.makeSuccess(obj);

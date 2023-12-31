@@ -1,7 +1,7 @@
 package com.lineying.controller.db.mysql;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonCommandEntity;
@@ -75,6 +75,7 @@ public class DataController extends BaseController {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
         }
+        Logger.getGlobal().info("select===>>>" + list);
         JSONObject obj = new JSONObject();
         obj.put("data", JSON.toJSON(list));
         return JsonCryptUtil.makeSuccess(obj);
