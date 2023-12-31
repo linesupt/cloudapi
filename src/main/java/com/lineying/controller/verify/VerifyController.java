@@ -183,10 +183,20 @@ public class VerifyController extends BaseController {
                 Logger.getGlobal().info("邮件发送失败!");
             }
         } else if (type == 2) {
+            String targetPhone = target;
+            if (target.startsWith("+")) {
+                if (!target.startsWith("+86")) {
+                    return JsonCryptUtil.makeFail("phone not supported");
+                }
+                targetPhone = targetPhone.replace("+86", "");
+            }
+            if (!VerifyUtil.isPhone(targetPhone)) {
+                return JsonCryptUtil.makeFail("phone not supported");
+            }
             SmsEntity smsEntity = SmsEntityFactory.make(appCode);
             if (smsEntity == null) {
-                Logger.getGlobal().info("appcode " + appCode + " no supported");
-                return JsonCryptUtil.makeFail("appcode no supported");
+                Logger.getGlobal().info("appcode " + appCode + " not supported");
+                return JsonCryptUtil.makeFail("appcode not supported");
             }
             sendCode = VerifyCodeGenerator.generateNum();
             sendResult = smsService.sendCode(smsEntity, target, sendCode);
