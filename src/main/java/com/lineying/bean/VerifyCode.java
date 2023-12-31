@@ -80,14 +80,4 @@ public class VerifyCode {
         return false;
     }
 
-    /**
-     * 转换为数据
-     * @return
-     */
-    public Map<String, Object> toCallData() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("expire_time", timestamp);
-        return map;
-    }
-
 }

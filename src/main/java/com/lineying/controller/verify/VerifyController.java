@@ -125,6 +125,22 @@ public class VerifyController extends BaseController {
     }
 
     /**
+     * 返回成功结果，包含过期时间
+     * @param expireTime
+     * @return
+     */
+    private String makeSuccess(long expireTime) {
+        // 直接返回、避免用户攻击
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("expire_time", expireTime);
+        list.add(map);
+        JSONObject obj = new JSONObject();
+        obj.put("data", JSON.toJSON(list));
+        return JsonCryptUtil.makeSuccess(obj);
+    }
+
+    /**
      * 发送短信验证码
      * @return
      */
@@ -168,8 +184,8 @@ public class VerifyController extends BaseController {
         if (cacheVerifyCode == null || cacheVerifyCode.isExpired()) {
             sendCode = VerifyCodeGenerator.generate();
         } else {
-            sendCode = cacheVerifyCode.getCode();
             timestamp = cacheVerifyCode.getTimestamp();
+            return makeSuccess(timestamp);
         }
 
         MessageSource messageSource = buildMessageSource();
@@ -198,11 +214,7 @@ public class VerifyController extends BaseController {
         Logger.getGlobal().info("生成验证码::" + sendCode);
         VerifyCode entity = new VerifyCode(appCode, target, sendCode, type, timestamp);
         mVerifyCodes.put(targetKey, entity);
-        List<Map<String, Object>> list = new ArrayList<>();
-        list.add(entity.toCallData());
-        JSONObject obj = new JSONObject();
-        obj.put("data", JSON.toJSON(list));
-        return JsonCryptUtil.makeSuccess(obj);
+        return makeSuccess(timestamp);
     }
 
     /**
