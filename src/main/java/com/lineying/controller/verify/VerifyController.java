@@ -7,10 +7,7 @@ import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
 import com.lineying.mail.EmailSenderManager;
 import com.lineying.service.ISmsService;
-import com.lineying.util.AESUtil;
-import com.lineying.util.JsonCryptUtil;
-import com.lineying.util.SignUtil;
-import com.lineying.util.VerifyCodeGenerator;
+import com.lineying.util.*;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,33 +53,6 @@ public class VerifyController extends BaseController {
             return Locale.TRADITIONAL_CHINESE;
         }
         return Locale.ENGLISH;
-    }
-
-    // 创建消息资源
-    private MessageSource buildMessageSource() {
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("i18n/messages");
-        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        messageSource.setFallbackToSystemLocale(true);
-        messageSource.setCacheSeconds(-1);
-        messageSource.setAlwaysUseMessageFormat(false);
-        messageSource.setUseCodeAsDefaultMessage(true);
-        return messageSource;
-    }
-
-    @RequestMapping("/test_locale")
-    public void testLocale() {
-        MessageSource messageSource = buildMessageSource();
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-CN")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-CN")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-Hans")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-Hans")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-TW")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-TW")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("zh-Hant")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("zh-Hant")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_title", null, getLocale("en")));
-        System.out.println("======>>> " + messageSource.getMessage("email_verify_msg", null, getLocale("en")));
     }
 
     /**
@@ -146,6 +116,17 @@ public class VerifyController extends BaseController {
     }
 
     /**
+     * 是否过期
+     * @return
+     */
+    public boolean isExpired(long timestamp) {
+        if (getCurrentTime() - timestamp > VERIFY_INTERVAL) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 发送短信验证码
      * @return
      */
@@ -186,17 +167,15 @@ public class VerifyController extends BaseController {
         }
         String sendCode = "";
         VerifyCode cacheVerifyCode = getCacheVerifyCode(targetKey);
-        if (cacheVerifyCode == null || cacheVerifyCode.isExpired()) {
+        if (cacheVerifyCode == null || isExpired(cacheVerifyCode.getTimestamp())) {
             sendCode = VerifyCodeGenerator.generate();
         } else {
             timestamp = cacheVerifyCode.getTimestamp();
             return makeSuccess(timestamp);
         }
-
-        MessageSource messageSource = buildMessageSource();
-        // 生成验证码, 执行邮件发送逻辑
         if (type == 1) {
             // 处理邮件发送
+            MessageSource messageSource = MessageSourceFactory.buildDefaultMessageSource();
             String subject = messageSource.getMessage("email_verify_title", null, getLocale(locale));
             String verifyMsg = messageSource.getMessage("email_verify_msg", null, getLocale(locale));
             String content = String.format(verifyMsg, sendCode);
@@ -273,7 +252,7 @@ public class VerifyController extends BaseController {
                 return JsonCryptUtil.makeFailVerifyCode();
             }
             // 对比时间
-            if (entity.isExpired()) {
+            if (isExpired(entity.getTimestamp())) {
                 // 验证码已经过期
                 return JsonCryptUtil.makeFailVerifyTimeout();
             }
