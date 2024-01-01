@@ -178,6 +178,12 @@
             <artifactId>alipay-sdk-java</artifactId>
             <version>4.10.124.ALL</version>
         </dependency>
+        <!-- 接入微信支付 -->
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <version>0.2.12</version>
+        </dependency>
     </dependencies>
 
 </project>

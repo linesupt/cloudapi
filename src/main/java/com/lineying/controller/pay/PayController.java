@@ -20,6 +20,12 @@ import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
 import com.lineying.util.TimeUtil;
+import com.wechat.pay.java.core.Config;
+import com.wechat.pay.java.core.RSAAutoCertificateConfig;
+import com.wechat.pay.java.service.payments.nativepay.model.Amount;
+import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
+import com.wechat.pay.java.service.payments.nativepay.NativePayService;
+import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,8 +33,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,19 +58,27 @@ public class PayController extends BaseController {
     ICommonService commonService;
 
     @Value("${pay.app_pub_key}") // 应用公钥
-    private String appPubKey;
-
+    private String alipayAppPubKey;
     @Value("${pay.app_pri_key}") // 应用私钥
-    private String appPriKey;
-
+    private String alipayAppPriKey;
     @Value("${pay.alipay.pub_key}") // 支付宝公钥
     private String alipayPubKey;
+
+    @Value("${pay.wxpay.merchant_id}") // 微信支付商户号
+    private String wxpayMerchantId;
+    @Value("${pay.wxpay.apiv3_key}") // 微信支付密钥
+    private String wxpayApiv3Key;
+    @Value("${pay.wxpay.private_key_path}") // 微信支付私钥路径
+    private String wxpayPrivateKeyPath;
+    @Value("${pay.wxpay.merchant_serial_number}") // 微信商户序列号
+    private String wxpayMerchantSerialNumber;
 
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
     public static final String BASE_URL = "http://api.lineying.cn/";
-    public static final String NOTIFY_PATH = "cloud/api/pay/alipay/notify";
+    public static final String ALIPAY_NOTIFY_PATH = BASE_URL + "cloud/api/pay/alipay/notify";
+    public static final String WXPAY_NOTIFY_PATH = BASE_URL + "cloud/api/pay/wxpay/notify";
 
     // 签名方式
     public static final String SIGN_TYPE = "RSA2";
@@ -69,6 +86,8 @@ public class PayController extends BaseController {
     public static final String FORMAT = "json";
     // 订单超时时间
     public static final String TIMEOUT = "15m";
+
+
 
     /**
      * 创建支付宝支付信息
@@ -129,10 +148,10 @@ public class PayController extends BaseController {
 
         Logger.getGlobal().info("处理支付宝支付!" + app_id + " - " + outTradeNo + " - " + total_fee + " - " + body);
         // 实例化客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, app_id, appPriKey, FORMAT, CHARSET, alipayPubKey, SIGN_TYPE);
+        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, app_id, alipayAppPriKey, FORMAT, CHARSET, alipayPubKey, SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
-        alipayRequest.setNotifyUrl(BASE_URL + NOTIFY_PATH);
+        alipayRequest.setNotifyUrl(ALIPAY_NOTIFY_PATH);
         // 设置订单信息
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
         model.setOutTradeNo(outTradeNo);
@@ -232,6 +251,8 @@ public class PayController extends BaseController {
         }
     }
 
+    ////////////////////////// wechat pay ///////////////////////////////
+
     /**
      * 创建微信支付信息
      *
@@ -264,7 +285,37 @@ public class PayController extends BaseController {
 
         Logger.getGlobal().info("处理微信支付!" + app_id + " - " + out_trade_no + " - " + total_fee
                 + " - " + body);
+
+
         return "wxpay app pay";
+    }
+
+    private void req(String outTradeNo) {
+        // 使用自动更新平台证书的RSA配置
+        // 一个商户号只能初始化一个配置，否则会因为重复的下载任务报错
+        Config config =
+                new RSAAutoCertificateConfig.Builder()
+                        .merchantId(wxpayMerchantId)
+                        .privateKeyFromPath(wxpayPrivateKeyPath)
+                        .merchantSerialNumber(wxpayMerchantSerialNumber)
+                        .apiV3Key(wxpayApiv3Key)
+                        .build();
+        // 构建service
+        NativePayService service = new NativePayService.Builder().config(config).build();
+        // request.setXxx(val)设置所需参数，具体参数可见Request定义
+        PrepayRequest request = new PrepayRequest();
+        Amount amount = new Amount();
+        amount.setTotal(100);
+        request.setAmount(amount);
+        request.setAppid("wxa9d9651ae******");
+        request.setMchid("190000****");
+        request.setDescription("测试商品标题");
+        request.setNotifyUrl(WXPAY_NOTIFY_PATH);
+        request.setOutTradeNo(outTradeNo);
+        // 调用下单方法，得到应答
+        PrepayResponse response = service.prepay(request);
+        // 使用微信扫描 code_url 对应的二维码，即可体验Native支付
+        System.out.println(response.getCodeUrl());
     }
 
     /**
