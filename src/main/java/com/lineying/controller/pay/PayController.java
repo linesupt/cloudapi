@@ -1,7 +1,5 @@
 package com.lineying.controller.pay;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
@@ -9,6 +7,9 @@ import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.lineying.bean.Order;
 import com.lineying.common.PayType;
 import com.lineying.common.Platform;
@@ -109,24 +110,24 @@ public class PayController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
         // 生成订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
-        String pay_type = jsonObject.getString("pay_type");
+        String pay_type = jsonObject.get("pay_type").getAsString();
         String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
-        int uid = jsonObject.getIntValue("uid");
-        String appcode = jsonObject.getString("appcode");
-        String goodsCode = jsonObject.getString("goods_code");
+        int uid = jsonObject.get("uid").getAsInt();
+        String appcode = jsonObject.get("appcode").getAsString();
+        String goodsCode = jsonObject.get("goods_code").getAsString();
         // 用于支付宝
-        String app_id = jsonObject.getString("app_id");
+        String app_id = jsonObject.get("app_id").getAsString();
         // 用于支付宝
-        String total_fee = jsonObject.getString("total_fee");
-        String body = jsonObject.getString("body");
+        String total_fee = jsonObject.get("total_fee").getAsString();
+        String body = jsonObject.get("body").getAsString();
 
         Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, pay_type);
 
@@ -163,9 +164,9 @@ public class PayController extends BaseController {
         alipayRequest.setBizModel(model);
         AlipayTradeAppPayResponse resp = alipayClient.sdkExecute(alipayRequest);
         String respResult = resp.getBody();
-        JSONObject resultObj = new JSONObject();
-        resultObj.put("trade_no", outTradeNo);
-        resultObj.put("order_info", respResult);
+        JsonObject resultObj = new JsonObject();
+        resultObj.addProperty("trade_no", outTradeNo);
+        resultObj.addProperty("order_info", respResult);
         return JsonCryptUtil.makeSuccess(resultObj);
     }
 
@@ -272,16 +273,16 @@ public class PayController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String app_id = jsonObject.getString("app_id");
-        String out_trade_no = jsonObject.getString("out_trade_no");
-        String total_fee = jsonObject.getString("total_fee");
-        String body = jsonObject.getString("body");
+        String app_id = jsonObject.get("app_id").getAsString();
+        String out_trade_no = jsonObject.get("out_trade_no").getAsString();
+        String total_fee = jsonObject.get("total_fee").getAsString();
+        String body = jsonObject.get("body").getAsString();
 
         Logger.getGlobal().info("处理微信支付!" + app_id + " - " + out_trade_no + " - " + total_fee
                 + " - " + body);

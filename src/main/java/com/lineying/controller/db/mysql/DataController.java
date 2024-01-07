@@ -1,7 +1,8 @@
 package com.lineying.controller.db.mysql;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonCommandEntity;
@@ -48,17 +49,17 @@ public class DataController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String table = jsonObject.getString("table");
-        String column = jsonObject.getString("column");
-        String where = jsonObject.getString("where");
-        String sort = jsonObject.getString("sort");
-        String sort_column = jsonObject.getString("sort_column");
+        String table = jsonObject.get("table").getAsString();
+        String column = jsonObject.get("column").getAsString();
+        String where = jsonObject.get("where").getAsString();
+        String sort = jsonObject.get("sort").getAsString();
+        String sort_column = jsonObject.get("sort_column").getAsString();
 
         Logger.getGlobal().info("执行查询 " + key + " - " + data + " - " + signature);
         CommonQueryEntity entity = new CommonQueryEntity();
@@ -75,9 +76,8 @@ public class DataController extends BaseController {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
         }
-        Logger.getGlobal().info("select===>>>" + list);
-        JSONObject obj = new JSONObject();
-        obj.put("data", JSON.toJSON(list));
+        JsonObject obj = new JsonObject();
+        obj.add("data", new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -96,14 +96,14 @@ public class DataController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonUtil.makeFailTime();
         }
-        String table = jsonObject.getString("table");
-        String column = jsonObject.getString("column");
-        String value = jsonObject.getString("value");
+        String table = jsonObject.get("table").getAsString();
+        String column = jsonObject.get("column").getAsString();
+        String value = jsonObject.get("value").getAsString();
 
         Logger.getGlobal().info("执行添加 " + key + " - " + data + " - " + signature);
         CommonAddEntity entity = new CommonAddEntity();
@@ -135,13 +135,13 @@ public class DataController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
-        String table = jsonObject.getString("table");
-        String where = jsonObject.getString("where");
+        String table = jsonObject.get("table").getAsString();
+        String where = jsonObject.get("where").getAsString();
 
         Logger.getGlobal().info("执行删除 " + key + " - " + data + " - " + signature);
         CommonQueryEntity entity = new CommonQueryEntity();
@@ -172,14 +172,14 @@ public class DataController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
-        String table = jsonObject.getString("table");
-        String set = jsonObject.getString("set");
-        String where = jsonObject.getString("where");
+        String table = jsonObject.get("table").getAsString();
+        String set = jsonObject.get("set").getAsString();
+        String where = jsonObject.get("where").getAsString();
 
         Logger.getGlobal().info("执行更新 " + key + " - " + data + " - " + signature);
 
@@ -214,12 +214,12 @@ public class DataController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
-        String sql = jsonObject.getString("sql");
+        String sql = jsonObject.get("sql").getAsString();
 
         Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature);
         CommonCommandEntity entity = new CommonCommandEntity();

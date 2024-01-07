@@ -1,7 +1,8 @@
 package com.lineying.controller.verify;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.lineying.bean.VerifyCode;
 import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
@@ -111,8 +112,8 @@ public class VerifyController extends BaseController {
         map.put("remain_interval", remainInterval);
         list.add(map);
 
-        JSONObject obj = new JSONObject();
-        obj.put("data", JSON.toJSON(list));
+        JsonObject obj = new JsonObject();
+        obj.add("data", new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -149,16 +150,16 @@ public class VerifyController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
         Logger.getGlobal().info("data::" + data);
-        long timestamp = jsonObject.getLong("timestamp");
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String appCode = jsonObject.getString("appcode");
-        int type = jsonObject.getInteger("type");
-        String target = jsonObject.getString("target");
+        String appCode = jsonObject.get("appcode").getAsString();
+        int type = jsonObject.get("type").getAsInt();
+        String target = jsonObject.get("target").getAsString();
         String targetKey = makeTargetKey(appCode, type, target);
 
         int sendResult = 0;
@@ -238,17 +239,17 @@ public class VerifyController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
         Logger.getGlobal().info("data::" + data);
-        long timestamp = jsonObject.getLong("timestamp");
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
-        String appCode = jsonObject.getString("appcode");
-        String code = jsonObject.getString("code");
-        String target = jsonObject.getString("target");
-        int type = jsonObject.getInteger("type");
+        String appCode = jsonObject.get("appcode").getAsString();
+        String code = jsonObject.get("code").getAsString();
+        String target = jsonObject.get("target").getAsString();
+        int type = jsonObject.get("type").getAsInt();
         String targetKey = makeTargetKey(appCode, type, target);
 
         VerifyCode entity = getCacheVerifyCode(targetKey);

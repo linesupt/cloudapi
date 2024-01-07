@@ -1,7 +1,6 @@
 package com.lineying.util;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONWriter;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -118,7 +117,7 @@ public class JsonUtil {
         jsonMap.put("code", code);
         jsonMap.put("msg", msg);
         jsonMap.put("data", data);
-        return JSON.toJSONString(jsonMap, JSONWriter.Feature.WriteNulls);
+        return new Gson().toJson(jsonMap);
     }
 
     /**
@@ -131,7 +130,7 @@ public class JsonUtil {
         jsonMap.put("code", 1);
         jsonMap.put("msg", "success");
         jsonMap.put("data", data);
-        return JSON.toJSONString(jsonMap, JSONWriter.Feature.WriteNulls);
+        return new Gson().toJson(jsonMap);
     }
 
 }

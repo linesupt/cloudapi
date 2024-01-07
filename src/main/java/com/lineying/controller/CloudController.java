@@ -1,7 +1,8 @@
 package com.lineying.controller;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
@@ -46,12 +47,12 @@ public class CloudController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonUtil.makeFailTime();
         }
-        String cate = jsonObject.getString("cate");
+        String cate = jsonObject.get("cate").getAsString();
         CloudData bean = mCloudData.get(cate);
         if (bean == null) {
             return JsonUtil.makeFailNoData();
@@ -62,8 +63,8 @@ public class CloudController extends BaseController {
         }
         List<Map<String, Object>> list = new ArrayList<>();
         list.add(bean.toData());
-        JSONObject obj = new JSONObject();
-        obj.put("data", JSON.toJSON(list));
+        JsonObject obj = new JsonObject();
+        obj.add("data", new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -87,17 +88,17 @@ public class CloudController extends BaseController {
         }
 
         String data = AESUtil.decrypt(secretData);
-        JSONObject jsonObject = JSON.parseObject(data);
-        long timestamp = jsonObject.getLong("timestamp");
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
         }
 
-        int uid = jsonObject.getInteger("uid");
-        String cate = jsonObject.getString("cate");
-        String text = jsonObject.getString("text");
-        String model = jsonObject.getString("model");
-        String ipaddr = jsonObject.getString("ipaddr");
+        int uid = jsonObject.get("uid").getAsInt();
+        String cate = jsonObject.get("cate").getAsString();
+        String text = jsonObject.get("text").getAsString();
+        String model = jsonObject.get("model").getAsString();
+        String ipaddr = jsonObject.get("ipaddr").getAsString();
         CloudData bean = new CloudData(uid, cate, text, model, ipaddr);
         mCloudData.put(cate, bean);
 
