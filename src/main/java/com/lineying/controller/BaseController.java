@@ -1,6 +1,8 @@
 package com.lineying.controller;
 
 import com.lineying.common.CommonConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * base controller
@@ -8,6 +10,8 @@ import com.lineying.common.CommonConstant;
 public class BaseController {
 
     protected static final String CHARSET = "utf-8";
+    // 日志
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AppleServiceController.class);
 
     /**
      * 获取当前时间

@@ -1,9 +1,6 @@
 package com.lineying.mapper;
 
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonCommandEntity;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -11,6 +8,21 @@ import java.util.Map;
 
 @Mapper
 public interface CommonMapper {
+
+    /**
+     * 用户密码登录
+     * @param entity
+     * @return
+     */
+    List<Map<String, Object>> loginForUsername(LoginEntity entity);
+
+    /**
+     * 邮箱密码登录
+     * @param entity
+     * @return
+     */
+    List<Map<String, Object>> loginForEmail(LoginEntity entity);
+
     /**
      * 查询
      *

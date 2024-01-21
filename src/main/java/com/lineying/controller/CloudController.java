@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.lineying.common.SignResult.KEY_ERROR;
 import static com.lineying.common.SignResult.SIGN_ERROR;
@@ -26,6 +23,10 @@ import static com.lineying.common.SignResult.SIGN_ERROR;
 @RestController
 @RequestMapping("api")
 public class CloudController extends BaseController {
+
+    // Apple授权登录
+    private final static String authAppleUrl = "https://appleid.apple.com/auth/keys";
+    private final static String authAppleIss = "https://appleid.apple.com";
 
     /**
      * 第三方云服务数据

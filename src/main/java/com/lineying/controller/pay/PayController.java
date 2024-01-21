@@ -7,7 +7,6 @@ import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.Order;
@@ -21,24 +20,27 @@ import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
 import com.lineying.util.TimeUtil;
+import com.wechat.pay.java.core.AbstractRSAConfig;
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
-import com.wechat.pay.java.service.payments.nativepay.model.Amount;
-import com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest;
-import com.wechat.pay.java.service.payments.nativepay.NativePayService;
-import com.wechat.pay.java.service.payments.nativepay.model.PrepayResponse;
+import com.wechat.pay.java.core.exception.ValidationException;
+import com.wechat.pay.java.core.notification.NotificationConfig;
+import com.wechat.pay.java.core.notification.NotificationParser;
+import com.wechat.pay.java.core.notification.RequestParam;
+import com.wechat.pay.java.service.partnerpayments.app.model.Transaction;
+import com.wechat.pay.java.service.payments.app.AppServiceExtension;
+import com.wechat.pay.java.service.payments.app.model.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -79,6 +81,7 @@ public class PayController extends BaseController {
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
     public static final String BASE_URL = "http://api.lineying.cn/";
     public static final String ALIPAY_NOTIFY_PATH = BASE_URL + "cloud/api/pay/alipay/notify";
+    // TODO 要求为https//...
     public static final String WXPAY_NOTIFY_PATH = BASE_URL + "cloud/api/pay/wxpay/notify";
 
     // 签名方式
@@ -255,9 +258,8 @@ public class PayController extends BaseController {
     ////////////////////////// wechat pay ///////////////////////////////
 
     /**
-     * 创建微信支付信息
-     *
-     * @return
+     * 创建微信支付信息（APP）
+     * @return 返回客户端唤醒微信支付的方法
      */
     @RequestMapping("/pay/wxpay/mkpay")
     public String wxpayAppPay(HttpServletRequest request) {
@@ -279,44 +281,54 @@ public class PayController extends BaseController {
             return JsonCryptUtil.makeFailTime();
         }
 
+        // 生成订单号
+        int platform = Platform.get(request.getHeader("platform")).getId();
+        String pay_type = jsonObject.get("pay_type").getAsString();
         String app_id = jsonObject.get("app_id").getAsString();
-        String out_trade_no = jsonObject.get("out_trade_no").getAsString();
         String total_fee = jsonObject.get("total_fee").getAsString();
         String body = jsonObject.get("body").getAsString();
+        // 单位为分
+        int total = (int) (Math.round(Double.parseDouble(total_fee)) * 100);
 
-        Logger.getGlobal().info("处理微信支付!" + app_id + " - " + out_trade_no + " - " + total_fee
+        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
+
+        LOGGER.info("处理微信支付!" + app_id + " - " + outTradeNo + " - " + total_fee
                 + " - " + body);
 
+        // 使用自动更新平台证书的RSA配置
 
-        return "wxpay app pay";
+        // 构建service
+        AppServiceExtension service = new AppServiceExtension.Builder()
+                .config(makeWxpayConfig()).build();
+        PrepayRequest prepayRequest = new PrepayRequest();
+        Amount amount = new Amount();
+        amount.setTotal(total);
+        prepayRequest.setAmount(amount);
+        prepayRequest.setAppid(app_id);
+        prepayRequest.setMchid(wxpayMerchantId);
+        prepayRequest.setDescription(body);
+        prepayRequest.setNotifyUrl(WXPAY_NOTIFY_PATH);
+        prepayRequest.setOutTradeNo(outTradeNo);
+        // 调用下单方法，得到应答
+        PrepayWithRequestPaymentResponse response = service.prepayWithRequestPayment(prepayRequest);
+        // 获取prepayid
+        String prepayId = response.getPrepayId();
+        JsonObject resultObj = new JsonObject();
+        resultObj.addProperty("prepay_id", prepayId);
+        return JsonCryptUtil.makeSuccess(resultObj);
     }
 
-    private void req(String outTradeNo) {
-        // 使用自动更新平台证书的RSA配置
+    /** 创建配置 **/
+    private RSAAutoCertificateConfig makeWxpayConfig() {
         // 一个商户号只能初始化一个配置，否则会因为重复的下载任务报错
-        Config config =
+        RSAAutoCertificateConfig config =
                 new RSAAutoCertificateConfig.Builder()
                         .merchantId(wxpayMerchantId)
                         .privateKeyFromPath(wxpayPrivateKeyPath)
                         .merchantSerialNumber(wxpayMerchantSerialNumber)
                         .apiV3Key(wxpayApiv3Key)
                         .build();
-        // 构建service
-        NativePayService service = new NativePayService.Builder().config(config).build();
-        // request.setXxx(val)设置所需参数，具体参数可见Request定义
-        PrepayRequest request = new PrepayRequest();
-        Amount amount = new Amount();
-        amount.setTotal(100);
-        request.setAmount(amount);
-        request.setAppid("wxa9d9651ae******");
-        request.setMchid("190000****");
-        request.setDescription("测试商品标题");
-        request.setNotifyUrl(WXPAY_NOTIFY_PATH);
-        request.setOutTradeNo(outTradeNo);
-        // 调用下单方法，得到应答
-        PrepayResponse response = service.prepay(request);
-        // 使用微信扫描 code_url 对应的二维码，即可体验Native支付
-        System.out.println(response.getCodeUrl());
+        return config;
     }
 
     /**
@@ -327,8 +339,63 @@ public class PayController extends BaseController {
     @RequestMapping("/pay/wxpay/notify")
     public String wxpayNotify(HttpServletRequest request) {
         // TODO 微信通知
-        Logger.getGlobal().info("处理微信通知!");
-        return "wxpay notify";
+        LOGGER.info("处理微信通知!");
+        String characterEncoding = request.getCharacterEncoding();
+        System.out.println("characterEncoding=" + characterEncoding);
+        //从请求头获取验签字段
+        String timestamp = request.getHeader("Wechatpay-Timestamp");
+        String nonce = request.getHeader("Wechatpay-Nonce");
+        String signature = request.getHeader("Wechatpay-Signature");
+        String serial = request.getHeader("Wechatpay-Serial");
+
+        String requestBody = "";
+        HashMap<String, String> map = new HashMap<>();
+        // 构造 RequestParam
+        RequestParam requestParam = new RequestParam.Builder()
+                .serialNumber(serial)
+                .nonce(nonce)
+                .signature(signature)
+                .timestamp(timestamp)
+                .body(requestBody)
+                .build();
+        // 初始化 NotificationParser
+        NotificationParser parser = new NotificationParser(makeWxpayConfig());
+        try {
+            // 以支付通知回调为例，验签、解密并转换成 Transaction
+            Transaction transaction = parser.parse(requestParam, Transaction.class);
+        } catch (ValidationException e) {
+            // 签名验证失败，返回 401 UNAUTHORIZED 状态码
+            LOGGER.error("sign verification failed", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).toString();
+        }
+
+        // 如果处理失败，应返回 4xx/5xx 的状态码，例如 500 INTERNAL_SERVER_ERROR
+        if (false) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).toString();
+        }
+
+        // 处理成功，返回 200 OK 状态码
+        return ResponseEntity.status(HttpStatus.OK).toString();
+    }
+
+    /**
+     * 关闭订单
+     * @param outTradeNo
+     * @return
+     */
+    public String closeOrder(String outTradeNo) {
+        CloseOrderRequest closeRequest = new CloseOrderRequest();
+        closeRequest.setMchid(wxpayMerchantId);
+        closeRequest.setOutTradeNo(outTradeNo);
+        // 方法没有返回值，意味着成功时API返回204 No Content
+        // 关闭订单
+        // TODO service.closeOrder(closeRequest);
+        return JsonCryptUtil.makeSuccess();
+    }
+
+    // 发起退款
+    public String refund() {
+        return "";
     }
 
 }

@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lineying.mapper.CommonMapper">
+    <!-- 用户密码登录 -->
+    <select id="loginForUsername" parameterType="com.lineying.entity.LoginEntity" resultType="java.util.Map">
+        select *
+        from ${table}
+        where username = ${username} and password = ${password}
+        order by id desc
+    </select>
+    <!-- 邮箱密码登录 -->
+    <select id="loginForEmail" parameterType="com.lineying.entity.LoginEntity" resultType="java.util.Map">
+        select *
+        from ${table}
+        where email = ${username} and password = ${password}
+        order by id desc
+    </select>
     <!-- 查询 -->
     <select id="list" parameterType="com.lineying.entity.CommonQueryEntity" resultType="java.util.Map">
         select ${column}

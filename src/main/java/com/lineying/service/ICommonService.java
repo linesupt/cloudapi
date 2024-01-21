@@ -1,14 +1,24 @@
 package com.lineying.service;
 
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonCommandEntity;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.*;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ICommonService {
+
+    /**
+     * 用户密码登录
+     * @return
+     */
+    List<Map<String, Object>> loginForUsername(LoginEntity entity);
+
+    /**
+     * 邮箱密码登录
+     * @return
+     */
+    List<Map<String, Object>> loginForEmail(LoginEntity entity);
+
     /**
      * 查询
      * @return

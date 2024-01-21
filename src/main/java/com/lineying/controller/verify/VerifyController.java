@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.VerifyCode;
+import com.lineying.common.AppCodeManager;
 import com.lineying.common.SignResult;
 import com.lineying.controller.BaseController;
 import com.lineying.mail.EmailSenderManager;
@@ -33,7 +34,6 @@ public class VerifyController extends BaseController {
 
     private static Map<String, VerifyCode> mVerifyCodes = new HashMap<>();
 
-    private List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
     // 简体中文
     private List<String> zhCNs = Arrays.asList("zh-CN", "zh_CN", "zh-Hans");
     // 繁体中文
@@ -163,7 +163,7 @@ public class VerifyController extends BaseController {
         String targetKey = makeTargetKey(appCode, type, target);
 
         int sendResult = 0;
-        if (!mAppCodeServers.contains(appCode)) {
+        if (!AppCodeManager.contains(appCode)) {
             Logger.getGlobal().info("不存在当前应用::" + appCode);
             return JsonCryptUtil.makeFailSendVerifyCode();
         }

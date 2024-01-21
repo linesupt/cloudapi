@@ -167,6 +167,13 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/libs/bcprov-jdk16-1.46.jar</systemPath>
         </dependency>
+        <!-- commons-httpclient -->
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+            <!--<scope>compile</scope>-->
+        </dependency>
         <!-- 接入支付宝 -->
         <dependency>
             <groupId>com.alipay.sdk</groupId>
@@ -178,6 +185,12 @@
             <groupId>com.github.wechatpay-apiv3</groupId>
             <artifactId>wechatpay-java</artifactId>
             <version>0.2.12</version>
+        </dependency>
+        <!-- JWT工具库 -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
         </dependency>
     </dependencies>
 
