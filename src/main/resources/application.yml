@@ -65,10 +65,6 @@ pay:
   alipay:
     # 支付宝公钥
     pub_key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtOmEVGMkC4Q7Mq0dia8eS0Y/QmX1YqwpUg6pdhDTea4vOkg96amV1KrKz3jfJXIhm26kiB0/tvPpUaYDzyG2z/aAn8/2xQ3UknPzLMMouzDI5/kCxqw8qd5OPs03OhhqE11GN6JttnYiUUJ2SWLvYijAhIOMyatKZFT3j/hEJj+Q5x+e8RqNTHWCB1/rC4k2D4z2SnJ/dG1ZAZu51H/GEW1ShqWCZIyUf8PhH0k5SvCCjVamWVriS3U16eCH/W3YNVEanPNiN22deWiY+Ut1T6Wk7zU9qXSNZuWIuZZfgyI3u6JwE+ZlqMV/VudxhrguTFxhZYALBZ4DQOidkTgI+wIDAQAB
-
-    "static/cert/wxpay/apiclient_key.pem";
-    /** 证书路径 **/
-    public static String certPath = "static/cert/wxpay/xxx_cert.p12";
   wxpay:
     # 微信支付v3密钥
     apiv3_key: dsfsd
@@ -76,8 +72,6 @@ pay:
     merchant_id: dsfa
     # 微信支付私钥路径
     private_key_path: static/cert/wxpay/apiclient_key.pem
-    #
-    private_key_path: static/cert/wxpay/xxx_cert.p12
     # 微信商户序列号
     merchant_serial_number: 5157F09EFDC096DE15EBE81A47057A72********
 

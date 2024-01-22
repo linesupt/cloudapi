@@ -1,9 +1,6 @@
 package com.lineying.service.impl;
 
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonCommandEntity;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.*;
 import com.lineying.mapper.CommonMapper;
 import com.lineying.service.ICommonService;
 import org.springframework.stereotype.Service;
@@ -16,6 +13,26 @@ import java.util.Map;
 public class CommonServiceImpl implements ICommonService {
     @Resource
     CommonMapper commonMapper;
+
+    /**
+     * 用户名密码登录
+     * @param entity
+     * @return
+     */
+    @Override
+    public List<Map<String, Object>> loginForUsername(LoginEntity entity) {
+        return commonMapper.loginForUsername(entity);
+    }
+
+    /**
+     * 邮箱密码登录
+     * @param entity
+     * @return
+     */
+    @Override
+    public List<Map<String, Object>> loginForEmail(LoginEntity entity) {
+        return commonMapper.loginForEmail(entity);
+    }
 
     /**
      * 查询

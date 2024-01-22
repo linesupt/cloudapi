@@ -27,11 +27,11 @@ import static com.lineying.common.SignResult.KEY_ERROR;
 import static com.lineying.common.SignResult.SIGN_ERROR;
 
 /**
- * Apple授权服务接口
+ * 授权认证服务接口
  */
 @RestController
 @RequestMapping("api")
-public class AppleServiceController extends BaseController {
+public class AuthenticationServiceController extends BaseController {
 
     @Resource
     ICommonService commonService;

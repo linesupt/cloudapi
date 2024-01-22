@@ -91,8 +91,6 @@ public class PayController extends BaseController {
     // 订单超时时间
     public static final String TIMEOUT = "15m";
 
-
-
     /**
      * 创建支付宝支付信息
      *
