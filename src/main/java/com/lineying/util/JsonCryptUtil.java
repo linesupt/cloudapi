@@ -1,6 +1,7 @@
 package com.lineying.util;
 
 import com.lineying.common.CommonConstant;
+import com.lineying.common.SecureConfig;
 
 /**
  * json加密结果
@@ -15,7 +16,7 @@ public class JsonCryptUtil {
 
         String result = JsonUtil.makeFailVerifyCode();
         System.out.println("验证码错误::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -26,7 +27,7 @@ public class JsonCryptUtil {
 
         String result = JsonUtil.makeFailVerifyTimeout();
         System.out.println("验证码错误::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -37,7 +38,7 @@ public class JsonCryptUtil {
 
         String result = JsonUtil.makeFailSendVerifyCode();
         System.out.println("发送验证码错误::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -47,7 +48,7 @@ public class JsonCryptUtil {
     public static String makeSuccess() {
         String result = JsonUtil.makeSuccess();
         System.out.println("成功::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -58,7 +59,7 @@ public class JsonCryptUtil {
 
         String result = JsonUtil.makeFailKey();
         System.out.println("公钥错误::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -69,7 +70,7 @@ public class JsonCryptUtil {
 
         String result = JsonUtil.makeFailSign();
         System.out.println("签名验证错误::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -80,7 +81,7 @@ public class JsonCryptUtil {
 
         String result = JsonUtil.makeFailTime();
         System.out.println("时间错误::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -91,7 +92,7 @@ public class JsonCryptUtil {
     public static String makeFail(String cause) {
         String result = JsonUtil.makeFail(cause);
         System.out.println("原因错误::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -102,7 +103,7 @@ public class JsonCryptUtil {
     public static String makeResult(boolean flag) {
         String result = JsonUtil.makeResult(flag);
         System.out.println("结果::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
     /**
@@ -113,7 +114,7 @@ public class JsonCryptUtil {
     public static String makeSuccess(Object obj) {
         String result = JsonUtil.makeSuccess(obj);
         System.out.println("成功::" + result);
-        return AESUtil.encrypt(CommonConstant.DB_SECRET_KEY, CommonConstant.IV_SEED, result);
+        return AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, result);
     }
 
 }

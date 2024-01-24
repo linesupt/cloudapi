@@ -12,6 +12,7 @@ import com.google.gson.JsonParser;
 import com.lineying.bean.Order;
 import com.lineying.common.PayType;
 import com.lineying.common.Platform;
+import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonUpdateEntity;
@@ -59,22 +60,6 @@ public class PayController extends BaseController {
 
     @Resource
     ICommonService commonService;
-
-    @Value("${pay.app_pub_key}") // 应用公钥
-    private String alipayAppPubKey;
-    @Value("${pay.app_pri_key}") // 应用私钥
-    private String alipayAppPriKey;
-    @Value("${pay.alipay.pub_key}") // 支付宝公钥
-    private String alipayPubKey;
-
-    @Value("${pay.wxpay.merchant_id}") // 微信支付商户号
-    private String wxpayMerchantId;
-    @Value("${pay.wxpay.apiv3_key}") // 微信支付密钥
-    private String wxpayApiv3Key;
-    @Value("${pay.wxpay.private_key_path}") // 微信支付私钥路径
-    private String wxpayPrivateKeyPath;
-    @Value("${pay.wxpay.merchant_serial_number}") // 微信商户序列号
-    private String wxpayMerchantSerialNumber;
 
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
@@ -150,7 +135,8 @@ public class PayController extends BaseController {
 
         Logger.getGlobal().info("处理支付宝支付!" + app_id + " - " + outTradeNo + " - " + total_fee + " - " + body);
         // 实例化客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, app_id, alipayAppPriKey, FORMAT, CHARSET, alipayPubKey, SIGN_TYPE);
+        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, app_id, SecureConfig.ALIPAY_APP_PRI_KEY,
+                FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
         alipayRequest.setNotifyUrl(ALIPAY_NOTIFY_PATH);
@@ -193,7 +179,7 @@ public class PayController extends BaseController {
             }
             params.put(name, valueStr);
         }
-        boolean signVerified = AlipaySignature.rsaCheckV1(params, alipayPubKey, CHARSET, SIGN_TYPE); //调用SDK验证签名
+        boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, SIGN_TYPE); //调用SDK验证签名
         if (signVerified) { // 验证成功
             // 商户订单号
             String out_trade_no = request.getParameter("out_trade_no");
@@ -245,7 +231,7 @@ public class PayController extends BaseController {
             params.put(name, URLDecoder.decode(valueStr, "UTF-8"));
         }
         // 验证签名
-        boolean signVerified = AlipaySignature.rsaCheckV1(params, alipayPubKey, CHARSET, SIGN_TYPE);
+        boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, SIGN_TYPE);
         if (signVerified) {
             return "success";
         } else {
@@ -303,7 +289,7 @@ public class PayController extends BaseController {
         amount.setTotal(total);
         prepayRequest.setAmount(amount);
         prepayRequest.setAppid(app_id);
-        prepayRequest.setMchid(wxpayMerchantId);
+        prepayRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
         prepayRequest.setDescription(body);
         prepayRequest.setNotifyUrl(WXPAY_NOTIFY_PATH);
         prepayRequest.setOutTradeNo(outTradeNo);
@@ -321,10 +307,10 @@ public class PayController extends BaseController {
         // 一个商户号只能初始化一个配置，否则会因为重复的下载任务报错
         RSAAutoCertificateConfig config =
                 new RSAAutoCertificateConfig.Builder()
-                        .merchantId(wxpayMerchantId)
-                        .privateKeyFromPath(wxpayPrivateKeyPath)
-                        .merchantSerialNumber(wxpayMerchantSerialNumber)
-                        .apiV3Key(wxpayApiv3Key)
+                        .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
+                        .privateKeyFromPath(SecureConfig.WXPAY_PRI_KEY_PATH)
+                        .merchantSerialNumber(SecureConfig.WXPAY_MERCHANT_SERIAL_NUMBER)
+                        .apiV3Key(SecureConfig.WXPAY_APIV3_KEY)
                         .build();
         return config;
     }
@@ -383,7 +369,7 @@ public class PayController extends BaseController {
      */
     public String closeOrder(String outTradeNo) {
         CloseOrderRequest closeRequest = new CloseOrderRequest();
-        closeRequest.setMchid(wxpayMerchantId);
+        closeRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
         closeRequest.setOutTradeNo(outTradeNo);
         // 方法没有返回值，意味着成功时API返回204 No Content
         // 关闭订单

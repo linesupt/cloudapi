@@ -1,6 +1,7 @@
 package com.lineying.sms;
 
 import com.lineying.common.CommonConstant;
+import com.lineying.common.SecureConfig;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
@@ -23,7 +24,7 @@ public class SmsSender {
      * @return
      */
     public SmsClient getClient() {
-        Credential cred = new Credential(CommonConstant.TENCENTCLOUD_SECRET_ID, CommonConstant.TENCENTCLOUD_SECRET_KEY);
+        Credential cred = new Credential(SecureConfig.TENCENTCLOUD_SECRET_ID, SecureConfig.TENCENTCLOUD_SECRET_KEY);
         // 实例化一个http选项，可选，没有特殊需求可以跳过
         HttpProfile httpProfile = new HttpProfile();
         httpProfile.setReqMethod("POST");

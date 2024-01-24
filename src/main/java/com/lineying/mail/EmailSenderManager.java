@@ -2,6 +2,8 @@ package com.lineying.mail;
 
 import com.lineying.bean.EmailMessage;
 import com.lineying.common.CommonConstant;
+import com.lineying.common.SecureConfig;
+
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.logging.Logger;
@@ -47,8 +49,8 @@ public class EmailSenderManager {
      */
     public static int relayEmail(String subject, String content, String targetMail) {
 
-        String senderAccount = CommonConstant.MAIL_SENDER;
-        String senderName = CommonConstant.MAIL_SENDER_NAME;
+        String senderAccount = SecureConfig.MAIL_SENDER;
+        String senderName = SecureConfig.MAIL_SENDER_NAME;
         String senderHost = SEND_HOST;
         List<String> emailToAccountList = Arrays.asList(targetMail);
         int flag = CODE_SUCCESS;
@@ -91,11 +93,11 @@ public class EmailSenderManager {
             // 可以不设置
             // setSslMode(props, PORT_NO_SSL);
         }
-        setSenderToPro(props, CommonConstant.MAIL_SENDER, CommonConstant.MAIL_PASSWORD);
+        setSenderToPro(props, SecureConfig.MAIL_SENDER, SecureConfig.MAIL_PASSWORD);
         props.setProperty("mail.smtp.auth", true + ""); //如果不设置，则报553错误
         props.setProperty("mail.transport.protocol", "smtp");
         //getDefaultInstance得到的始终是该方法初次创建的缺省的对象，getInstance每次获取新对象
-        Session session = Session.getInstance(props, new SmtpAuthenticator(CommonConstant.MAIL_SENDER, CommonConstant.MAIL_PASSWORD));
+        Session session = Session.getInstance(props, new SmtpAuthenticator(SecureConfig.MAIL_SENDER, SecureConfig.MAIL_PASSWORD));
         session.setDebug(true);
         try {
             MimeMessage message = createMimeMessage(session, emailMessage);

@@ -2,6 +2,7 @@ package com.lineying.util;
 
 import cn.hutool.crypto.digest.MD5;
 import com.lineying.common.CommonConstant;
+import com.lineying.common.SecureConfig;
 import com.lineying.common.SignResult;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -25,10 +26,10 @@ public class SignUtil {
      */
     @SignResult
     public static int validateSign(String key, String data, String signature) {
-        if (!Objects.equals(key, CommonConstant.DB_API_KEY)) {
+        if (!Objects.equals(key, SecureConfig.DB_API_KEY)) {
             return SignResult.KEY_ERROR; // key error
         }
-        String signText = key + data + CommonConstant.DB_SECRET_KEY;
+        String signText = key + data + SecureConfig.DB_SECRET_KEY;
         String signatureText = MD5.create().digestHex(signText);
         Logger.getGlobal().info("执行签名验证 " + signText + " - " + signatureText);
         if (!Objects.equals(signatureText, signature)) {

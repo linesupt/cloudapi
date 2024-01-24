@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
+import com.lineying.common.SecureConfig;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;
@@ -112,6 +113,7 @@ public class CloudController extends BaseController {
      */
     @RequestMapping("/timestamp")
     public long timestamp() {
+        SecureConfig.printInfo();
         return System.currentTimeMillis() / 1000;
     }
 
