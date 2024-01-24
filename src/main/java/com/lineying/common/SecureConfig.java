@@ -1,6 +1,6 @@
 package com.lineying.common;
 
-import com.lineying.annotation.YamlPropertySourceFactory;
+import com.lineying.factory.YamlPropertySourceFactory;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
