@@ -17,10 +17,7 @@ import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
-import com.lineying.util.AESUtil;
-import com.lineying.util.JsonCryptUtil;
-import com.lineying.util.SignUtil;
-import com.lineying.util.TimeUtil;
+import com.lineying.util.*;
 import com.wechat.pay.java.core.AbstractRSAConfig;
 import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
@@ -40,6 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -240,6 +241,20 @@ public class PayController extends BaseController {
     }
 
     ////////////////////////// wechat pay ///////////////////////////////
+    // 从 v0.2.10 开始，我们不再限制每个商户号只能创建一个 RSAAutoCertificateConfig。
+    private RSAAutoCertificateConfig wxpayConfig;
+    /** 创建配置 **/
+    private RSAAutoCertificateConfig makeWxpayConfig() {
+        if (wxpayConfig == null) {
+            wxpayConfig = new RSAAutoCertificateConfig.Builder()
+                            .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
+                            .privateKeyFromPath(SecureConfig.WXPAY_PRI_KEY_PATH)
+                            .merchantSerialNumber(SecureConfig.WXPAY_MERCHANT_SERIAL_NUMBER)
+                            .apiV3Key(SecureConfig.WXPAY_APIV3_KEY)
+                            .build();
+        }
+        return wxpayConfig;
+    }
 
     /**
      * 创建微信支付信息（APP）
@@ -278,9 +293,6 @@ public class PayController extends BaseController {
 
         LOGGER.info("处理微信支付!" + app_id + " - " + outTradeNo + " - " + total_fee
                 + " - " + body);
-
-        // 使用自动更新平台证书的RSA配置
-
         // 构建service
         AppServiceExtension service = new AppServiceExtension.Builder()
                 .config(makeWxpayConfig()).build();
@@ -298,45 +310,41 @@ public class PayController extends BaseController {
         // 获取prepayid
         String prepayId = response.getPrepayId();
         JsonObject resultObj = new JsonObject();
-        resultObj.addProperty("prepay_id", prepayId);
+        resultObj.addProperty("trade_no", outTradeNo);
+        resultObj.addProperty("order_info", prepayId);
         return JsonCryptUtil.makeSuccess(resultObj);
-    }
-
-    /** 创建配置 **/
-    private RSAAutoCertificateConfig makeWxpayConfig() {
-        // 一个商户号只能初始化一个配置，否则会因为重复的下载任务报错
-        RSAAutoCertificateConfig config =
-                new RSAAutoCertificateConfig.Builder()
-                        .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
-                        .privateKeyFromPath(SecureConfig.WXPAY_PRI_KEY_PATH)
-                        .merchantSerialNumber(SecureConfig.WXPAY_MERCHANT_SERIAL_NUMBER)
-                        .apiV3Key(SecureConfig.WXPAY_APIV3_KEY)
-                        .build();
-        return config;
     }
 
     /**
      * 微信支付通知
-     *
      * @return
      */
     @RequestMapping("/pay/wxpay/notify")
-    public String wxpayNotify(HttpServletRequest request) {
-        // TODO 微信通知
-        LOGGER.info("处理微信通知!");
-        String characterEncoding = request.getCharacterEncoding();
-        System.out.println("characterEncoding=" + characterEncoding);
+    public void wxpayNotify(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        LOGGER.info("接收到微信支付通知!");
         //从请求头获取验签字段
         String timestamp = request.getHeader("Wechatpay-Timestamp");
+        // 随机数
         String nonce = request.getHeader("Wechatpay-Nonce");
         String signature = request.getHeader("Wechatpay-Signature");
-        String serial = request.getHeader("Wechatpay-Serial");
+        // 证书序列号、多个证书的情况下用于查询对应的证书
+        String serialNumber = request.getHeader("Wechatpay-Serial");
 
+        int status = 0;
         String requestBody = "";
+        try {
+            requestBody = readReqData(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.getWriter().write(JsonUtil.makeWXPayResult(false));
+            return;
+        }
+
         HashMap<String, String> map = new HashMap<>();
         // 构造 RequestParam
         RequestParam requestParam = new RequestParam.Builder()
-                .serialNumber(serial)
+                .serialNumber(serialNumber)
                 .nonce(nonce)
                 .signature(signature)
                 .timestamp(timestamp)
@@ -347,19 +355,37 @@ public class PayController extends BaseController {
         try {
             // 以支付通知回调为例，验签、解密并转换成 Transaction
             Transaction transaction = parser.parse(requestParam, Transaction.class);
+            String outTradeNo = transaction.getOutTradeNo();
+            // 微信流水号
+            String transactionId = transaction.getTransactionId();
+            // 附属参数
+            String attach = transaction.getAttach();
+            Transaction.TradeStateEnum stateEnum = transaction.getTradeState();
+            switch (transaction.getTradeState()) {
+                case SUCCESS:
+                    status = 1;
+                    break;
+            }
+            // 处理成功，返回 200 OK 状态码
+            CommonUpdateEntity entity = new CommonUpdateEntity();
+            entity.setSet(String.format("trade_no='%s', status='%s', update_time='%s'", transactionId, status + "", getCurrentTimeMs()));
+            entity.setWhere(String.format("out_trade_no=%s", outTradeNo));
+            entity.setTable(Order.TABLE);
+            boolean result = false;
+            try {
+                result = commonService.update(entity);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // 如果处理失败，应返回 4xx/5xx 的状态码，例如 500 INTERNAL_SERVER_ERROR
+                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            }
         } catch (ValidationException e) {
             // 签名验证失败，返回 401 UNAUTHORIZED 状态码
             LOGGER.error("sign verification failed", e);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).toString();
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
-
-        // 如果处理失败，应返回 4xx/5xx 的状态码，例如 500 INTERNAL_SERVER_ERROR
-        if (false) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).toString();
-        }
-
-        // 处理成功，返回 200 OK 状态码
-        return ResponseEntity.status(HttpStatus.OK).toString();
+        response.setStatus(HttpStatus.OK.value());
+        response.getWriter().write(JsonUtil.makeWXPayResult(status == 1));
     }
 
     /**
@@ -380,6 +406,23 @@ public class PayController extends BaseController {
     // 发起退款
     public String refund() {
         return "";
+    }
+
+    /**
+     * 读取请求原始报文
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    private String readReqData(HttpServletRequest request) throws IOException {
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        StringBuilder sb = new StringBuilder();
+        String line = "";
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        return sb.toString();
     }
 
 }

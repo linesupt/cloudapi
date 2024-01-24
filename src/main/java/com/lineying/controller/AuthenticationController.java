@@ -31,7 +31,7 @@ import static com.lineying.common.SignResult.SIGN_ERROR;
  */
 @RestController
 @RequestMapping("api")
-public class AuthenticationServiceController extends BaseController {
+public class AuthenticationController extends BaseController {
 
     @Resource
     ICommonService commonService;

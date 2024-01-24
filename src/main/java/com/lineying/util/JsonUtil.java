@@ -133,4 +133,21 @@ public class JsonUtil {
         return new Gson().toJson(jsonMap);
     }
 
+    /**
+     * 处理微信支付返回结果
+     * @param isSuccess
+     * @return
+     */
+    public static String makeWXPayResult(boolean isSuccess) {
+        Map<String, String> jsonMap = new HashMap<>();
+        if (isSuccess) {
+            jsonMap.put("code", "SUCCESS");
+            jsonMap.put("message", "SUCCESS");
+        } else {
+            jsonMap.put("code", "FAIL");
+            jsonMap.put("message", "FAIL");
+        }
+        return new Gson().toJson(jsonMap);
+    }
+
 }

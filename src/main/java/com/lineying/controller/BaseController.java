@@ -11,7 +11,7 @@ public class BaseController {
 
     protected static final String CHARSET = "utf-8";
     // 日志
-    protected static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationServiceController.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseController.class);
 
     /**
      * 获取当前时间
