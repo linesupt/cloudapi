@@ -18,30 +18,23 @@ import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
-import com.wechat.pay.java.core.AbstractRSAConfig;
-import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
 import com.wechat.pay.java.core.exception.ValidationException;
-import com.wechat.pay.java.core.notification.NotificationConfig;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.app.model.Transaction;
 import com.wechat.pay.java.service.payments.app.AppServiceExtension;
 import com.wechat.pay.java.service.payments.app.model.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,10 +58,10 @@ public class PayController extends BaseController {
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    public static final String BASE_URL = "http://api.lineying.cn/";
-    public static final String ALIPAY_NOTIFY_PATH = BASE_URL + "cloud/api/pay/alipay/notify";
+    public static final String BASE_URL = "http://3aee0dcb.r2.cpolar.cn/";
+    public static final String ALIPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/alipay/notify";
     // TODO 要求为https//...
-    public static final String WXPAY_NOTIFY_PATH = BASE_URL + "cloud/api/pay/wxpay/notify";
+    public static final String WXPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/wxpay/notify";
 
     // 签名方式
     public static final String SIGN_TYPE = "RSA2";
@@ -140,7 +133,7 @@ public class PayController extends BaseController {
                 FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
-        alipayRequest.setNotifyUrl(ALIPAY_NOTIFY_PATH);
+        alipayRequest.setNotifyUrl(ALIPAY_NOTIFY_URL);
         // 设置订单信息
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
         model.setOutTradeNo(outTradeNo);
@@ -244,11 +237,14 @@ public class PayController extends BaseController {
     // 从 v0.2.10 开始，我们不再限制每个商户号只能创建一个 RSAAutoCertificateConfig。
     private RSAAutoCertificateConfig wxpayConfig;
     /** 创建配置 **/
-    private RSAAutoCertificateConfig makeWxpayConfig() {
+    private RSAAutoCertificateConfig makeWxpayConfig() throws FileNotFoundException {
         if (wxpayConfig == null) {
+            File file = ResourceUtils.getFile("classpath:" + SecureConfig.WXPAY_PRI_KEY_PATH);
+            String path = file.getAbsolutePath();
+            LOGGER.info("证书路径::" + path);
             wxpayConfig = new RSAAutoCertificateConfig.Builder()
                             .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
-                            .privateKeyFromPath(SecureConfig.WXPAY_PRI_KEY_PATH)
+                            .privateKeyFromPath(path)
                             .merchantSerialNumber(SecureConfig.WXPAY_MERCHANT_SERIAL_NUMBER)
                             .apiV3Key(SecureConfig.WXPAY_APIV3_KEY)
                             .build();
@@ -261,7 +257,7 @@ public class PayController extends BaseController {
      * @return 返回客户端唤醒微信支付的方法
      */
     @RequestMapping("/pay/wxpay/mkpay")
-    public String wxpayAppPay(HttpServletRequest request) {
+    public String wxpayAppPay(HttpServletRequest request) throws FileNotFoundException {
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
@@ -287,7 +283,7 @@ public class PayController extends BaseController {
         String total_fee = jsonObject.get("total_fee").getAsString();
         String body = jsonObject.get("body").getAsString();
         // 单位为分
-        int total = (int) (Math.round(Double.parseDouble(total_fee)) * 100);
+        int total = (int) Math.round(Double.parseDouble(total_fee) * 100);
 
         String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
 
@@ -303,15 +299,25 @@ public class PayController extends BaseController {
         prepayRequest.setAppid(app_id);
         prepayRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
         prepayRequest.setDescription(body);
-        prepayRequest.setNotifyUrl(WXPAY_NOTIFY_PATH);
+        prepayRequest.setNotifyUrl(WXPAY_NOTIFY_URL);
         prepayRequest.setOutTradeNo(outTradeNo);
         // 调用下单方法，得到应答
         PrepayWithRequestPaymentResponse response = service.prepayWithRequestPayment(prepayRequest);
-        // 获取prepayid
+        String appId = response.getAppid();
+        String partnerId = response.getPartnerId();
         String prepayId = response.getPrepayId();
+        String nonceStr = response.getNonceStr();
+        String timestampRep = response.getTimestamp();
+        String packageVal = response.getPackageVal();
+        String sign = response.getSign();
         JsonObject resultObj = new JsonObject();
-        resultObj.addProperty("trade_no", outTradeNo);
-        resultObj.addProperty("order_info", prepayId);
+        resultObj.addProperty("out_trade_no", outTradeNo);
+        resultObj.addProperty("appid", appId);
+        resultObj.addProperty("partnerid", partnerId);
+        resultObj.addProperty("prepayid", prepayId);
+        resultObj.addProperty("noncestr", nonceStr);
+        resultObj.addProperty("timestamp", timestampRep);
+        resultObj.addProperty("package", packageVal);
         return JsonCryptUtil.makeSuccess(resultObj);
     }
 
