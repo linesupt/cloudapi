@@ -103,11 +103,18 @@ public class SecureConfig {
         WXPAY_APIV3_KEY = wxpayApiv3Key;
     }
 
-    // 微信支付私钥路径
+    // 微信支付私钥文件路径
     public static String WXPAY_PRI_KEY_PATH;
     @Value("${pay.wxpay.pri_key_path}")
     public void setWxpayPriKeyPath(String wxpayPriKeyPath) {
         WXPAY_PRI_KEY_PATH = wxpayPriKeyPath;
+    }
+
+    // 微信支付证书文件路径
+    public static String WXPAY_CERT_PATH;
+    @Value("${pay.wxpay.cert_path}")
+    public void setWxpayCertPath(String wxpayCertPath) {
+        WXPAY_CERT_PATH = wxpayCertPath;
     }
 
     // 微信商户序列号

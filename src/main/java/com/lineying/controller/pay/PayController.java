@@ -58,7 +58,7 @@ public class PayController extends BaseController {
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    public static final String BASE_URL = "http://3aee0dcb.r2.cpolar.cn/";
+    public static final String BASE_URL = "http://3276c5b3.r23.cpolar.top/";
     public static final String ALIPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/alipay/notify";
     // TODO 要求为https//...
     public static final String WXPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/wxpay/notify";
@@ -103,9 +103,7 @@ public class PayController extends BaseController {
         int uid = jsonObject.get("uid").getAsInt();
         String appcode = jsonObject.get("appcode").getAsString();
         String goodsCode = jsonObject.get("goods_code").getAsString();
-        // 用于支付宝
         String app_id = jsonObject.get("app_id").getAsString();
-        // 用于支付宝
         String total_fee = jsonObject.get("total_fee").getAsString();
         String body = jsonObject.get("body").getAsString();
 
@@ -276,17 +274,37 @@ public class PayController extends BaseController {
             return JsonCryptUtil.makeFailTime();
         }
 
-        // 生成订单号
+        // 生成商户自定义订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
         String pay_type = jsonObject.get("pay_type").getAsString();
+        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
+
+        int uid = jsonObject.get("uid").getAsInt();
+        String appcode = jsonObject.get("appcode").getAsString();
+        String goodsCode = jsonObject.get("goods_code").getAsString();
         String app_id = jsonObject.get("app_id").getAsString();
         String total_fee = jsonObject.get("total_fee").getAsString();
         String body = jsonObject.get("body").getAsString();
         // 单位为分
         int total = (int) Math.round(Double.parseDouble(total_fee) * 100);
 
-        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
+        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, pay_type);
 
+        CommonAddEntity entity = new CommonAddEntity();
+        entity.setTable(Order.TABLE);
+        entity.setColumn(order.getColumn());
+        entity.setValue(order.getValue());
+        boolean result = false;
+        try {
+            // 保存订单
+            result = commonService.add(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
+        if (!result) {
+            return JsonCryptUtil.makeFail("create order fail");
+        }
         LOGGER.info("处理微信支付!" + app_id + " - " + outTradeNo + " - " + total_fee
                 + " - " + body);
         // 构建service
@@ -301,6 +319,7 @@ public class PayController extends BaseController {
         prepayRequest.setDescription(body);
         prepayRequest.setNotifyUrl(WXPAY_NOTIFY_URL);
         prepayRequest.setOutTradeNo(outTradeNo);
+
         // 调用下单方法，得到应答
         PrepayWithRequestPaymentResponse response = service.prepayWithRequestPayment(prepayRequest);
         String appId = response.getAppid();
@@ -310,6 +329,7 @@ public class PayController extends BaseController {
         String timestampRep = response.getTimestamp();
         String packageVal = response.getPackageVal();
         String sign = response.getSign();
+        LOGGER.info("sign::" + sign);
         JsonObject resultObj = new JsonObject();
         resultObj.addProperty("out_trade_no", outTradeNo);
         resultObj.addProperty("appid", appId);
@@ -318,6 +338,7 @@ public class PayController extends BaseController {
         resultObj.addProperty("noncestr", nonceStr);
         resultObj.addProperty("timestamp", timestampRep);
         resultObj.addProperty("package", packageVal);
+        resultObj.addProperty("sign", sign);
         return JsonCryptUtil.makeSuccess(resultObj);
     }
 
@@ -335,6 +356,8 @@ public class PayController extends BaseController {
         String signature = request.getHeader("Wechatpay-Signature");
         // 证书序列号、多个证书的情况下用于查询对应的证书
         String serialNumber = request.getHeader("Wechatpay-Serial");
+        // 签名方式
+        String signType = request.getHeader("Wechatpay-Signature-Type");
 
         int status = 0;
         String requestBody = "";
