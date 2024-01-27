@@ -76,7 +76,7 @@ public class PayController extends BaseController {
      * @return
      */
     @RequestMapping("/pay/alipay/mkpay")
-    public String alipayAppPay(HttpServletRequest request) throws AlipayApiException {
+    public String alipayAppPay(HttpServletRequest request) {
 
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
@@ -141,12 +141,17 @@ public class PayController extends BaseController {
         model.setTimeoutExpress(TIMEOUT);
         model.setProductCode("QUICK_MSECURITY_PAY");
         alipayRequest.setBizModel(model);
-        AlipayTradeAppPayResponse resp = alipayClient.sdkExecute(alipayRequest);
-        String respResult = resp.getBody();
-        JsonObject resultObj = new JsonObject();
-        resultObj.addProperty("trade_no", outTradeNo);
-        resultObj.addProperty("order_info", respResult);
-        return JsonCryptUtil.makeSuccess(resultObj);
+        try {
+            AlipayTradeAppPayResponse resp = alipayClient.sdkExecute(alipayRequest);
+            String respResult = resp.getBody();
+            JsonObject resultObj = new JsonObject();
+            resultObj.addProperty("trade_no", outTradeNo);
+            resultObj.addProperty("order_info", respResult);
+            return JsonCryptUtil.makeSuccess(resultObj);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
     }
 
     /**
@@ -208,7 +213,7 @@ public class PayController extends BaseController {
     }
 
     @RequestMapping("/pay/alipay/return")
-    public String alipayReturn(HttpServletRequest request) throws AlipayApiException, UnsupportedEncodingException {
+    public String alipayReturn(HttpServletRequest request) {
         // 获取支付宝GET过来反馈信息
         Map<String, String> params = new HashMap<String, String>();
         Map<String, String[]> requestParams = request.getParameterMap();
@@ -220,13 +225,23 @@ public class PayController extends BaseController {
                 valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
             }
             // 解码
-            params.put(name, URLDecoder.decode(valueStr, "UTF-8"));
+            try {
+                params.put(name, URLDecoder.decode(valueStr, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
         // 验证签名
-        boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, SIGN_TYPE);
-        if (signVerified) {
-            return "success";
-        } else {
+        boolean signVerified = false;
+        try {
+            signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, SIGN_TYPE);
+            if (signVerified) {
+                return "success";
+            } else {
+                return "fail";
+            }
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
             return "fail";
         }
     }
@@ -255,7 +270,7 @@ public class PayController extends BaseController {
      * @return 返回客户端唤醒微信支付的方法
      */
     @RequestMapping("/pay/wxpay/mkpay")
-    public String wxpayAppPay(HttpServletRequest request) throws FileNotFoundException {
+    public String wxpayAppPay(HttpServletRequest request) {
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
@@ -308,8 +323,14 @@ public class PayController extends BaseController {
         LOGGER.info("处理微信支付!" + app_id + " - " + outTradeNo + " - " + total_fee
                 + " - " + body);
         // 构建service
-        AppServiceExtension service = new AppServiceExtension.Builder()
-                .config(makeWxpayConfig()).build();
+        AppServiceExtension service = null;
+        try {
+            service = new AppServiceExtension.Builder()
+                    .config(makeWxpayConfig()).build();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
         PrepayRequest prepayRequest = new PrepayRequest();
         Amount amount = new Amount();
         amount.setTotal(total);
@@ -347,12 +368,13 @@ public class PayController extends BaseController {
      * @return
      */
     @RequestMapping("/pay/wxpay/notify")
-    public void wxpayNotify(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void wxpayNotify(HttpServletRequest request, HttpServletResponse response) {
         LOGGER.info("接收到微信支付通知!");
         //从请求头获取验签字段
         String timestamp = request.getHeader("Wechatpay-Timestamp");
         // 随机数
         String nonce = request.getHeader("Wechatpay-Nonce");
+        // 微信签名
         String signature = request.getHeader("Wechatpay-Signature");
         // 证书序列号、多个证书的情况下用于查询对应的证书
         String serialNumber = request.getHeader("Wechatpay-Serial");
@@ -366,7 +388,11 @@ public class PayController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            response.getWriter().write(JsonUtil.makeWXPayResult(false));
+            try {
+                response.getWriter().write(JsonUtil.makeWXPayResult(false));
+            } catch (IOException ex) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -380,7 +406,19 @@ public class PayController extends BaseController {
                 .body(requestBody)
                 .build();
         // 初始化 NotificationParser
-        NotificationParser parser = new NotificationParser(makeWxpayConfig());
+        NotificationParser parser = null;
+        try {
+            parser = new NotificationParser(makeWxpayConfig());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            try {
+                response.getWriter().write(JsonUtil.makeWXPayResult(false));
+            } catch (IOException ex) {
+                e.printStackTrace();
+            }
+            return;
+        }
         try {
             // 以支付通知回调为例，验签、解密并转换成 Transaction
             Transaction transaction = parser.parse(requestParam, Transaction.class);
@@ -414,7 +452,11 @@ public class PayController extends BaseController {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
         response.setStatus(HttpStatus.OK.value());
-        response.getWriter().write(JsonUtil.makeWXPayResult(status == 1));
+        try {
+            response.getWriter().write(JsonUtil.makeWXPayResult(status == 1));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
