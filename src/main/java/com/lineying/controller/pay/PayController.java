@@ -1,5 +1,6 @@
 package com.lineying.controller.pay;
 
+import cn.hutool.core.io.FileUtil;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
@@ -10,6 +11,7 @@ import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.Order;
+import com.lineying.common.CommonConstant;
 import com.lineying.common.PayType;
 import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
@@ -35,12 +37,14 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static com.lineying.common.CommonConstant.BASE_URL;
 import static com.lineying.common.SignResult.KEY_ERROR;
 import static com.lineying.common.SignResult.SIGN_ERROR;
 
@@ -58,7 +62,6 @@ public class PayController extends BaseController {
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    public static final String BASE_URL = "http://3276c5b3.r23.cpolar.top/";
     public static final String ALIPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/alipay/notify";
     // TODO 要求为https//...
     public static final String WXPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/wxpay/notify";
@@ -252,15 +255,19 @@ public class PayController extends BaseController {
     /** 创建配置 **/
     private RSAAutoCertificateConfig makeWxpayConfig() throws FileNotFoundException {
         if (wxpayConfig == null) {
-            File file = ResourceUtils.getFile("classpath:" + SecureConfig.WXPAY_PRI_KEY_PATH);
-            String path = file.getAbsolutePath();
-            LOGGER.info("证书路径::" + path);
+            URL url = getClass().getClassLoader().getResource(SecureConfig.WXPAY_PRI_KEY_PATH);
+            File file = new File(url.getFile());
+            String keyString = FileUtil.readString(url, "utf-8");
+            //File file = ResourceUtils.getFile("classpath:" + SecureConfig.WXPAY_PRI_KEY_PATH);
+            //String path = file.getAbsolutePath();
+            LOGGER.info("私钥key::" + keyString);
             wxpayConfig = new RSAAutoCertificateConfig.Builder()
-                            .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
-                            .privateKeyFromPath(path)
-                            .merchantSerialNumber(SecureConfig.WXPAY_MERCHANT_SERIAL_NUMBER)
-                            .apiV3Key(SecureConfig.WXPAY_APIV3_KEY)
-                            .build();
+                    .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
+                    //.privateKeyFromPath(path)
+                    .privateKey(keyString)
+                    .merchantSerialNumber(SecureConfig.WXPAY_MERCHANT_SERIAL_NUMBER)
+                    .apiV3Key(SecureConfig.WXPAY_APIV3_KEY)
+                    .build();
         }
         return wxpayConfig;
     }
