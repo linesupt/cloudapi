@@ -62,9 +62,9 @@ public class PayController extends BaseController {
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    public static final String ALIPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/alipay/notify";
+    public static final String ALIPAY_NOTIFY_URL = "cloud/api/pay/alipay/notify";
     // TODO 要求为https//...
-    public static final String WXPAY_NOTIFY_URL = BASE_URL + "cloud/api/pay/wxpay/notify";
+    public static final String WXPAY_NOTIFY_URL = "cloud/api/pay/wxpay/notify";
 
     // 签名方式
     public static final String SIGN_TYPE = "RSA2";
@@ -134,7 +134,7 @@ public class PayController extends BaseController {
                 FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
-        alipayRequest.setNotifyUrl(ALIPAY_NOTIFY_URL);
+        alipayRequest.setNotifyUrl(BASE_URL + ALIPAY_NOTIFY_URL);
         // 设置订单信息
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
         model.setOutTradeNo(outTradeNo);
@@ -260,7 +260,7 @@ public class PayController extends BaseController {
             String keyString = FileUtil.readString(url, "utf-8");
             //File file = ResourceUtils.getFile("classpath:" + SecureConfig.WXPAY_PRI_KEY_PATH);
             //String path = file.getAbsolutePath();
-            LOGGER.info("私钥key::" + keyString);
+            //LOGGER.info("私钥key::" + keyString);
             wxpayConfig = new RSAAutoCertificateConfig.Builder()
                     .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
                     //.privateKeyFromPath(path)
@@ -345,7 +345,7 @@ public class PayController extends BaseController {
         prepayRequest.setAppid(app_id);
         prepayRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
         prepayRequest.setDescription(body);
-        prepayRequest.setNotifyUrl(WXPAY_NOTIFY_URL);
+        prepayRequest.setNotifyUrl(BASE_URL + WXPAY_NOTIFY_URL);
         prepayRequest.setOutTradeNo(outTradeNo);
 
         // 调用下单方法，得到应答
