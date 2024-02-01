@@ -96,10 +96,12 @@ public class AuthenticationController extends BaseController {
                 // TODO 解析token数据内容
                 break;
             case LoginType.APPLE:
-                String clientId = jsonObject.get("client_id").getAsString();
-                String identityToken = jsonObject.get("identify_token").getAsString();
-                String appleUser = AppleUtil.login(clientId, identityToken);
+                String identityToken = jsonObject.get("identity_token").getAsString();
+                String appleUser = AppleUtil.login(username, identityToken);
                 LOGGER.info("apple_user::" + appleUser);
+                if ("".equals(appleUser)) {
+                    return JsonCryptUtil.makeFail("apple verify fails");
+                }
                 entity.setUsername(appleUser);
                 try {
                     list = commonService.loginForApple(entity);
