@@ -35,6 +35,16 @@ public class CommonServiceImpl implements ICommonService {
     }
 
     /**
+     * Apple登录
+     * @param entity
+     * @return
+     */
+    @Override
+    public List<Map<String, Object>> loginForApple(LoginEntity entity) {
+        return commonMapper.loginForApple(entity);
+    }
+
+    /**
      * 查询
      * @param entity
      * @return

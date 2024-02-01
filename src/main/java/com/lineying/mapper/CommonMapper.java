@@ -24,6 +24,13 @@ public interface CommonMapper {
     List<Map<String, Object>> loginForEmail(LoginEntity entity);
 
     /**
+     * Apple登录
+     * @param entity
+     * @return
+     */
+    List<Map<String, Object>> loginForApple(LoginEntity entity);
+
+    /**
      * 查询
      *
      * @return

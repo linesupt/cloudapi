@@ -8,6 +8,7 @@ import com.lineying.common.LoginType;
 import com.lineying.entity.LoginEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.AESUtil;
+import com.lineying.util.AppleUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
 import io.jsonwebtoken.*;
@@ -95,12 +96,21 @@ public class AuthenticationController extends BaseController {
                 // TODO 解析token数据内容
                 break;
             case LoginType.APPLE:
+                String clientId = jsonObject.get("client_id").getAsString();
+                String identityToken = jsonObject.get("identify_token").getAsString();
+                String appleUser = AppleUtil.login(clientId, identityToken);
+                LOGGER.info("apple_user::" + appleUser);
+                entity.setUsername(appleUser);
+                try {
+                    list = commonService.loginForApple(entity);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return JsonCryptUtil.makeFail(e.getMessage());
+                }
                 break;
             case LoginType.WECHAT:
                 break;
-
         }
-
 
         if (list != null) {
             JsonObject obj = new JsonObject();

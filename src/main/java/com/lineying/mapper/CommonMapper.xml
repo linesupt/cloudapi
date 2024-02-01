@@ -15,6 +15,13 @@
         where email = ${username} and password = ${password}
         order by id desc
     </select>
+    <!-- 邮箱密码登录 -->
+    <select id="loginForApple" parameterType="com.lineying.entity.LoginEntity" resultType="java.util.Map">
+        select *
+        from ${table}
+        where apple_user = ${username}
+        order by id desc
+    </select>
     <!-- 查询 -->
     <select id="list" parameterType="com.lineying.entity.CommonQueryEntity" resultType="java.util.Map">
         select ${column}

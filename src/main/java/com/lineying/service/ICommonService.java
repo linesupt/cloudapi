@@ -20,6 +20,12 @@ public interface ICommonService {
     List<Map<String, Object>> loginForEmail(LoginEntity entity);
 
     /**
+     * apple登录
+     * @return
+     */
+    List<Map<String, Object>> loginForApple(LoginEntity entity);
+
+    /**
      * 查询
      * @return
      */
