@@ -7,10 +7,7 @@ import com.lineying.common.AppCodeManager;
 import com.lineying.common.LoginType;
 import com.lineying.entity.LoginEntity;
 import com.lineying.service.ICommonService;
-import com.lineying.util.AESUtil;
-import com.lineying.util.AppleUtil;
-import com.lineying.util.JsonCryptUtil;
-import com.lineying.util.SignUtil;
+import com.lineying.util.*;
 import io.jsonwebtoken.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,8 +35,8 @@ public class AuthenticationController extends BaseController {
     ICommonService commonService;
 
     // Apple授权登录
-    private final static String authAppleUrl = "https://appleid.apple.com/auth/keys";
-    private final static String authAppleIss = "https://appleid.apple.com";
+    private final static String AUTH_APPLE_URL = "https://appleid.apple.com/auth/keys";
+    private final static String AUTH_APPLE_ISS = "https://appleid.apple.com";
 
     @RequestMapping("/login")
     public String login(HttpServletRequest request) {
@@ -68,41 +65,39 @@ public class AuthenticationController extends BaseController {
         String appcode = jsonObject.get("appcode").getAsString();
         // username可以代表用户名、邮箱、apple token、wechat token
         String username = jsonObject.get("username").getAsString();
-        String password = jsonObject.get("password").getAsString();
         String tableName = AppCodeManager.getUserTable(appcode);
         LoginEntity entity = new LoginEntity();
         entity.setUsername(username);
-        entity.setPassword(password);
+
         entity.setTable(tableName);
         @LoginType
         int type = jsonObject.get("type").getAsInt();
         switch (type) {
             case LoginType.USERNAME:
-                try {
-                    list = commonService.loginForUsername(entity);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return JsonCryptUtil.makeFail(e.getMessage());
-                }
-                break;
             case LoginType.EMAIL:
+                String password = jsonObject.get("password").getAsString();
+                entity.setPassword(password);
                 try {
-                    list = commonService.loginForEmail(entity);
+                    if (type == LoginType.USERNAME) {
+                        list = commonService.loginForUsername(entity);
+                    } else {
+                        list = commonService.loginForEmail(entity);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     return JsonCryptUtil.makeFail(e.getMessage());
                 }
-            case LoginType.TOKEN:
-                // TODO 解析token数据内容
                 break;
-            case LoginType.APPLE:
+            case LoginType.TOKEN: // 一般不用这种
+                break;
+            case LoginType.APPLE: // 请求Apple公钥再验证太耗时了，直接查询
                 String identityToken = jsonObject.get("identity_token").getAsString();
-                String appleUser = AppleUtil.login(username, identityToken);
-                LOGGER.info("apple_user::" + appleUser);
-                if ("".equals(appleUser)) {
-                    return JsonCryptUtil.makeFail("apple verify fails");
-                }
-                entity.setUsername(appleUser);
+                String clientId = jsonObject.get("client_id").getAsString();
+                //String appleUser = AppleUtil.login(clientId, identityToken);
+                //if ("".equals(appleUser)) {
+                  //  return JsonCryptUtil.makeFail("apple verify fail");
+                //}
+                entity.setUsername(username);
                 try {
                     list = commonService.loginForApple(entity);
                 } catch (Exception e) {
@@ -114,105 +109,18 @@ public class AuthenticationController extends BaseController {
                 break;
         }
 
-        if (list != null) {
+        if (list != null && list.size() == 1) {
+            Map<String, Object> objUser = list.get(0);
+            long uid = (int) objUser.get("id");
+            String pwd = (String) objUser.get("password");
+            String token = TokenUtil.makeToken(uid, pwd);
+            objUser.put("token", token);
+            objUser.remove("password");
             JsonObject obj = new JsonObject();
             obj.add("data", new Gson().toJsonTree(list));
             return JsonCryptUtil.makeSuccess(obj);
         }
         return JsonCryptUtil.makeFail("unknown");
-    }
-
-
-    public String doAppleLogin(String identityToken) {
-        String[] arr = identityToken.split("\\.");
-        String firstDate = new String(Base64.getDecoder().decode(arr[0]), StandardCharsets.UTF_8);
-        String claim = new String(Base64.getDecoder().decode(arr[1]), StandardCharsets.UTF_8);
-
-        // 开发者帐户中获取的 10 个字符的标识符密钥
-        String kid = JsonParser.parseString(firstDate).getAsJsonObject().get("kid").getAsString();
-        JsonObject claimObj = JsonParser.parseString(claim).getAsJsonObject();
-        String aud = claimObj.get("aud").getAsString();
-        String sub = claimObj.get("sub").getAsString();
-
-        PublicKey publicKey = this.getPublicKey(kid);
-        if (Objects.isNull(publicKey)) {
-            throw new RuntimeException("apple授权登录的数据异常");
-        }
-
-        boolean reuslt = this.verifyAppleLoginCode(publicKey, identityToken, aud, sub);
-
-        if (reuslt) {
-        }
-        return null;
-    }
-
-    /**
-     * 验证Apple登录
-     * @param publicKey
-     * @param identityToken
-     * @param aud
-     * @param sub
-     * @return
-     */
-    private boolean verifyAppleLoginCode(PublicKey publicKey, String identityToken, String aud, String sub) {
-        boolean result = false;
-        JwtParser jwtParser = Jwts.parser().setSigningKey(publicKey);
-        jwtParser.requireIssuer(authAppleIss);
-        jwtParser.requireAudience(aud);
-        jwtParser.requireSubject(sub);
-        try {
-            Jws<Claims> claim = jwtParser.parseClaimsJws(identityToken);
-            if (claim != null && claim.getBody().containsKey("auth_time")) {
-                result = true;
-            }
-        } catch (ExpiredJwtException e) {
-            throw new RuntimeException("apple登录授权identityToken过期." + e.getLocalizedMessage());
-        } catch (SignatureException e) {
-            throw new RuntimeException("apple登录授权identityToken非法." + e.getLocalizedMessage());
-        }
-        return result;
-    }
-
-    private PublicKey getPublicKey(String kid) {
-        /*
-        try {
-            CloseableHttpClient httpclient = HttpClientBuilder.create().build();
-            URIBuilder uriBuilder = new URIBuilder(appleAuthUrl);
-            HttpGet httpGet = new HttpGet(uriBuilder.build());
-            HttpResponse response = httpclient.execute(httpGet);
-
-            int statusCode = response.getStatusLine().getStatusCode();
-            HttpEntity responseEntity = response.getEntity();
-            String result = EntityUtils.toString(responseEntity, "UTF-8");
-            if (statusCode != HttpStatus.SC_OK) { // code = 200
-                throw new RuntimeException(String.format("接口请求失败，url[%s], result[%s]", appleAuthUrl, result));
-            }
-
-            // 请求成功
-            JSONObject content = JSONObject.parseObject(result);
-            String keys = content.getString("keys");
-            JSONArray keysArray = JSONObject.parseArray(keys);
-            if (keysArray.isEmpty()) {
-                return null;
-            }
-
-            for (Object key : keysArray) {
-                JSONObject keyJsonObject = (JSONObject)key;
-                if (kid.equals(keyJsonObject.getString("kid"))) {
-                    String n = keyJsonObject.getString("n");
-                    String e = keyJsonObject.getString("e");
-                    BigInteger modulus = new BigInteger(1, Base64.decodeBase64(n));
-                    BigInteger publicExponent = new BigInteger(1, Base64.decodeBase64(e));
-                    RSAPublicKeySpec spec = new RSAPublicKeySpec(modulus, publicExponent);
-                    KeyFactory kf = KeyFactory.getInstance("RSA");
-                    return kf.generatePublic(spec);
-                }
-            }
-        } catch (Exception ex) {
-            LOGGER.error("获取PublicKey异常.", ex);
-        }
-         */
-        return null;
     }
 
 }
