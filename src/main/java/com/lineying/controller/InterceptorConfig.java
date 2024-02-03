@@ -25,6 +25,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry){
         List<String> excludePath = new ArrayList<>();
+        // 排除登录、短信、支付通知
         excludePath.add("/api/**");
         excludePath.add("**/pay/alipay/notify");
         excludePath.add("**/pay/wxpay/notify");
