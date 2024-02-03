@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.common.AppCodeManager;
 import com.lineying.common.LoginType;
+import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.LoginEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
@@ -20,6 +21,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 import static com.lineying.common.SignResult.KEY_ERROR;
 import static com.lineying.common.SignResult.SIGN_ERROR;
@@ -88,11 +90,13 @@ public class AuthenticationController extends BaseController {
                     return JsonCryptUtil.makeFail(e.getMessage());
                 }
                 break;
-            case LoginType.TOKEN: // 一般不用这种
+            case LoginType.TOKEN: // 一般不用这种, token放到header中
                 break;
             case LoginType.APPLE: // 请求Apple公钥再验证太耗时了，直接查询
                 String identityToken = jsonObject.get("identity_token").getAsString();
                 String clientId = jsonObject.get("client_id").getAsString();
+                String brand = jsonObject.get("brand").getAsString();
+                String model = jsonObject.get("model").getAsString();
                 //String appleUser = AppleUtil.login(clientId, identityToken);
                 //if ("".equals(appleUser)) {
                   //  return JsonCryptUtil.makeFail("apple verify fail");
@@ -100,6 +104,28 @@ public class AuthenticationController extends BaseController {
                 entity.setUsername(username);
                 try {
                     list = commonService.loginForApple(entity);
+                    if (list.isEmpty()) {
+                        long curTime = System.currentTimeMillis();
+                        String genUsername = RandomUtil.makeName();
+                        String table = AppCodeManager.getUserTable(appcode);
+                        String column = "`username`,`nickname`,`password`,`apple_user`,`brand`,`model`,`create_time`,`update_time`";
+                        String value = String.format("'%s','%s','','%s','%s','%s','%s','%s'", genUsername, genUsername, username, brand, model, "" + curTime, "" + curTime);
+                        CommonAddEntity entityAdd = new CommonAddEntity();
+                        entityAdd.setTable(table);
+                        entityAdd.setColumn(column);
+                        entityAdd.setValue(value);
+                        try {
+                            boolean result = commonService.add(entityAdd);
+                            if (result) {
+                                list = commonService.loginForApple(entity);
+                            } else {
+                                return JsonCryptUtil.makeFail("register error");
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return JsonCryptUtil.makeFail(e.getMessage());
+                        }
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     return JsonCryptUtil.makeFail(e.getMessage());
@@ -109,7 +135,11 @@ public class AuthenticationController extends BaseController {
                 break;
         }
 
-        if (list != null && list.size() == 1) {
+        if (list == null) {
+            return JsonCryptUtil.makeFail("unknown");
+        }
+
+        if (list.size() == 1) {
             Map<String, Object> objUser = list.get(0);
             long uid = (int) objUser.get("id");
             String pwd = (String) objUser.get("password");
