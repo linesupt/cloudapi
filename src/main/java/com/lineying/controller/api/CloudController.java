@@ -1,9 +1,10 @@
-package com.lineying.controller;
+package com.lineying.controller.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
+import com.lineying.controller.BaseController;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;

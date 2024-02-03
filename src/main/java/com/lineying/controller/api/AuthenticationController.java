@@ -1,10 +1,11 @@
-package com.lineying.controller;
+package com.lineying.controller.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.common.AppCodeManager;
 import com.lineying.common.LoginType;
+import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.LoginEntity;
 import com.lineying.service.ICommonService;

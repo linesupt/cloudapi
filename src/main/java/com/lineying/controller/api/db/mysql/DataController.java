@@ -1,4 +1,4 @@
-package com.lineying.controller.db.mysql;
+package com.lineying.controller.api.db.mysql;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

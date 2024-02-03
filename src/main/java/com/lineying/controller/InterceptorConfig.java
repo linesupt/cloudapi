@@ -25,8 +25,9 @@ public class InterceptorConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry){
         List<String> excludePath = new ArrayList<>();
-        excludePath.add("/api/login"); // 登录
         excludePath.add("/api/**");
+        excludePath.add("**/pay/alipay/notify");
+        excludePath.add("**/pay/wxpay/notify");
         registry.addInterceptor(tokenInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(excludePath);

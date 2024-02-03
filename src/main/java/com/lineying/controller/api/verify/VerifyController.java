@@ -1,4 +1,4 @@
-package com.lineying.controller.verify;
+package com.lineying.controller.api.verify;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

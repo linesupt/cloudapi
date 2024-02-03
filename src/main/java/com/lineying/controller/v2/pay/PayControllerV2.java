@@ -1,4 +1,4 @@
-package com.lineying.controller.pay;
+package com.lineying.controller.v2.pay;
 
 import cn.hutool.core.io.FileUtil;
 import com.alipay.api.AlipayApiException;
@@ -11,7 +11,6 @@ import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.Order;
-import com.lineying.common.CommonConstant;
 import com.lineying.common.PayType;
 import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
@@ -26,10 +25,12 @@ import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.app.model.Transaction;
 import com.wechat.pay.java.service.payments.app.AppServiceExtension;
-import com.wechat.pay.java.service.payments.app.model.*;
+import com.wechat.pay.java.service.payments.app.model.Amount;
+import com.wechat.pay.java.service.payments.app.model.CloseOrderRequest;
+import com.wechat.pay.java.service.payments.app.model.PrepayRequest;
+import com.wechat.pay.java.service.payments.app.model.PrepayWithRequestPaymentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,8 +54,8 @@ import static com.lineying.common.SignResult.SIGN_ERROR;
  */
 @Component
 @RestController
-@RequestMapping("api")
-public class PayController extends BaseController {
+@RequestMapping("v2")
+public class PayControllerV2 extends BaseController {
 
     @Resource
     ICommonService commonService;
@@ -62,9 +63,8 @@ public class PayController extends BaseController {
     // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
     public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
     public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    public static final String ALIPAY_NOTIFY_URL = "cloud/api/pay/alipay/notify";
-    // TODO 要求为https//...
-    public static final String WXPAY_NOTIFY_URL = "cloud/api/pay/wxpay/notify";
+    public static final String ALIPAY_NOTIFY_URL = "cloud/v2/pay/alipay/notify";
+    public static final String WXPAY_NOTIFY_URL = "cloud/v2/pay/wxpay/notify";
 
     // 签名方式
     public static final String SIGN_TYPE = "RSA2";
