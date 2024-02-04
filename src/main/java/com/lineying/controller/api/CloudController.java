@@ -125,4 +125,13 @@ public class CloudController extends BaseController {
         return System.currentTimeMillis();
     }
 
+    /**
+     * 服务器时间戳（s）
+     * @return
+     */
+    @RequestMapping("/test")
+    public String test() {
+        return "hello!!";
+    }
+
 }

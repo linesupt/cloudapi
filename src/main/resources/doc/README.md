@@ -61,6 +61,30 @@ index index.html;
     }
 }
 ```
+### IDEA 插件自动部署
+* 下载插件Alibaba Cloud Kit
+* Settings -> Plugins -> Marketplace -> 搜索插件名称，安装后重启
+配置部署信息
+* Edit Configurations -> Deploy to host
+1. 设置项目名称
+2. 选择发布方式 Deployment -> Maven Build
+3. 添加主机信息：设置IP、登录用户，密码，直到测试连接正常
+4. 设置target打包后上传文件夹，文件夹不存在则会自动创建
+5. 设置上传完成后执行的命令,自行指定端口
+```
+# 此句为先关闭对应项目端口在运行,以下多个命令需要用";"分割
+$ kill -9 `lsof -t -i:8080`
+$ /usr/bin/java -jar -Xmx1024M -Xms256M  /project/dev/cloud.jar --server.port=8081
+```
+6. [可选] 自行配置nginx项目路径
+
+* 如果端口被占用需要先杀掉该端口的进程
+* 关闭Java进程[端口]
+```
+先查询使用的进程
+$ ps -ef | grep java
+$ kill -9 [pid]
+```
 
 
 
