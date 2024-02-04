@@ -10,6 +10,13 @@ import java.util.Map;
 public interface CommonMapper {
 
     /**
+     * 用户Id密码登录
+     * @param entity
+     * @return
+     */
+    List<Map<String, Object>> loginForUserId(LoginEntity entity);
+
+    /**
      * 用户密码登录
      * @param entity
      * @return

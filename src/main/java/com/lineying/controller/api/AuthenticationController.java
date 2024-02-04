@@ -1,5 +1,6 @@
 package com.lineying.controller.api;
 
+import cn.hutool.core.lang.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -10,19 +11,13 @@ import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.LoginEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
-import io.jsonwebtoken.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.security.PublicKey;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
 
 import static com.lineying.common.SignResult.KEY_ERROR;
 import static com.lineying.common.SignResult.SIGN_ERROR;
@@ -66,20 +61,20 @@ public class AuthenticationController extends BaseController {
 
         List<Map<String, Object>> list = null;
         String appcode = jsonObject.get("appcode").getAsString();
+        String tableName = AppCodeManager.getUserTable(appcode);
         // username可以代表用户名、邮箱、apple token、wechat token
         String username = jsonObject.get("username").getAsString();
-        String tableName = AppCodeManager.getUserTable(appcode);
         LoginEntity entity = new LoginEntity();
-        entity.setUsername(username);
-
-        entity.setTable(tableName);
         @LoginType
         int type = jsonObject.get("type").getAsInt();
+        LOGGER.info("login type " + type);
         switch (type) {
             case LoginType.USERNAME:
             case LoginType.EMAIL:
                 String password = jsonObject.get("password").getAsString();
+                entity.setUsername(username);
                 entity.setPassword(password);
+                entity.setTable(tableName);
                 try {
                     if (type == LoginType.USERNAME) {
                         list = commonService.loginForUsername(entity);
@@ -91,7 +86,29 @@ public class AuthenticationController extends BaseController {
                     return JsonCryptUtil.makeFail(e.getMessage());
                 }
                 break;
-            case LoginType.TOKEN: // 一般不用这种, token放到header中
+            case LoginType.TOKEN: // 重载用户数据时
+                String token = username;
+                if ("".equals(token)) {
+                    return JsonCryptUtil.makeFail("token error");
+                }
+                int resultCode = TokenUtil.verify(token);
+                if (resultCode != 0) {
+                    return JsonCryptUtil.makeFail("token error " + resultCode);
+                }
+                Pair<Integer, String> userInfo = TokenUtil.parse(token);
+                if (userInfo == null) {
+                    return JsonCryptUtil.makeFail("token error uid, pwd null" + resultCode);
+                }
+                try {
+                    LOGGER.info("token login::" + userInfo.getKey() + " - " + userInfo.getValue());
+                    entity.setUsername(userInfo.getKey() + "");
+                    entity.setPassword(userInfo.getValue());
+                    entity.setTable(tableName);
+                    list = commonService.loginForUserId(entity);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return JsonCryptUtil.makeFail(e.getMessage());
+                }
                 break;
             case LoginType.APPLE: // 请求Apple公钥再验证太耗时了，直接查询
                 String identityToken = jsonObject.get("identity_token").getAsString();
@@ -142,7 +159,7 @@ public class AuthenticationController extends BaseController {
 
         if (list.size() == 1) {
             Map<String, Object> objUser = list.get(0);
-            long uid = (int) objUser.get("id");
+            int uid = (int) objUser.get("id");
             String pwd = (String) objUser.get("password");
             String token = TokenUtil.makeToken(uid, pwd);
             objUser.put("token", token);

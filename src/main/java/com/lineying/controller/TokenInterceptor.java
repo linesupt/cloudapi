@@ -21,6 +21,8 @@ public class TokenInterceptor implements HandlerInterceptor {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
+        String servletPath = request.getServletPath();
+        System.out.println("api path::" + servletPath);
         response.setCharacterEncoding("utf-8");
         String token = request.getHeader("token");
         int resultCode = -1;

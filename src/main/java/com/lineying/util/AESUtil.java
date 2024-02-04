@@ -42,78 +42,17 @@ public class AESUtil {
      */
     private static final String AES_EBC_MODE = "AES/ECB/PKCS5Padding";
     /**
-     * CBC模式支持偏移
+     * CBC模式支持偏移, 客户端目前使用的CBC
      */
     private static final String AES_CBC_MODE = "AES/CBC/PKCS7Padding";
 
     /**
-     * AES加密
-     *
-     * @param secret  密钥key
-     * @param content 待加密内容
+     * 解码
+     * @param content
      * @return
      */
-    public static String encryptEBC(String secret, String content) {
-        if (content == null || content.isEmpty()) {
-            LOGGER.info("AES encrypt: the content is null!");
-            return null;
-        }
-        //判断秘钥是否为16位
-        if (secret == null) {
-            LOGGER.info("AES encrypt: the secret is null or error!");
-            return null;
-        }
-        try {
-            //设置加密算法，生成秘钥
-            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(ENCODING), HASH_ALGORITHM);
-            // "算法/模式/补码方式"
-            Cipher cipher = Cipher.getInstance(AES_EBC_MODE);
-            //选择加密
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-            //根据待加密内容生成字节数组
-            byte[] encrypted = cipher.doFinal(content.getBytes(ENCODING));
-            //返回base64字符串
-            return Base64Utils.encodeToString(encrypted);
-        } catch (Exception e) {
-            LOGGER.info("AES encrypt exception:" + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 解密
-     *
-     * @param secret  密钥key
-     * @param content 待解密内容
-     * @return
-     */
-    public static String decryptEBC(String secret, String content) {
-        if (content == null || content.isEmpty()) {
-            LOGGER.info("AES decrypt: the content is null!");
-            return null;
-        }
-        //判断秘钥是否为16位
-        if (secret == null) {
-            LOGGER.info("AES decrypt: the secret is null or error!");
-            return null;
-        }
-        try {
-            //先进行Base64解码
-            byte[] decodeBase64 = Base64Utils.decodeFromString(content);
-            //设置解密算法，生成秘钥
-            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(ENCODING), HASH_ALGORITHM);
-            // "算法/模式/补码方式"
-            Cipher cipher = Cipher.getInstance(AES_EBC_MODE);
-            //选择解密
-            cipher.init(Cipher.DECRYPT_MODE, keySpec);
-            //根据待解密内容进行解密
-            byte[] decrypted = cipher.doFinal(decodeBase64);
-            //将字节数组转成字符串
-            return new String(decrypted, ENCODING);
-        } catch (Exception e) {
-            LOGGER.info("AES decrypt exception:" + e.getMessage());
-            throw new RuntimeException(e);
-        }
+    public static String encrypt(String content) {
+        return encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, content);
     }
 
     /**
@@ -199,6 +138,77 @@ public class AESUtil {
             return new String(decrypted, ENCODING);
         } catch (Exception e) {
             LOGGER.info("AES_CBC decrypt exception:" + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
+     * AES加密 EBC
+     *
+     * @param secret  密钥key
+     * @param content 待加密内容
+     * @return
+     */
+    public static String encryptEBC(String secret, String content) {
+        if (content == null || content.isEmpty()) {
+            LOGGER.info("AES encrypt: the content is null!");
+            return null;
+        }
+        //判断秘钥是否为16位
+        if (secret == null) {
+            LOGGER.info("AES encrypt: the secret is null or error!");
+            return null;
+        }
+        try {
+            //设置加密算法，生成秘钥
+            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(ENCODING), HASH_ALGORITHM);
+            // "算法/模式/补码方式"
+            Cipher cipher = Cipher.getInstance(AES_EBC_MODE);
+            //选择加密
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            //根据待加密内容生成字节数组
+            byte[] encrypted = cipher.doFinal(content.getBytes(ENCODING));
+            //返回base64字符串
+            return Base64Utils.encodeToString(encrypted);
+        } catch (Exception e) {
+            LOGGER.info("AES encrypt exception:" + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 解密 EBC
+     *
+     * @param secret  密钥key
+     * @param content 待解密内容
+     * @return
+     */
+    public static String decryptEBC(String secret, String content) {
+        if (content == null || content.isEmpty()) {
+            LOGGER.info("AES decrypt: the content is null!");
+            return null;
+        }
+        //判断秘钥是否为16位
+        if (secret == null) {
+            LOGGER.info("AES decrypt: the secret is null or error!");
+            return null;
+        }
+        try {
+            //先进行Base64解码
+            byte[] decodeBase64 = Base64Utils.decodeFromString(content);
+            //设置解密算法，生成秘钥
+            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(ENCODING), HASH_ALGORITHM);
+            // "算法/模式/补码方式"
+            Cipher cipher = Cipher.getInstance(AES_EBC_MODE);
+            //选择解密
+            cipher.init(Cipher.DECRYPT_MODE, keySpec);
+            //根据待解密内容进行解密
+            byte[] decrypted = cipher.doFinal(decodeBase64);
+            //将字节数组转成字符串
+            return new String(decrypted, ENCODING);
+        } catch (Exception e) {
+            LOGGER.info("AES decrypt exception:" + e.getMessage());
             throw new RuntimeException(e);
         }
     }

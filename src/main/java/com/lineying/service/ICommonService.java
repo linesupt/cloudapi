@@ -8,6 +8,12 @@ import java.util.Map;
 public interface ICommonService {
 
     /**
+     * 用户id密码登录
+     * @return
+     */
+    List<Map<String, Object>> loginForUserId(LoginEntity entity);
+
+    /**
      * 用户密码登录
      * @return
      */

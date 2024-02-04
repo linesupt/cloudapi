@@ -15,6 +15,16 @@ public class CommonServiceImpl implements ICommonService {
     CommonMapper commonMapper;
 
     /**
+     * 用户id密码登录
+     * @param entity
+     * @return
+     */
+    @Override
+    public List<Map<String, Object>> loginForUserId(LoginEntity entity) {
+        return commonMapper.loginForUserId(entity);
+    }
+
+    /**
      * 用户名密码登录
      * @param entity
      * @return

@@ -1,19 +1,17 @@
 package com.lineying.util;
 
 
+import cn.hutool.core.lang.Pair;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.lineying.common.SecureConfig;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * token生成器
@@ -32,13 +30,13 @@ public class TokenUtil {
      * @param password
      * @return
      */
-    public static String makeToken(long userId, String password) {
+    public static String makeToken(int userId, String password) {
         long iat = System.currentTimeMillis();
         long exp = iat + EXPIRED_INTERVAL;
         Date expDate = new Date(exp);
         String encryptPwd = "";
         if (!"".equals(password)) {
-            encryptPwd = AESUtil.encrypt(SecureConfig.DB_SECRET_KEY, SecureConfig.IV_SEED, password);
+            encryptPwd = AESUtil.encrypt(password);
         }
         //由于该生成器设置Header的参数为一个<String, Object>的Map
         Map<String, Object> headers = new HashMap<>();
@@ -67,7 +65,7 @@ public class TokenUtil {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(TOKEN_SECRET))
                     .withIssuer(ISS).build();
             DecodedJWT jwt = verifier.verify(token);
-            long userId = jwt.getClaim("uid").asLong();
+            int userId = jwt.getClaim("uid").asInt();
             if (userId <= 0) {
                 return 2; // 无效用户
             }
@@ -79,9 +77,36 @@ public class TokenUtil {
             return 3; // 发行者不对
         } catch (Exception e){
             e.printStackTrace();
-            return -1;
+            return -1; // 未知错误
         }
         return 0;
+    }
+
+    /**
+     * 解析登录信息
+     * @param token
+     * @return
+     */
+    public static Pair<Integer, String> parse(String token) {
+        try {
+            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(TOKEN_SECRET))
+                    .withIssuer(ISS).build();
+            DecodedJWT jwt = verifier.verify(token);
+            int userId = jwt.getClaim("uid").asInt();
+            if (userId <= 0) {
+                return null; // 无效用户
+            }
+            String signPwd = jwt.getClaim("pwd").asString();
+            String password = AESUtil.decrypt(signPwd);
+            return new Pair<>(userId, password);
+        } catch (TokenExpiredException e) {
+            e.printStackTrace();
+        } catch (InvalidClaimException e) {
+            e.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }
