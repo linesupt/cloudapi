@@ -95,6 +95,16 @@ public class JsonUtil {
     }
 
     /**
+     * 失败
+     * @param cause
+     * @param statusCode
+     * @return
+     */
+    public static String makeFailError(String cause, int statusCode) {
+        return makeResultError(0, "fail, err: " + cause, null, statusCode);
+    }
+
+    /**
      * 生成结果
      * @param result true：成功 false：失败
      * @return
@@ -116,6 +126,23 @@ public class JsonUtil {
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("code", code);
         jsonMap.put("msg", msg);
+        jsonMap.put("data", data);
+        return new Gson().toJson(jsonMap);
+    }
+
+    /**
+     * 返回包含错误码的数据
+     * @param code
+     * @param msg
+     * @param data
+     * @param statusCode
+     * @return
+     */
+    public static String makeResultError(int code, String msg, String data, int statusCode) {
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("code", code);
+        jsonMap.put("msg", msg);
+        jsonMap.put("status", statusCode);
         jsonMap.put("data", data);
         return new Gson().toJson(jsonMap);
     }

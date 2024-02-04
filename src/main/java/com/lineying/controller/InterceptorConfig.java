@@ -25,7 +25,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry){
         List<String> excludePath = new ArrayList<>();
-        // 不需要登录的功能:登录、短信、支付通知、云数据查询/添加
+        // 不需要登录的功能:登录、短信、支付通知、云数据查询/添加、修改密码
         excludePath.add("/api/**");
         excludePath.add("/v2/verify/**");
         excludePath.add("**/login");

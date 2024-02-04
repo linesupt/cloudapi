@@ -93,6 +93,18 @@ public class JsonCryptUtil {
     }
 
     /**
+     * 生成错误原因
+     * @param cause
+     * @param statusCode 错误码
+     * @return
+     */
+    public static String makeFail(String cause, int statusCode) {
+        String result = JsonUtil.makeFailError(cause, statusCode);
+        System.out.println("原因错误::" + result);
+        return AESUtil.encrypt(result);
+    }
+
+    /**
      * 返回简单结果
      * @param flag
      * @return
