@@ -181,8 +181,15 @@ public class AuthenticationController extends BaseController {
     private boolean addUser(String tableName, String username, String password,
                             String appleUser, String brand, String model, String ipaddr) {
         String curTime = getCurrentTimeMs() + "";
-        String column = "`username`,`nickname`,`password`,`apple_user`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
-        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s'", username, username, password, appleUser, brand, model, ipaddr, curTime, curTime);
+        String column = "";
+        String value = "";
+        if ("".equals(appleUser)) { // 空的时候由于字段唯一性不准保存
+            column = "`username`,`nickname`,`password`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
+            value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s'", username, username, password, brand, model, ipaddr, curTime, curTime);
+        } else {
+            column = "`username`,`nickname`,`password`,`apple_user`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
+            value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s'", username, username, password, appleUser, brand, model, ipaddr, curTime, curTime);
+        }
         CommonAddEntity entityAdd = new CommonAddEntity();
         entityAdd.setTable(tableName);
         entityAdd.setColumn(column);
