@@ -5,7 +5,9 @@ import com.google.gson.JsonParser;
 import com.lineying.bean.VerifyCode;
 import com.lineying.common.AppCodeManager;
 import com.lineying.common.SignResult;
+import com.lineying.entity.CommonQueryEntity;
 import com.lineying.mail.EmailSenderManager;
+import com.lineying.service.ICommonService;
 import com.lineying.sms.SmsEntity;
 import com.lineying.sms.SmsEntityFactory;
 import com.lineying.util.*;
@@ -13,6 +15,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.logging.Logger;
@@ -21,8 +24,41 @@ import java.util.logging.Logger;
  * 应用级接口,验证码验证
  */
 @RestController
-@RequestMapping("api/verify")
-public class VerifyController extends BaseVerifyController {
+@RequestMapping("v2/verify")
+public class VerifyControllerV2 extends BaseVerifyController {
+
+    @Resource
+    ICommonService commonService;
+
+    /**
+     * 查询是否存在
+     * @param tableName
+     * @param type
+     * @param target
+     * @return
+     */
+    private boolean queryExist(String tableName, int type, String target) {
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(tableName);
+        if (type == 1) { // 邮件
+            entity.setColumn("email");
+            entity.setWhere("email='" + target + "'");
+        } else if (type == 2) { // 手机
+            entity.setColumn("mobile");
+            entity.setWhere("mobile='" + target + "'");
+        }
+        entity.setSort("desc");
+        entity.setSortColumn("id");
+        List<Map<String, Object>> list;
+        try {
+            list = commonService.list(entity);
+            return !list.isEmpty();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 
     /**
      * 发送短信验证码
@@ -68,6 +104,11 @@ public class VerifyController extends BaseVerifyController {
             timestamp = cacheVerifyCode.getTimestamp();
             return makeSuccess(timestamp);
         }
+        boolean flag = queryExist(AppCodeManager.getUserTable(appCode), type, target);
+        if (!flag) { // 用户不存在
+            String cause = type == 1 ? "email not register" : "phone not register";
+            return JsonCryptUtil.makeFail(cause);
+        }
         String sendCode = "";
         if (type == 1) {
             // 处理邮件发送
@@ -112,67 +153,6 @@ public class VerifyController extends BaseVerifyController {
         VerifyCode entity = new VerifyCode(appCode, target, sendCode, type, timestamp);
         mVerifyCodes.put(targetKey, entity);
         return makeSuccess(timestamp);
-    }
-
-    /**
-     * 短信验证
-     * @return
-     */
-    @RequestMapping("/code_verify")
-    public String codeVerify(HttpServletRequest request) {
-        String platform = request.getHeader("platform");
-        String locale = request.getHeader("locale");
-        Logger.getGlobal().info("platform:" + platform + " locale:" + locale);
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case SignResult.KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SignResult.SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
-        }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        Logger.getGlobal().info("data::" + data);
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
-        String appCode = jsonObject.get("appcode").getAsString();
-        String code = jsonObject.get("code").getAsString();
-        String target = jsonObject.get("target").getAsString();
-        int type = jsonObject.get("type").getAsInt();
-        String targetKey = makeTargetKey(appCode, type, target);
-
-        VerifyCode entity = getCacheVerifyCode(targetKey);
-        if (entity == null) {
-            return JsonCryptUtil.makeFailVerifyCode();
-        } else {
-            if (!Objects.equals(appCode, entity.getAppCode())) {
-                return JsonCryptUtil.makeFailVerifyCode();
-            }
-            if (type != entity.getType()) {
-                return JsonCryptUtil.makeFailVerifyCode();
-            }
-            // 对比验证码
-            String serverCode = entity.getCode().toLowerCase();
-            String targetCode = code.toLowerCase();
-            if (!Objects.equals(serverCode, targetCode)) {
-                return JsonCryptUtil.makeFailVerifyCode();
-            }
-            // 对比时间
-            if (isExpired(entity.getTimestamp())) {
-                // 验证码已经过期
-                return JsonCryptUtil.makeFailVerifyTimeout();
-            }
-        }
-
-        mVerifyCodes.remove(targetKey);
-        return JsonCryptUtil.makeSuccess();
     }
 
 }
