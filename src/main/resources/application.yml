@@ -51,4 +51,4 @@ token:
   privateKey: lineying
 config:
   base_url: http://api.lineying.cn/
-  #base_url: http://75aec88a.r3.cpolar.cn/
+  #base_url: https://663ada3b.r6.cpolar.top/

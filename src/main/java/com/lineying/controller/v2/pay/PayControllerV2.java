@@ -15,6 +15,7 @@ import com.lineying.common.PayType;
 import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
+import com.lineying.controller.api.pay.PayNotifyController;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
@@ -60,14 +61,6 @@ public class PayControllerV2 extends BaseController {
     @Resource
     ICommonService commonService;
 
-    // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
-    public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
-    public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    public static final String ALIPAY_NOTIFY_URL = "cloud/v2/pay/alipay/notify";
-    public static final String WXPAY_NOTIFY_URL = "cloud/v2/pay/wxpay/notify";
-
-    // 签名方式
-    public static final String SIGN_TYPE = "RSA2";
     // 数据格式
     public static final String FORMAT = "json";
     // 订单超时时间
@@ -130,11 +123,11 @@ public class PayControllerV2 extends BaseController {
 
         Logger.getGlobal().info("处理支付宝支付!" + app_id + " - " + outTradeNo + " - " + total_fee + " - " + body);
         // 实例化客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, app_id, SecureConfig.ALIPAY_APP_PRI_KEY,
-                FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, SIGN_TYPE);
+        AlipayClient alipayClient = new DefaultAlipayClient(PayNotifyController.GATEWAY_URL, app_id, SecureConfig.ALIPAY_APP_PRI_KEY,
+                FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, PayNotifyController.SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
-        alipayRequest.setNotifyUrl(BASE_URL + ALIPAY_NOTIFY_URL);
+        alipayRequest.setNotifyUrl(BASE_URL + PayNotifyController.ALIPAY_NOTIFY_URL);
         // 设置订单信息
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
         model.setOutTradeNo(outTradeNo);
@@ -253,7 +246,7 @@ public class PayControllerV2 extends BaseController {
         prepayRequest.setAppid(app_id);
         prepayRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
         prepayRequest.setDescription(body);
-        prepayRequest.setNotifyUrl(BASE_URL + WXPAY_NOTIFY_URL);
+        prepayRequest.setNotifyUrl(BASE_URL + PayNotifyController.WXPAY_NOTIFY_URL);
         prepayRequest.setOutTradeNo(outTradeNo);
 
         // 调用下单方法，得到应答
