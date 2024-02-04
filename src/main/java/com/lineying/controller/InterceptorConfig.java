@@ -28,6 +28,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         // 不需要登录的功能:登录、短信、支付通知、云数据查询/添加
         excludePath.add("/api/**");
         excludePath.add("**/login");
+        excludePath.add("**/register");
         excludePath.add("**/cloud/add");
         excludePath.add("**/cloud/select");
         excludePath.add("**/verify/send_code");

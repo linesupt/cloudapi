@@ -117,23 +117,19 @@ public class AuthenticationController extends BaseController {
                 String model = jsonObject.get("model").getAsString();
                 //String appleUser = AppleUtil.login(clientId, identityToken);
                 //if ("".equals(appleUser)) {
-                  //  return JsonCryptUtil.makeFail("apple verify fail");
+                //  return JsonCryptUtil.makeFail("apple verify fail");
                 //}
-                entity.setUsername(username);
                 try {
+                    entity.setUsername(username);
+                    entity.setTable(tableName);
                     list = commonService.loginForApple(entity);
                     if (list.isEmpty()) {
-                        long curTime = System.currentTimeMillis();
+                        String appleUser = username;
                         String genUsername = RandomUtil.makeName();
-                        String table = AppCodeManager.getUserTable(appcode);
-                        String column = "`username`,`nickname`,`password`,`apple_user`,`brand`,`model`,`create_time`,`update_time`";
-                        String value = String.format("'%s','%s','','%s','%s','%s','%s','%s'", genUsername, genUsername, username, brand, model, "" + curTime, "" + curTime);
-                        CommonAddEntity entityAdd = new CommonAddEntity();
-                        entityAdd.setTable(table);
-                        entityAdd.setColumn(column);
-                        entityAdd.setValue(value);
+                        String ipaddr = IPUtil.getIpAddress(request);
                         try {
-                            boolean result = commonService.add(entityAdd);
+                            boolean result = addUser(tableName, genUsername,
+                                    "", appleUser, brand, model, ipaddr);
                             if (result) {
                                 list = commonService.loginForApple(entity);
                             } else {
@@ -169,6 +165,78 @@ public class AuthenticationController extends BaseController {
             return JsonCryptUtil.makeSuccess(obj);
         }
         return JsonCryptUtil.makeFail("unknown");
+    }
+
+    /**
+     * 添加用户到数据库
+     * @param tableName
+     * @param username
+     * @param password
+     * @param appleUser
+     * @param brand
+     * @param model
+     * @param ipaddr
+     * @return
+     */
+    private boolean addUser(String tableName, String username, String password,
+                            String appleUser, String brand, String model, String ipaddr) {
+        String curTime = getCurrentTimeMs() + "";
+        String column = "`username`,`nickname`,`password`,`apple_user`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
+        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s'", username, username, password, appleUser, brand, model, ipaddr, curTime, curTime);
+        CommonAddEntity entityAdd = new CommonAddEntity();
+        entityAdd.setTable(tableName);
+        entityAdd.setColumn(column);
+        entityAdd.setValue(value);
+        try {
+            return commonService.add(entityAdd);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // 用户注册
+    @RequestMapping("/register")
+    public String register(HttpServletRequest request) {
+
+        String key = request.getParameter("key");
+        String secretData = request.getParameter("data");
+        String signature = request.getParameter("signature");
+        int signResult = SignUtil.validateSign(key, secretData, signature);
+        switch (signResult) {
+            case KEY_ERROR:
+                return JsonCryptUtil.makeFailKey();
+            case SIGN_ERROR:
+                return JsonCryptUtil.makeFailSign();
+        }
+
+        String data = AESUtil.decrypt(secretData);
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
+        if (!checkRequest(timestamp)) {
+            return JsonCryptUtil.makeFailTime();
+        }
+
+        LOGGER.info("执行查询 " + key + " - " + data + " - " + signature);
+
+        String appcode = jsonObject.get("appcode").getAsString();
+        String username = jsonObject.get("username").getAsString();
+        String password = jsonObject.get("password").getAsString();
+        String brand = jsonObject.get("brand").getAsString();
+        String model = jsonObject.get("model").getAsString();
+        String table = AppCodeManager.getUserTable(appcode);
+        String ipaddr = IPUtil.getIpAddress(request);
+        try {
+            boolean result = addUser(table, username, password, "", brand, model, ipaddr);
+            if (!result) {
+                return JsonCryptUtil.makeFail("register error");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
+
+        return JsonCryptUtil.makeSuccess();
     }
 
 }
