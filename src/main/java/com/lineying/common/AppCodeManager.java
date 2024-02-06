@@ -30,7 +30,7 @@ public class AppCodeManager {
             case "mathcalc":
                 return "user_cal";
             case "scancode":
-                return "qrcode_cal";
+                return "user_qrcode";
         }
         return "";
     }
