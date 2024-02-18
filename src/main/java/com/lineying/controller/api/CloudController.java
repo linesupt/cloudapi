@@ -4,14 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
+import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
-import com.lineying.util.AESUtil;
-import com.lineying.util.JsonCryptUtil;
-import com.lineying.util.JsonUtil;
-import com.lineying.util.SignUtil;
+import com.lineying.entity.CommonAddEntity;
+import com.lineying.service.ICommonService;
+import com.lineying.util.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
@@ -28,6 +29,9 @@ public class CloudController extends BaseController {
     // Apple授权登录
     private final static String authAppleUrl = "https://appleid.apple.com/auth/keys";
     private final static String authAppleIss = "https://appleid.apple.com";
+
+    @Resource
+    ICommonService commonService;
 
     /**
      * 第三方云服务数据
@@ -105,6 +109,62 @@ public class CloudController extends BaseController {
         mCloudData.put(cate, bean);
 
         return JsonCryptUtil.makeSuccess();
+    }
+
+    /**
+     * 用户反馈
+     * @param request
+     * @return
+     */
+    @RequestMapping("/feedback/add")
+    public String feedbackAdd(HttpServletRequest request) {
+
+        String key = request.getParameter("key");
+        String secretData = request.getParameter("data");
+        String signature = request.getParameter("signature");
+        int signResult = SignUtil.validateSign(key, secretData, signature);
+        switch (signResult) {
+            case KEY_ERROR:
+                return JsonCryptUtil.makeFailKey();
+            case SIGN_ERROR:
+                return JsonCryptUtil.makeFailSign();
+        }
+
+        String data = AESUtil.decrypt(secretData);
+        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+        long timestamp = jsonObject.get("timestamp").getAsLong();
+        if (!checkRequest(timestamp)) {
+            return JsonCryptUtil.makeFailTime();
+        }
+
+        try {
+            int uid = jsonObject.get("uid").getAsInt();
+            String appcode = jsonObject.get("appcode").getAsString();
+            String title = jsonObject.get("title").getAsString();
+            String content = jsonObject.get("content").getAsString();
+            String contact = jsonObject.get("contact").getAsString();
+            String brand = jsonObject.get("brand").getAsString();
+            String model = jsonObject.get("model").getAsString();
+            String ipaddr = IPUtil.getIpAddress(request);
+            String tableName = AppCodeManager.getFeedbackTable(appcode);
+
+            long curTime = getCurrentTimeMs();
+            String column = "`uid`,`title`,`content`,`contact`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
+            String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid, title, content, contact, brand, model, ipaddr, curTime, curTime);
+            CommonAddEntity entityAdd = new CommonAddEntity();
+            entityAdd.setTable(tableName);
+            entityAdd.setColumn(column);
+            entityAdd.setValue(value);
+            boolean flag = commonService.add(entityAdd);
+            if (flag) {
+                return JsonCryptUtil.makeSuccess();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
+
+        return JsonCryptUtil.makeFail("unknown");
     }
 
     /**

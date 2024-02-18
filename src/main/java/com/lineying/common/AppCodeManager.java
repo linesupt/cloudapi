@@ -20,19 +20,36 @@ public class AppCodeManager {
     }
 
     /**
+     * 获取表后缀
+     * @param appcode
+     * @return
+     */
+    private static String getTableSuffix(String appcode) {
+        switch (appcode) {
+            case "mathcalc":
+                return "_cal";
+            case "scancode":
+                return "_qrcode";
+        }
+        return "";
+    }
+
+    /**
      * 获取用户表
      * @param appcode
      * @return
      */
     public static String getUserTable(String appcode) {
+        return "user" + getTableSuffix(appcode);
+    }
 
-        switch (appcode) {
-            case "mathcalc":
-                return "user_cal";
-            case "scancode":
-                return "user_qrcode";
-        }
-        return "";
+    /**
+     * 获取反馈表
+     * @param appcode
+     * @return
+     */
+    public static String getFeedbackTable(String appcode) {
+        return "feedback" + getTableSuffix(appcode);
     }
 
 }
