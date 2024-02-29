@@ -8,6 +8,7 @@ import com.lineying.common.AppCodeManager;
 import com.lineying.common.LoginType;
 import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.LoginEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
@@ -244,6 +245,39 @@ public class AuthenticationController extends BaseController {
         }
 
         return JsonCryptUtil.makeSuccess();
+    }
+
+    // 用户注销(网页端注销接口)
+    @RequestMapping("/logoutweb")
+    public String logoutweb(HttpServletRequest request) {
+
+        String appcode = request.getParameter("appcode");
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String table = AppCodeManager.getUserTable(appcode);
+        String where = "username='" + username + "' and " + "password='" + password + "'";
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setWhere(where);
+        boolean result = false;
+        try {
+
+            entity.setColumn("*");
+            entity.setSort("desc");
+            entity.setSortColumn("id");
+            List<Map<String, Object>> list = commonService.list(entity);
+            if (list.size() > 0) {
+                Map<String, Object> objectMap = list.get(0);
+                //LOGGER.info("user::" + objectMap);
+                String whereDel = "username='" + username + "'";
+                entity.setWhere(whereDel);
+                result = commonService.delete(entity);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
+        return JsonCryptUtil.makeResult(result);
     }
 
 }
