@@ -15,6 +15,7 @@ import com.lineying.common.PayType;
 import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
+import com.lineying.controller.CheckPair;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
@@ -70,24 +71,11 @@ public class PayController extends BaseController {
     @RequestMapping("/pay/alipay/mkpay")
     public String alipayAppPay(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
+        JsonObject jsonObject = pair.getDataObject();
         // 生成订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
         String pay_type = jsonObject.get("pay_type").getAsString();
@@ -175,24 +163,11 @@ public class PayController extends BaseController {
      */
     @RequestMapping("/pay/wxpay/mkpay")
     public String wxpayAppPay(HttpServletRequest request) {
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
+        JsonObject jsonObject = pair.getDataObject();
         // 生成商户自定义订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
         String pay_type = jsonObject.get("pay_type").getAsString();

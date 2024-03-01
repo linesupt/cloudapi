@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.controller.BaseController;
+import com.lineying.controller.CheckPair;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
@@ -38,31 +39,17 @@ public class DataControllerV2 extends BaseController {
     @RequestMapping("/select")
     public String select(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
+        JsonObject jsonObject = pair.getDataObject();
         String table = jsonObject.get("table").getAsString();
         String column = jsonObject.get("column").getAsString();
         String where = jsonObject.get("where").getAsString();
         String sort = jsonObject.get("sort").getAsString();
         String sort_column = jsonObject.get("sort_column").getAsString();
 
-        Logger.getGlobal().info("执行查询 " + key + " - " + data + " - " + signature);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setColumn(column);
         entity.setWhere(where);
@@ -85,28 +72,15 @@ public class DataControllerV2 extends BaseController {
     @RequestMapping("/insert")
     public String insert(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonUtil.makeFailTime();
-        }
+        JsonObject jsonObject = pair.getDataObject();
         String table = jsonObject.get("table").getAsString();
         String column = jsonObject.get("column").getAsString();
         String value = jsonObject.get("value").getAsString();
 
-        Logger.getGlobal().info("执行添加 " + key + " - " + data + " - " + signature);
         CommonAddEntity entity = new CommonAddEntity();
         entity.setTable(table);
         entity.setColumn(column);
@@ -124,27 +98,14 @@ public class DataControllerV2 extends BaseController {
     @RequestMapping("/delete")
     public String delete(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
+        JsonObject jsonObject = pair.getDataObject();
         String table = jsonObject.get("table").getAsString();
         String where = jsonObject.get("where").getAsString();
 
-        Logger.getGlobal().info("执行删除 " + key + " - " + data + " - " + signature);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setWhere(where);
@@ -161,28 +122,14 @@ public class DataControllerV2 extends BaseController {
     @RequestMapping("/update")
     public String update(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
+        JsonObject jsonObject = pair.getDataObject();
         String table = jsonObject.get("table").getAsString();
         String set = jsonObject.get("set").getAsString();
         String where = jsonObject.get("where").getAsString();
-
-        Logger.getGlobal().info("执行更新 " + key + " - " + data + " - " + signature);
 
         CommonUpdateEntity entity = new CommonUpdateEntity();
         entity.setSet(set);
@@ -202,27 +149,13 @@ public class DataControllerV2 extends BaseController {
     @RequestMapping("/command")
     public String command(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
+        JsonObject jsonObject = pair.getDataObject();
         String sql = jsonObject.get("sql").getAsString();
 
-        Logger.getGlobal().info("执行sql命令 " + key + " - " + data + " - " + signature);
         CommonCommandEntity entity = new CommonCommandEntity();
         entity.setRawSql(sql);
         boolean result = false;

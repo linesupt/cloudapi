@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.lineying.common.AppCodeManager;
 import com.lineying.common.LoginType;
 import com.lineying.controller.BaseController;
+import com.lineying.controller.CheckPair;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.LoginEntity;
@@ -39,27 +40,11 @@ public class AuthenticationController extends BaseController {
 
     @RequestMapping("/login")
     public String login(HttpServletRequest request) {
-
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
-        LOGGER.info("执行查询 " + key + " - " + data + " - " + signature);
-
+        JsonObject jsonObject = pair.getDataObject();
         List<Map<String, Object>> list = null;
         String appcode = jsonObject.get("appcode").getAsString();
         String tableName = AppCodeManager.getUserTable(appcode);
@@ -206,27 +191,11 @@ public class AuthenticationController extends BaseController {
     // 用户注册
     @RequestMapping("/register")
     public String register(HttpServletRequest request) {
-
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
-        LOGGER.info("执行查询 " + key + " - " + data + " - " + signature);
-
+        JsonObject jsonObject = pair.getDataObject();
         String appcode = jsonObject.get("appcode").getAsString();
         String username = jsonObject.get("username").getAsString();
         String password = jsonObject.get("password").getAsString();
@@ -245,6 +214,42 @@ public class AuthenticationController extends BaseController {
         }
 
         return JsonCryptUtil.makeSuccess();
+    }
+
+    // 用户注销
+    @RequestMapping("/logout")
+    public String logout(HttpServletRequest request) {
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
+        }
+        JsonObject jsonObject = pair.getDataObject();
+        String appcode = jsonObject.get("appcode").getAsString();
+        String username = jsonObject.get("username").getAsString();
+        String password = jsonObject.get("password").getAsString();
+
+        String table = AppCodeManager.getUserTable(appcode);
+        String where = "username='" + username + "' and " + "password='" + password + "'";
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setWhere(where);
+        boolean result = false;
+        try {
+
+            entity.setColumn("*");
+            entity.setSort("desc");
+            entity.setSortColumn("id");
+            List<Map<String, Object>> list = commonService.list(entity);
+            if (list.size() > 0) {
+                String whereDel = "username='" + username + "'";
+                entity.setWhere(whereDel);
+                result = commonService.delete(entity);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
+        return JsonCryptUtil.makeResult(result);
     }
 
     // 用户注销(网页端注销接口)
@@ -267,7 +272,7 @@ public class AuthenticationController extends BaseController {
             entity.setSortColumn("id");
             List<Map<String, Object>> list = commonService.list(entity);
             if (list.size() > 0) {
-                Map<String, Object> objectMap = list.get(0);
+                //Map<String, Object> objectMap = list.get(0);
                 //LOGGER.info("user::" + objectMap);
                 String whereDel = "username='" + username + "'";
                 entity.setWhere(whereDel);

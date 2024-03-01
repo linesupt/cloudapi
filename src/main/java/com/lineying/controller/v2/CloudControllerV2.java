@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
 import com.lineying.controller.BaseController;
+import com.lineying.controller.CheckPair;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;
@@ -28,10 +29,6 @@ import static com.lineying.common.SignResult.SIGN_ERROR;
 @RequestMapping("v2")
 public class CloudControllerV2 extends BaseController {
 
-    // Apple授权登录
-    private final static String authAppleUrl = "https://appleid.apple.com/auth/keys";
-    private final static String authAppleIss = "https://appleid.apple.com";
-
     /**
      * 第三方云服务数据
      */
@@ -40,23 +37,11 @@ public class CloudControllerV2 extends BaseController {
     @RequestMapping("/cloud/select")
     public String cloudSelect(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonUtil.makeFailTime();
-        }
+        JsonObject jsonObject = pair.getDataObject();
         String cate = jsonObject.get("cate").getAsString();
         CloudData bean = mCloudData.get(cate);
         if (bean == null) {
@@ -81,24 +66,11 @@ public class CloudControllerV2 extends BaseController {
     @RequestMapping("/cloud/add")
     public String cloudAdd(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
+        JsonObject jsonObject = pair.getDataObject();
         int uid = jsonObject.get("uid").getAsInt();
         String cate = jsonObject.get("cate").getAsString();
         String text = jsonObject.get("text").getAsString();

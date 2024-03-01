@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
+import com.lineying.controller.CheckPair;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
@@ -26,10 +27,6 @@ import static com.lineying.common.SignResult.SIGN_ERROR;
 @RequestMapping("api")
 public class CloudController extends BaseController {
 
-    // Apple授权登录
-    private final static String authAppleUrl = "https://appleid.apple.com/auth/keys";
-    private final static String authAppleIss = "https://appleid.apple.com";
-
     @Resource
     ICommonService commonService;
 
@@ -41,23 +38,11 @@ public class CloudController extends BaseController {
     @RequestMapping("/cloud/select")
     public String cloudSelect(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonUtil.makeFailTime();
-        }
+        JsonObject jsonObject = pair.getDataObject();
         String cate = jsonObject.get("cate").getAsString();
         CloudData bean = mCloudData.get(cate);
         if (bean == null) {
@@ -82,24 +67,11 @@ public class CloudController extends BaseController {
     @RequestMapping("/cloud/add")
     public String cloudAdd(HttpServletRequest request) {
 
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
+        JsonObject jsonObject = pair.getDataObject();
         int uid = jsonObject.get("uid").getAsInt();
         String cate = jsonObject.get("cate").getAsString();
         String text = jsonObject.get("text").getAsString();
@@ -118,25 +90,11 @@ public class CloudController extends BaseController {
      */
     @RequestMapping("/feedback/add")
     public String feedbackAdd(HttpServletRequest request) {
-
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
-        int signResult = SignUtil.validateSign(key, secretData, signature);
-        switch (signResult) {
-            case KEY_ERROR:
-                return JsonCryptUtil.makeFailKey();
-            case SIGN_ERROR:
-                return JsonCryptUtil.makeFailSign();
+        CheckPair pair = checkValid(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
         }
-
-        String data = AESUtil.decrypt(secretData);
-        JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
-        if (!checkRequest(timestamp)) {
-            return JsonCryptUtil.makeFailTime();
-        }
-
+        JsonObject jsonObject = pair.getDataObject();
         try {
             int uid = jsonObject.get("uid").getAsInt();
             String appcode = jsonObject.get("appcode").getAsString();
