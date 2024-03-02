@@ -272,17 +272,17 @@ public class AuthenticationController extends BaseController {
             entity.setSortColumn("id");
             List<Map<String, Object>> list = commonService.list(entity);
             if (list.size() > 0) {
-                //Map<String, Object> objectMap = list.get(0);
-                //LOGGER.info("user::" + objectMap);
                 String whereDel = "username='" + username + "'";
                 entity.setWhere(whereDel);
                 result = commonService.delete(entity);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return JsonCryptUtil.makeFail(e.getMessage());
         }
-        return JsonCryptUtil.makeResult(result);
+        if (!result) {
+            return "注销失败！";
+        }
+        return "注销成功！";
     }
 
 }
