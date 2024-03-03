@@ -44,12 +44,39 @@ public class AppCodeManager {
     }
 
     /**
+     * 获取用户设置表
+     * @param appcode
+     * @return
+     */
+    public static String getUserSettingTable(String appcode) {
+        return "user_setting" + getTableSuffix(appcode);
+    }
+
+    /**
      * 获取反馈表
      * @param appcode
      * @return
      */
     public static String getFeedbackTable(String appcode) {
         return "feedback" + getTableSuffix(appcode);
+    }
+
+    /**
+     * 获取订单表
+     * @param appcode
+     * @return
+     */
+    public static String getOrderTable(String appcode) {
+        return "order" + getTableSuffix(appcode);
+    }
+
+    /**
+     * 获取商品表
+     * @param appcode
+     * @return
+     */
+    public static String getGoodsTable(String appcode) {
+        return "goods" + getTableSuffix(appcode);
     }
 
 }
