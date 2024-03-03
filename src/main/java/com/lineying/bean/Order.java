@@ -12,27 +12,32 @@ public class Order {
     private String goodsCode;
     private String outTradeNo;
     private String tradeNo;
-    private String content;
+    private String body;
     private String payType;
     private int status;
     private long createTime;
     private long updateTime;
+
+    private String appid;
+    private String totalFee;
 
     public Order() {
 
     }
 
     public Order(int uid, String appcode, String goodsCode, String outTradeNo,
-                 String tradeNo, String content, String payType, int status, long createTime,
+                 String tradeNo, String body, String payType, int status, String appid, String totalFee, long createTime,
                  long updateTime) {
         this.uid = uid;
         this.appcode = appcode;
         this.goodsCode = goodsCode;
         this.outTradeNo = outTradeNo;
         this.tradeNo = tradeNo;
-        this.content = content;
+        this.body = body;
         this.payType = payType;
         this.status = status;
+        this.appid = appid;
+        this.totalFee = totalFee;
         this.createTime = createTime;
         this.updateTime = updateTime;
     }
@@ -43,12 +48,12 @@ public class Order {
      * @param appcode
      * @param goodsCode
      * @param outTradeNo
-     * @param content
+     * @param body
      * @param payType
      * @return
      */
-    public static Order makeOrder(int uid, String appcode, String goodsCode, String outTradeNo, String content, String payType) {
-        return new Order(uid, appcode, goodsCode, outTradeNo, "", content, payType, 0, System.currentTimeMillis(), System.currentTimeMillis());
+    public static Order makeOrder(int uid, String appcode, String goodsCode, String outTradeNo, String body, String payType, String appid, String totalFee) {
+        return new Order(uid, appcode, goodsCode, outTradeNo, "", body, payType, 0, appid, totalFee, System.currentTimeMillis(), System.currentTimeMillis());
     }
 
     /**
@@ -66,7 +71,7 @@ public class Order {
      */
     public String getValue() {
         String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode,
-                goodsCode, outTradeNo, tradeNo, content, payType, status + "", createTime + "", updateTime + "");
+                goodsCode, outTradeNo, tradeNo, body, payType, status + "", createTime + "", updateTime + "");
         return value;
     }
 
@@ -118,12 +123,12 @@ public class Order {
         this.tradeNo = tradeNo;
     }
 
-    public String getContent() {
-        return content;
+    public String getBody() {
+        return body;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setBody(String body) {
+        this.body = body;
     }
 
     public String getPayType() {
@@ -142,6 +147,22 @@ public class Order {
         this.status = status;
     }
 
+    public String getAppid() {
+        return appid;
+    }
+
+    public void setAppid(String appid) {
+        this.appid = appid;
+    }
+
+    public String getTotalFee() {
+        return totalFee;
+    }
+
+    public void setTotalFee(String totalFee) {
+        this.totalFee = totalFee;
+    }
+
     public long getCreateTime() {
         return createTime;
     }
@@ -158,5 +179,22 @@ public class Order {
         this.updateTime = updateTime;
     }
 
-
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", uid=" + uid +
+                ", appcode='" + appcode + '\'' +
+                ", goodsCode='" + goodsCode + '\'' +
+                ", outTradeNo='" + outTradeNo + '\'' +
+                ", tradeNo='" + tradeNo + '\'' +
+                ", body='" + body + '\'' +
+                ", payType='" + payType + '\'' +
+                ", status=" + status +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                ", appid='" + appid + '\'' +
+                ", totalFee='" + totalFee + '\'' +
+                '}';
+    }
 }

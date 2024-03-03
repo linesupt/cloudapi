@@ -79,4 +79,13 @@ public class AppCodeManager {
         return "goods" + getTableSuffix(appcode);
     }
 
+    /**
+     * 获取兑换码表
+     * @param appcode
+     * @return
+     */
+    public static String getRedeemTable(String appcode) {
+        return "redeemcode_gen";
+    }
+
 }

@@ -8,6 +8,7 @@ import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.google.gson.JsonObject;
 import com.lineying.bean.Order;
+import com.lineying.common.AppCodeManager;
 import com.lineying.common.PayType;
 import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
@@ -15,6 +16,8 @@ import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
 import com.lineying.controller.api.pay.PayNotifyController;
 import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonQueryEntity;
+import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
@@ -30,6 +33,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static com.lineying.common.CommonConstant.BASE_URL;
@@ -51,30 +56,36 @@ public class PayControllerV2 extends BaseController {
     public static final String TIMEOUT = "15m";
 
     /**
-     * 创建支付宝支付信息
-     *
+     * 创建订单
      * @return
      */
-    @RequestMapping("/pay/alipay/mkpay")
-    public String alipayAppPay(HttpServletRequest request) {
+    @RequestMapping("/order/add")
+    public String createOrder(HttpServletRequest request) {
+        Order order = makeOrder(request);
+        if (order == null) {
+            return JsonCryptUtil.makeFail("create order fail");
+        }
+        return JsonCryptUtil.makeSuccess();
+    }
 
+    // 创建订单
+    private Order makeOrder(HttpServletRequest request) {
         Checker pair = doCheck(request);
         if (!pair.isValid()) {
-            return pair.getResult();
+            return null;
         }
         JsonObject jsonObject = pair.getDataObject();
         // 生成订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
-        String pay_type = jsonObject.get("pay_type").getAsString();
-        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
+        String payType = jsonObject.get("pay_type").getAsString();
+        String outTradeNo = PayType.get(payType).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
         int uid = jsonObject.get("uid").getAsInt();
         String appcode = jsonObject.get("appcode").getAsString();
         String goodsCode = jsonObject.get("goods_code").getAsString();
-        String app_id = jsonObject.get("app_id").getAsString();
-        String total_fee = jsonObject.get("total_fee").getAsString();
+        String appid = jsonObject.get("app_id").getAsString();
+        String totalFee = jsonObject.get("total_fee").getAsString();
         String body = jsonObject.get("body").getAsString();
-
-        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, pay_type);
+        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, payType, appid, totalFee);
 
         CommonAddEntity entity = new CommonAddEntity();
         entity.setTable(Order.TABLE);
@@ -86,25 +97,39 @@ public class PayControllerV2 extends BaseController {
             result = commonService.add(entity);
         } catch (Exception e) {
             e.printStackTrace();
-            return JsonCryptUtil.makeFail(e.getMessage());
         }
         if (!result) {
+            return null;
+        }
+        return order;
+    }
+
+    /**
+     * 创建支付宝支付信息
+     *
+     * @return
+     */
+    @RequestMapping("/pay/alipay/mkpay")
+    public String alipayAppPay(HttpServletRequest request) {
+
+        Order order = makeOrder(request);
+        if (order == null) {
             return JsonCryptUtil.makeFail("create order fail");
         }
 
-        Logger.getGlobal().info("处理支付宝支付!" + app_id + " - " + outTradeNo + " - " + total_fee + " - " + body);
+        Logger.getGlobal().info("处理支付宝支付!" + order);
         // 实例化客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(PayNotifyController.GATEWAY_URL, app_id, SecureConfig.ALIPAY_APP_PRI_KEY,
+        AlipayClient alipayClient = new DefaultAlipayClient(PayNotifyController.GATEWAY_URL, order.getAppid(), SecureConfig.ALIPAY_APP_PRI_KEY,
                 FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, PayNotifyController.SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
         alipayRequest.setNotifyUrl(BASE_URL + PayNotifyController.ALIPAY_NOTIFY_URL);
         // 设置订单信息
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
-        model.setOutTradeNo(outTradeNo);
-        model.setSubject(body);
-        model.setTotalAmount(total_fee);
-        model.setBody(body);
+        model.setOutTradeNo(order.getOutTradeNo());
+        model.setSubject(order.getBody());
+        model.setTotalAmount(order.getTotalFee());
+        model.setBody(order.getBody());
         model.setTimeoutExpress(TIMEOUT);
         model.setProductCode("QUICK_MSECURITY_PAY");
         alipayRequest.setBizModel(model);
@@ -112,7 +137,7 @@ public class PayControllerV2 extends BaseController {
             AlipayTradeAppPayResponse resp = alipayClient.sdkExecute(alipayRequest);
             String respResult = resp.getBody();
             JsonObject resultObj = new JsonObject();
-            resultObj.addProperty("trade_no", outTradeNo);
+            resultObj.addProperty("trade_no", order.getOutTradeNo());
             resultObj.addProperty("order_info", respResult);
             return JsonCryptUtil.makeSuccess(resultObj);
         } catch (Exception e) {
@@ -150,44 +175,15 @@ public class PayControllerV2 extends BaseController {
      */
     @RequestMapping("/pay/wxpay/mkpay")
     public String wxpayAppPay(HttpServletRequest request) {
-        Checker pair = doCheck(request);
-        if (!pair.isValid()) {
-            return pair.getResult();
-        }
-        JsonObject jsonObject = pair.getDataObject();
-        // 生成商户自定义订单号
-        int platform = Platform.get(request.getHeader("platform")).getId();
-        String pay_type = jsonObject.get("pay_type").getAsString();
-        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
 
-        int uid = jsonObject.get("uid").getAsInt();
-        String appcode = jsonObject.get("appcode").getAsString();
-        String goodsCode = jsonObject.get("goods_code").getAsString();
-        String app_id = jsonObject.get("app_id").getAsString();
-        String total_fee = jsonObject.get("total_fee").getAsString();
-        String body = jsonObject.get("body").getAsString();
-        // 单位为分
-        int total = (int) Math.round(Double.parseDouble(total_fee) * 100);
-
-        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, pay_type);
-
-        CommonAddEntity entity = new CommonAddEntity();
-        entity.setTable(Order.TABLE);
-        entity.setColumn(order.getColumn());
-        entity.setValue(order.getValue());
-        boolean result = false;
-        try {
-            // 保存订单
-            result = commonService.add(entity);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return JsonCryptUtil.makeFail(e.getMessage());
-        }
-        if (!result) {
+        Order order = makeOrder(request);
+        if (order == null) {
             return JsonCryptUtil.makeFail("create order fail");
         }
-        LOGGER.info("处理微信支付!" + app_id + " - " + outTradeNo + " - " + total_fee
-                + " - " + body);
+        LOGGER.info("处理微信支付!" + order);
+
+        // 单位为分
+        int total = (int) Math.round(Double.parseDouble(order.getTotalFee()) * 100);
         // 构建service
         AppServiceExtension service = null;
         try {
@@ -201,11 +197,11 @@ public class PayControllerV2 extends BaseController {
         Amount amount = new Amount();
         amount.setTotal(total);
         prepayRequest.setAmount(amount);
-        prepayRequest.setAppid(app_id);
+        prepayRequest.setAppid(order.getAppid());
         prepayRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
-        prepayRequest.setDescription(body);
+        prepayRequest.setDescription(order.getBody());
         prepayRequest.setNotifyUrl(BASE_URL + PayNotifyController.WXPAY_NOTIFY_URL);
-        prepayRequest.setOutTradeNo(outTradeNo);
+        prepayRequest.setOutTradeNo(order.getOutTradeNo());
 
         // 调用下单方法，得到应答
         PrepayWithRequestPaymentResponse response = service.prepayWithRequestPayment(prepayRequest);
@@ -218,7 +214,7 @@ public class PayControllerV2 extends BaseController {
         String sign = response.getSign();
         LOGGER.info("sign::" + sign);
         JsonObject resultObj = new JsonObject();
-        resultObj.addProperty("out_trade_no", outTradeNo);
+        resultObj.addProperty("out_trade_no", order.getOutTradeNo());
         resultObj.addProperty("appid", appId);
         resultObj.addProperty("partnerid", partnerId);
         resultObj.addProperty("prepayid", prepayId);
@@ -227,6 +223,95 @@ public class PayControllerV2 extends BaseController {
         resultObj.addProperty("package", packageVal);
         resultObj.addProperty("sign", sign);
         return JsonCryptUtil.makeSuccess(resultObj);
+    }
+
+    /**
+     * 验证并消耗验证码
+     * 查询验证码时长，并填充用户会员时长
+     */
+    @RequestMapping("/pay/redeem")
+    public String payRedeem(HttpServletRequest request) {
+
+        Checker pair = doCheck(request);
+        if (!pair.isValid()) {
+            return pair.getResult();
+        }
+        JsonObject jsonObject = pair.getDataObject();
+        String appcode = jsonObject.get("appcode").getAsString();
+        int uid = jsonObject.get("uid").getAsInt();
+        String code = jsonObject.get("code").getAsString();
+        String table = AppCodeManager.getRedeemTable(appcode);
+
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setColumn("*");
+        entity.setSort("desc");
+        entity.setSortColumn("id");
+
+        // 查询是否存在未使用的兑换码
+        String where = "code='" + code + "' and status='0'";
+        entity.setWhere(where);
+
+        List<Map<String, Object>> list = null;
+        try {
+            list = commonService.list(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (list == null || list.isEmpty()) {
+            return JsonCryptUtil.makeFail("invalid redeem code");
+        }
+
+        Map<String, Object> redeem = list.get(0);
+        Long duration = (Long) redeem.get("amount");
+
+        boolean result = handleExpireTime(appcode, uid, duration);
+        if (!result) {
+            return JsonCryptUtil.makeFail("redeem fail");
+        }
+        return JsonCryptUtil.makeSuccess();
+    }
+
+    /**
+     * chu
+     * @param appcode
+     * @param uid
+     * @param durationAdd 待追加的时长
+     * @return
+     */
+    private boolean handleExpireTime(String appcode, int uid, long durationAdd) {
+
+        // 添加时长
+        String table = AppCodeManager.getUserTable(appcode);
+        String where = "id='" + uid + "'";
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setWhere(where);
+        try {
+            entity.setColumn("*");
+            entity.setSort("desc");
+            entity.setSortColumn("id");
+            List<Map<String, Object>> list = commonService.list(entity);
+            if (list != null && !list.isEmpty()) {
+                Map<String, Object> objectMap = list.get(0);
+                long expireTime = (Long) objectMap.get("expire_time");
+                long time = getCurrentTimeMs();
+                if (expireTime < getCurrentTimeMs()) {
+                    time = getCurrentTimeMs() + durationAdd;
+                } else if (expireTime >= getCurrentTimeMs()) {
+                    time = expireTime + durationAdd;
+                }
+                // 更新时间
+                CommonUpdateEntity updateEntity = new CommonUpdateEntity();
+                updateEntity.setTable(table);
+                updateEntity.setSet("expire_time='" + time + "'");
+                updateEntity.setWhere(where);
+                return commonService.update(updateEntity);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }
