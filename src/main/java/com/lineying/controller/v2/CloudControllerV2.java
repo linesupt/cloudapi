@@ -2,18 +2,16 @@ package com.lineying.controller.v2;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
-import com.lineying.controller.CheckPair;
+import com.lineying.controller.Checker;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonQueryEntity;
+import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
-import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;
-import com.lineying.util.SignUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,9 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.lineying.common.SignResult.KEY_ERROR;
-import static com.lineying.common.SignResult.SIGN_ERROR;
 
 /**
  * 应用级接口
@@ -47,20 +42,20 @@ public class CloudControllerV2 extends BaseController {
      * @param request
      * @return
      */
-    @RequestMapping("/cloud/goodslist")
+    @RequestMapping("/goodslist")
     public String getGoodsList(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
-        if (!pair.isValid()) {
-            return pair.getResult();
+        Checker checker = doCheck(request);
+        if (!checker.isValid()) {
+            return checker.getResult();
         }
-        JsonObject jsonObject = pair.getDataObject();
+        JsonObject jsonObject = checker.getDataObject();
+        String locale = checker.getLocale();
         String appcode = jsonObject.get("appcode").getAsString();
-        String locale = jsonObject.get("locale").getAsString();
         String table = AppCodeManager.getGoodsTable(appcode);
 
         CommonQueryEntity entity = new CommonQueryEntity();
-        String where = "locale=" + locale;
+        String where = "locale='" + locale + "'";
         entity.setTable(table);
         entity.setWhere(where);
         entity.setColumn("*");
@@ -84,10 +79,10 @@ public class CloudControllerV2 extends BaseController {
      *  type 0: 添加数据 1：拉取下载数据
      * @return
      */
-    @RequestMapping("/cloud/datasync")
+    @RequestMapping("/user/datasync")
     public String dataSync(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -117,28 +112,73 @@ public class CloudControllerV2 extends BaseController {
         } else if (type == 1) { // 上传用户设置
             String settings = jsonObject.get("settings").getAsString();
             String data = jsonObject.get("data").getAsString();
-            String column = "`settings`,`data`";
-            String value = settings + "," + data;
-            CommonAddEntity entity = new CommonAddEntity();
+            String column = "`uid`,`settings`,`data`";
+            String value = String.format("'%s','%s','%s'", uid + "", settings, data);
+            // 先判断用户是否有设置数据
+            boolean hasData = querySetting(table, uid);
+            if (!hasData) { // 没有数据、添加
+                CommonAddEntity entity = new CommonAddEntity();
+                entity.setTable(table);
+                entity.setColumn(column);
+                entity.setValue(value);
+                boolean result = false;
+                try {
+                    result = commonService.add(entity);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return JsonCryptUtil.makeFail(e.getMessage());
+                }
+                return JsonCryptUtil.makeResult(result);
+            }
+            String set = "settings='" + settings + "', data='" + data + "'";
+            String where = "uid='" + uid + "'";
+            CommonUpdateEntity entity = new CommonUpdateEntity();
             entity.setTable(table);
-            entity.setColumn(column);
-            entity.setValue(value);
+            entity.setSet(set);
+            entity.setWhere(where);
             boolean result = false;
             try {
-                result = commonService.add(entity);
+                result = commonService.update(entity);
             } catch (Exception e) {
                 e.printStackTrace();
                 return JsonCryptUtil.makeFail(e.getMessage());
             }
+
             return JsonCryptUtil.makeResult(result);
         }
         return JsonCryptUtil.makeFail("unknown");
     }
 
+    /**
+     * 是否有设置数据
+     * @param table
+     * @param uid
+     * @return
+     */
+    private boolean querySetting(String table, int uid) {
+        String where = "uid='" + uid + "'";
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setWhere(where);
+        entity.setColumn("*");
+        entity.setSort("desc");
+        entity.setSortColumn("id");
+        List<Map<String, Object>> list = null;
+        try {
+            list = commonService.list(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (list == null || list.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
     @RequestMapping("/cloud/select")
     public String cloudSelect(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -167,7 +207,7 @@ public class CloudControllerV2 extends BaseController {
     @RequestMapping("/cloud/add")
     public String cloudAdd(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }

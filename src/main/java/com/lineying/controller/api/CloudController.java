@@ -2,11 +2,10 @@ package com.lineying.controller.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.lineying.bean.CloudData;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
-import com.lineying.controller.CheckPair;
+import com.lineying.controller.Checker;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
@@ -16,9 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-
-import static com.lineying.common.SignResult.KEY_ERROR;
-import static com.lineying.common.SignResult.SIGN_ERROR;
 
 /**
  * 应用级接口
@@ -38,7 +34,7 @@ public class CloudController extends BaseController {
     @RequestMapping("/cloud/select")
     public String cloudSelect(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -67,7 +63,7 @@ public class CloudController extends BaseController {
     @RequestMapping("/cloud/add")
     public String cloudAdd(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -90,7 +86,7 @@ public class CloudController extends BaseController {
      */
     @RequestMapping("/feedback/add")
     public String feedbackAdd(HttpServletRequest request) {
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }

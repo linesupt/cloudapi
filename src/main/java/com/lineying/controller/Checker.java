@@ -5,7 +5,17 @@ import com.google.gson.JsonObject;
 /**
  * 验证结果
  */
-public class CheckPair {
+public class Checker {
+
+    /**
+     * 平台类型
+     */
+    private String platform;
+
+    /**
+     * 语言环境
+     */
+    private String locale;
 
     /**
      * 请求数据部分
@@ -22,14 +32,32 @@ public class CheckPair {
      */
     private long timestamp;
 
-    public CheckPair(JsonObject dataObject, String result) {
-        this(dataObject, result, 0);
+    public Checker(String platform, String locale, JsonObject dataObject, String result) {
+        this(platform, locale, dataObject, result, 0);
     }
 
-    public CheckPair(JsonObject dataObject, String result, long timestamp) {
+    public Checker(String platform, String locale, JsonObject dataObject, String result, long timestamp) {
+        this.platform = platform;
+        this.locale = locale;
         this.dataObject = dataObject;
         this.result = result;
         this.timestamp = timestamp;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 
     public JsonObject getDataObject() {

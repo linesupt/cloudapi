@@ -3,13 +3,13 @@ package com.lineying.controller.api;
 import cn.hutool.core.lang.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.lineying.common.AppCodeManager;
 import com.lineying.common.LoginType;
 import com.lineying.controller.BaseController;
-import com.lineying.controller.CheckPair;
+import com.lineying.controller.Checker;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonQueryEntity;
+import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.entity.LoginEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
@@ -20,9 +20,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-
-import static com.lineying.common.SignResult.KEY_ERROR;
-import static com.lineying.common.SignResult.SIGN_ERROR;
+import java.util.Objects;
 
 /**
  * 授权认证服务接口
@@ -40,7 +38,7 @@ public class AuthenticationController extends BaseController {
 
     @RequestMapping("/login")
     public String login(HttpServletRequest request) {
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -191,7 +189,7 @@ public class AuthenticationController extends BaseController {
     // 用户注册
     @RequestMapping("/register")
     public String register(HttpServletRequest request) {
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -219,7 +217,7 @@ public class AuthenticationController extends BaseController {
     // 用户注销
     @RequestMapping("/logout")
     public String logout(HttpServletRequest request) {
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }

@@ -1,51 +1,35 @@
 package com.lineying.controller.api.pay;
 
 import cn.hutool.core.io.FileUtil;
-import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
-import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.lineying.bean.Order;
 import com.lineying.common.PayType;
 import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
-import com.lineying.controller.CheckPair;
+import com.lineying.controller.Checker;
 import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
-import com.wechat.pay.java.core.exception.ValidationException;
-import com.wechat.pay.java.core.notification.NotificationParser;
-import com.wechat.pay.java.core.notification.RequestParam;
-import com.wechat.pay.java.service.partnerpayments.app.model.Transaction;
 import com.wechat.pay.java.service.payments.app.AppServiceExtension;
 import com.wechat.pay.java.service.payments.app.model.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import static com.lineying.common.CommonConstant.BASE_URL;
-import static com.lineying.common.SignResult.KEY_ERROR;
-import static com.lineying.common.SignResult.SIGN_ERROR;
 
 /**
  * 应用级接口
@@ -71,7 +55,7 @@ public class PayController extends BaseController {
     @RequestMapping("/pay/alipay/mkpay")
     public String alipayAppPay(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -163,7 +147,7 @@ public class PayController extends BaseController {
      */
     @RequestMapping("/pay/wxpay/mkpay")
     public String wxpayAppPay(HttpServletRequest request) {
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }

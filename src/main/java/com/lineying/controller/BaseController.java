@@ -52,26 +52,28 @@ public class BaseController {
      * 接口基础验证
      * @param request
      */
-    protected CheckPair checkValid(HttpServletRequest request) {
+    protected Checker doCheck(HttpServletRequest request) {
 
+        String platform = request.getHeader("platform");
+        String locale = request.getHeader("locale");
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
         int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
-                return new CheckPair(null, JsonCryptUtil.makeFailKey());
+                return new Checker(platform, locale, null, JsonCryptUtil.makeFailKey());
             case SIGN_ERROR:
-                return new CheckPair(null, JsonCryptUtil.makeFailSign());
+                return new Checker(platform, locale, null, JsonCryptUtil.makeFailSign());
         }
 
         String data = AESUtil.decrypt(secretData);
         JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
         long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
-            return new CheckPair(null, JsonCryptUtil.makeFailTime());
+            return new Checker(platform, locale, null, JsonCryptUtil.makeFailTime());
         }
-        return new CheckPair(jsonObject, null, timestamp);
+        return new Checker(platform, locale, jsonObject, null, timestamp);
     }
 
 }

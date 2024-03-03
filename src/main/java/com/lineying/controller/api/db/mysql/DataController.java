@@ -2,18 +2,14 @@ package com.lineying.controller.api.db.mysql;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.lineying.controller.BaseController;
-import com.lineying.controller.CheckPair;
+import com.lineying.controller.Checker;
 import com.lineying.entity.CommonAddEntity;
 import com.lineying.entity.CommonCommandEntity;
 import com.lineying.entity.CommonQueryEntity;
 import com.lineying.entity.CommonUpdateEntity;
 import com.lineying.service.ICommonService;
-import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
-import com.lineying.util.JsonUtil;
-import com.lineying.util.SignUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,9 +17,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-
-import static com.lineying.common.SignResult.*;
 
 /**
  * 数据级接口控制
@@ -38,7 +31,7 @@ public class DataController extends BaseController {
     @RequestMapping("/select")
     public String select(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -72,7 +65,7 @@ public class DataController extends BaseController {
     @RequestMapping("/insert")
     public String insert(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -99,7 +92,7 @@ public class DataController extends BaseController {
     @RequestMapping("/delete")
     public String delete(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -123,7 +116,7 @@ public class DataController extends BaseController {
     @RequestMapping("/update")
     public String update(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
@@ -151,7 +144,7 @@ public class DataController extends BaseController {
     @RequestMapping("/command")
     public String command(HttpServletRequest request) {
 
-        CheckPair pair = checkValid(request);
+        Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
         }
