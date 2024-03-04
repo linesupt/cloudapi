@@ -62,16 +62,16 @@ public class PayController extends BaseController {
         JsonObject jsonObject = pair.getDataObject();
         // 生成订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
-        String pay_type = jsonObject.get("pay_type").getAsString();
-        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
+        String payType = jsonObject.get("pay_type").getAsString();
+        String outTradeNo = PayType.get(payType).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
         int uid = jsonObject.get("uid").getAsInt();
         String appcode = jsonObject.get("appcode").getAsString();
         String goodsCode = jsonObject.get("goods_code").getAsString();
-        String app_id = jsonObject.get("app_id").getAsString();
-        String total_fee = jsonObject.get("total_fee").getAsString();
+        String appid = jsonObject.get("app_id").getAsString();
+        String totalFee = jsonObject.get("total_fee").getAsString();
         String body = jsonObject.get("body").getAsString();
 
-        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, pay_type);
+        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, payType, appid, totalFee);
 
         CommonAddEntity entity = new CommonAddEntity();
         entity.setTable(Order.TABLE);
@@ -89,9 +89,9 @@ public class PayController extends BaseController {
             return JsonCryptUtil.makeFail("create order fail");
         }
 
-        Logger.getGlobal().info("处理支付宝支付!" + app_id + " - " + outTradeNo + " - " + total_fee + " - " + body);
+        Logger.getGlobal().info("处理支付宝支付!" + order);
         // 实例化客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(PayNotifyController.GATEWAY_URL, app_id, SecureConfig.ALIPAY_APP_PRI_KEY,
+        AlipayClient alipayClient = new DefaultAlipayClient(PayNotifyController.GATEWAY_URL, order.getAppid(), SecureConfig.ALIPAY_APP_PRI_KEY,
                 FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, PayNotifyController.SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
@@ -100,7 +100,7 @@ public class PayController extends BaseController {
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
         model.setOutTradeNo(outTradeNo);
         model.setSubject(body);
-        model.setTotalAmount(total_fee);
+        model.setTotalAmount(order.getTotalFee());
         model.setBody(body);
         model.setTimeoutExpress(TIMEOUT);
         model.setProductCode("QUICK_MSECURITY_PAY");
@@ -154,19 +154,19 @@ public class PayController extends BaseController {
         JsonObject jsonObject = pair.getDataObject();
         // 生成商户自定义订单号
         int platform = Platform.get(request.getHeader("platform")).getId();
-        String pay_type = jsonObject.get("pay_type").getAsString();
-        String outTradeNo = PayType.get(pay_type).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
+        String payType = jsonObject.get("pay_type").getAsString();
+        String outTradeNo = PayType.get(payType).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
 
         int uid = jsonObject.get("uid").getAsInt();
         String appcode = jsonObject.get("appcode").getAsString();
         String goodsCode = jsonObject.get("goods_code").getAsString();
-        String app_id = jsonObject.get("app_id").getAsString();
-        String total_fee = jsonObject.get("total_fee").getAsString();
+        String appid = jsonObject.get("app_id").getAsString();
+        String totalFee = jsonObject.get("total_fee").getAsString();
         String body = jsonObject.get("body").getAsString();
         // 单位为分
-        int total = (int) Math.round(Double.parseDouble(total_fee) * 100);
+        int total = (int) Math.round(Double.parseDouble(totalFee) * 100);
 
-        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, pay_type);
+        Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, payType, appid, totalFee);
 
         CommonAddEntity entity = new CommonAddEntity();
         entity.setTable(Order.TABLE);
@@ -183,8 +183,7 @@ public class PayController extends BaseController {
         if (!result) {
             return JsonCryptUtil.makeFail("create order fail");
         }
-        LOGGER.info("处理微信支付!" + app_id + " - " + outTradeNo + " - " + total_fee
-                + " - " + body);
+        LOGGER.info("处理微信支付!" + order);
         // 构建service
         AppServiceExtension service = null;
         try {
@@ -198,7 +197,7 @@ public class PayController extends BaseController {
         Amount amount = new Amount();
         amount.setTotal(total);
         prepayRequest.setAmount(amount);
-        prepayRequest.setAppid(app_id);
+        prepayRequest.setAppid(order.getAppid());
         prepayRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
         prepayRequest.setDescription(body);
         prepayRequest.setNotifyUrl(BASE_URL + PayNotifyController.WXPAY_NOTIFY_URL);

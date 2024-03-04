@@ -6,6 +6,7 @@ import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.bean.Order;
 import com.lineying.common.AppCodeManager;
@@ -33,6 +34,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -249,7 +252,7 @@ public class PayControllerV2 extends BaseController {
         entity.setSortColumn("id");
 
         // 查询是否存在未使用的兑换码
-        String where = "code='" + code + "' and status='0'";
+        String where = String.format("code='%s' and appcode='%s' and status='%s'", code, appcode, 0 + "");
         entity.setWhere(where);
 
         List<Map<String, Object>> list = null;
@@ -265,11 +268,26 @@ public class PayControllerV2 extends BaseController {
         Map<String, Object> redeem = list.get(0);
         Long duration = (Long) redeem.get("amount");
 
-        boolean result = handleExpireTime(appcode, uid, duration);
-        if (!result) {
+        long expireTime = handleExpireTime(appcode, uid, duration);
+        if (expireTime <= 0) {
             return JsonCryptUtil.makeFail("redeem fail");
+        } else {
+            CommonUpdateEntity updateEntity = new CommonUpdateEntity();
+            updateEntity.setTable(table);
+            updateEntity.setSet("status='" + 1 + "'");
+            updateEntity.setWhere(where);
+            boolean result = commonService.update(updateEntity);
+            if (!result) {
+                return JsonCryptUtil.makeFail("redeem fail");
+            }
         }
-        return JsonCryptUtil.makeSuccess();
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("expire_time", expireTime);
+        resultList.add(map);
+        JsonObject resultObj = new JsonObject();
+        resultObj.add("data", new Gson().toJsonTree(resultList));
+        return JsonCryptUtil.makeSuccess(resultObj);
     }
 
     /**
@@ -279,7 +297,7 @@ public class PayControllerV2 extends BaseController {
      * @param durationAdd 待追加的时长
      * @return
      */
-    private boolean handleExpireTime(String appcode, int uid, long durationAdd) {
+    private long handleExpireTime(String appcode, int uid, long durationAdd) {
 
         // 添加时长
         String table = AppCodeManager.getUserTable(appcode);
@@ -294,24 +312,27 @@ public class PayControllerV2 extends BaseController {
             List<Map<String, Object>> list = commonService.list(entity);
             if (list != null && !list.isEmpty()) {
                 Map<String, Object> objectMap = list.get(0);
-                long expireTime = (Long) objectMap.get("expire_time");
-                long time = getCurrentTimeMs();
-                if (expireTime < getCurrentTimeMs()) {
-                    time = getCurrentTimeMs() + durationAdd;
-                } else if (expireTime >= getCurrentTimeMs()) {
-                    time = expireTime + durationAdd;
+                long curExpireTime = (Long) objectMap.get("expire_time");
+                long expireTime = getCurrentTimeMs();
+                if (curExpireTime < getCurrentTimeMs()) {
+                    expireTime = getCurrentTimeMs() + durationAdd;
+                } else if (curExpireTime >= getCurrentTimeMs()) {
+                    expireTime = curExpireTime + durationAdd;
                 }
                 // 更新时间
                 CommonUpdateEntity updateEntity = new CommonUpdateEntity();
                 updateEntity.setTable(table);
-                updateEntity.setSet("expire_time='" + time + "'");
+                updateEntity.setSet("expire_time='" + expireTime + "'");
                 updateEntity.setWhere(where);
-                return commonService.update(updateEntity);
+                boolean result = commonService.update(updateEntity);
+                if (result) {
+                    return expireTime;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        return 0;
     }
 
 }
