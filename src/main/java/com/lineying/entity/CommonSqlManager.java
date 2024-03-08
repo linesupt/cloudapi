@@ -303,22 +303,22 @@ public class CommonSqlManager {
      * 通过邮箱更新密码
      * @param table
      * @param password
-     * @param id
+     * @param email
      * @return
      */
-    public static CommonUpdateEntity updatePasswordForEmail(String table, String password, String id) {
-        return updatePasswordForField(table, password, Column.EMAIL, id);
+    public static CommonUpdateEntity updatePasswordForEmail(String table, String password, String email) {
+        return updatePasswordForField(table, password, Column.EMAIL, email);
     }
 
     /**
      * 通过手机号更新密码
      * @param table
      * @param password
-     * @param id
+     * @param moile
      * @return
      */
-    public static CommonUpdateEntity updatePasswordForMobile(String table, String password, String id) {
-        return updatePasswordForField(table, password, Column.MOBILE, id);
+    public static CommonUpdateEntity updatePasswordForMobile(String table, String password, String moile) {
+        return updatePasswordForField(table, password, Column.MOBILE, moile);
     }
 
     /**
