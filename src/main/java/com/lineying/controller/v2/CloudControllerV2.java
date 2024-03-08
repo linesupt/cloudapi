@@ -6,9 +6,7 @@ import com.lineying.bean.CloudData;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;
@@ -54,16 +52,9 @@ public class CloudControllerV2 extends BaseController {
         String appcode = jsonObject.get("appcode").getAsString();
         String table = AppCodeManager.getGoodsTable(appcode);
 
-        CommonQueryEntity entity = new CommonQueryEntity();
-        String where = "locale='" + locale + "'";
-        entity.setTable(table);
-        entity.setWhere(where);
-        entity.setColumn("*");
-        entity.setSort("asc");
-        entity.setSortColumn("id");
         List<Map<String, Object>> list;
         try {
-            list = commonService.list(entity);
+            list = commonService.list(CommonSqlManager.queryGoodsList(table, locale));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -92,16 +83,9 @@ public class CloudControllerV2 extends BaseController {
         String appcode = jsonObject.get("appcode").getAsString();
         String table = AppCodeManager.getUserSettingTable(appcode);
         if (type == 0) { // 查询用户设置
-            CommonQueryEntity entity = new CommonQueryEntity();
-            String where = "uid=" + uid;
-            entity.setTable(table);
-            entity.setWhere(where);
-            entity.setColumn("*");
-            entity.setSort("desc");
-            entity.setSortColumn("uid");
             List<Map<String, Object>> list;
             try {
-                list = commonService.list(entity);
+                list = commonService.list(CommonSqlManager.queryUserSetting(table, uid));
             } catch (Exception e) {
                 e.printStackTrace();
                 return JsonCryptUtil.makeFail(e.getMessage());
@@ -112,33 +96,21 @@ public class CloudControllerV2 extends BaseController {
         } else if (type == 1) { // 上传用户设置
             String settings = jsonObject.get("settings").getAsString();
             String data = jsonObject.get("data").getAsString();
-            String column = "`uid`,`settings`,`data`";
-            String value = String.format("'%s','%s','%s'", uid + "", settings, data);
             // 先判断用户是否有设置数据
             boolean hasData = querySetting(table, uid);
             if (!hasData) { // 没有数据、添加
-                CommonAddEntity entity = new CommonAddEntity();
-                entity.setTable(table);
-                entity.setColumn(column);
-                entity.setValue(value);
                 boolean result = false;
                 try {
-                    result = commonService.add(entity);
+                    result = commonService.add(CommonSqlManager.addUserSetting(table, uid, settings, data));
                 } catch (Exception e) {
                     e.printStackTrace();
                     return JsonCryptUtil.makeFail(e.getMessage());
                 }
                 return JsonCryptUtil.makeResult(result);
             }
-            String set = "settings='" + settings + "', data='" + data + "'";
-            String where = "uid='" + uid + "'";
-            CommonUpdateEntity entity = new CommonUpdateEntity();
-            entity.setTable(table);
-            entity.setSet(set);
-            entity.setWhere(where);
             boolean result = false;
             try {
-                result = commonService.update(entity);
+                result = commonService.update(CommonSqlManager.updateUserSetting(table, uid, settings, data));
             } catch (Exception e) {
                 e.printStackTrace();
                 return JsonCryptUtil.makeFail(e.getMessage());
@@ -156,16 +128,10 @@ public class CloudControllerV2 extends BaseController {
      * @return
      */
     private boolean querySetting(String table, int uid) {
-        String where = "uid='" + uid + "'";
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setWhere(where);
-        entity.setColumn("*");
-        entity.setSort("desc");
-        entity.setSortColumn("id");
+
         List<Map<String, Object>> list = null;
         try {
-            list = commonService.list(entity);
+            list = commonService.list(CommonSqlManager.queryUserSetting(table, uid));
         } catch (Exception e) {
             e.printStackTrace();
         }

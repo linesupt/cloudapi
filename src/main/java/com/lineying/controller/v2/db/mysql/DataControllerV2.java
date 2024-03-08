@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonCommandEntity;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,18 +37,10 @@ public class DataControllerV2 extends BaseController {
         String column = jsonObject.get("column").getAsString();
         String where = jsonObject.get("where").getAsString();
         String sort = jsonObject.get("sort").getAsString();
-        String sort_column = jsonObject.get("sort_column").getAsString();
-
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setColumn(column);
-        entity.setWhere(where);
-        entity.setTable(table);
-        entity.setSort(sort);
-        entity.setSortColumn(sort_column);
-
+        String sortColumn = jsonObject.get("sort_column").getAsString();
         List<Map<String, Object>> list;
         try {
-            list = commonService.list(entity);
+            list = commonService.list(CommonSqlManager.select(table, column, where, sort, sortColumn));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -72,14 +61,9 @@ public class DataControllerV2 extends BaseController {
         String table = jsonObject.get("table").getAsString();
         String column = jsonObject.get("column").getAsString();
         String value = jsonObject.get("value").getAsString();
-
-        CommonAddEntity entity = new CommonAddEntity();
-        entity.setTable(table);
-        entity.setColumn(column);
-        entity.setValue(value);
         boolean result = false;
         try {
-            result = commonService.add(entity);
+            result = commonService.add(CommonSqlManager.insert(table, column, value));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -97,13 +81,9 @@ public class DataControllerV2 extends BaseController {
         JsonObject jsonObject = pair.getDataObject();
         String table = jsonObject.get("table").getAsString();
         String where = jsonObject.get("where").getAsString();
-
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setWhere(where);
         boolean result = false;
         try {
-            result = commonService.delete(entity);
+            result = commonService.delete(CommonSqlManager.delete(table, where));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -122,14 +102,9 @@ public class DataControllerV2 extends BaseController {
         String table = jsonObject.get("table").getAsString();
         String set = jsonObject.get("set").getAsString();
         String where = jsonObject.get("where").getAsString();
-
-        CommonUpdateEntity entity = new CommonUpdateEntity();
-        entity.setSet(set);
-        entity.setWhere(where);
-        entity.setTable(table);
         boolean result = false;
         try {
-            result = commonService.update(entity);
+            result = commonService.update(CommonSqlManager.update(table, set, where));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -147,12 +122,9 @@ public class DataControllerV2 extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
         String sql = jsonObject.get("sql").getAsString();
-
-        CommonCommandEntity entity = new CommonCommandEntity();
-        entity.setRawSql(sql);
         boolean result = false;
         try {
-            result = commonService.command(entity);
+            result = commonService.command(CommonSqlManager.command(sql));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());

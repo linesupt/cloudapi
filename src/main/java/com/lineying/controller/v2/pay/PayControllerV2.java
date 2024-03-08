@@ -16,9 +16,7 @@ import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
 import com.lineying.controller.api.pay.PayNotifyController;
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
@@ -90,14 +88,10 @@ public class PayControllerV2 extends BaseController {
         String body = jsonObject.get("body").getAsString();
         Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, payType, appid, totalFee);
 
-        CommonAddEntity entity = new CommonAddEntity();
-        entity.setTable(Order.TABLE);
-        entity.setColumn(order.getColumn());
-        entity.setValue(order.getValue());
         boolean result = false;
         try {
             // 保存订单
-            result = commonService.add(entity);
+            result = commonService.add(CommonSqlManager.addColumnData(Order.TABLE, order.getColumn(), order.getValue()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -245,19 +239,9 @@ public class PayControllerV2 extends BaseController {
         String code = jsonObject.get("code").getAsString();
         String table = AppCodeManager.getRedeemTable(appcode);
 
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setColumn("*");
-        entity.setSort("desc");
-        entity.setSortColumn("id");
-
-        // 查询是否存在未使用的兑换码
-        String where = String.format("code='%s' and appcode='%s' and status='%s'", code, appcode, 0 + "");
-        entity.setWhere(where);
-
         List<Map<String, Object>> list = null;
         try {
-            list = commonService.list(entity);
+            list = commonService.list(CommonSqlManager.queryRedeem(table, appcode, code));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -272,11 +256,7 @@ public class PayControllerV2 extends BaseController {
         if (expireTime <= 0) {
             return JsonCryptUtil.makeFail("redeem fail");
         } else {
-            CommonUpdateEntity updateEntity = new CommonUpdateEntity();
-            updateEntity.setTable(table);
-            updateEntity.setSet("status='" + 1 + "'");
-            updateEntity.setWhere(where);
-            boolean result = commonService.update(updateEntity);
+            boolean result = commonService.update(CommonSqlManager.consumeRedeem(table, appcode, code));
             if (!result) {
                 return JsonCryptUtil.makeFail("redeem fail");
             }
@@ -301,15 +281,8 @@ public class PayControllerV2 extends BaseController {
 
         // 添加时长
         String table = AppCodeManager.getUserTable(appcode);
-        String where = "id='" + uid + "'";
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setWhere(where);
         try {
-            entity.setColumn("*");
-            entity.setSort("desc");
-            entity.setSortColumn("id");
-            List<Map<String, Object>> list = commonService.list(entity);
+            List<Map<String, Object>> list = commonService.list(CommonSqlManager.queryUser(table, uid));
             if (list != null && !list.isEmpty()) {
                 Map<String, Object> objectMap = list.get(0);
                 long curExpireTime = (Long) objectMap.get("expire_time");
@@ -319,12 +292,7 @@ public class PayControllerV2 extends BaseController {
                 } else if (curExpireTime >= getCurrentTimeMs()) {
                     expireTime = curExpireTime + durationAdd;
                 }
-                // 更新时间
-                CommonUpdateEntity updateEntity = new CommonUpdateEntity();
-                updateEntity.setTable(table);
-                updateEntity.setSet("expire_time='" + expireTime + "'");
-                updateEntity.setWhere(where);
-                boolean result = commonService.update(updateEntity);
+                boolean result = commonService.update(CommonSqlManager.updateExpireTime(table, uid, expireTime));
                 if (result) {
                     return expireTime;
                 }

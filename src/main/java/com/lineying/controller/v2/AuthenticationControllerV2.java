@@ -5,8 +5,7 @@ import com.google.gson.JsonObject;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,18 +41,10 @@ public class AuthenticationControllerV2 extends BaseController {
         String appcode = jsonObject.get("appcode").getAsString();
         int id = jsonObject.get("id").getAsInt();
         String password = jsonObject.get("password").getAsString();
-
         String table = AppCodeManager.getUserTable(appcode);
-        String where = "id='" + id + "' and password='" + password + "'";
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setWhere(where);
-        entity.setColumn("*");
-        entity.setSort("desc");
-        entity.setSortColumn("id");
         List<Map<String, Object>> list;
         try {
-            list = commonService.list(entity);
+            list = commonService.list(CommonSqlManager.queryPasswordForId(table, password, id));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -76,21 +67,14 @@ public class AuthenticationControllerV2 extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
         String appcode = jsonObject.get("appcode").getAsString();
-        int id = jsonObject.get("id").getAsInt();
+        int uid = jsonObject.get("id").getAsInt();
         String column = jsonObject.get("column").getAsString();
         String value = jsonObject.get("value").getAsString();
-
         String table = AppCodeManager.getUserTable(appcode);
-        String where = "id='" + id + "' and column='" + value + "'";
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setWhere(where);
-        entity.setColumn(column);
-        entity.setSort("desc");
-        entity.setSortColumn(column);
+
         List<Map<String, Object>> list;
         try {
-            list = commonService.list(entity);
+            list = commonService.list(CommonSqlManager.queryAttr(table, uid, column, value));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -100,31 +84,30 @@ public class AuthenticationControllerV2 extends BaseController {
         return JsonCryptUtil.makeSuccess(obj);
     }
 
-    private boolean checkUser(int type, String table, String password, int uid, String email, String mobile) {
-        // 先查询旧密码
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setColumn("*");
-        entity.setSort("desc");
-        entity.setSortColumn("id");
-
-        String where = "";
-        switch (type) {
-            case 0: // uid
-                where = "id='" + uid + "' and password='" + password + "'";
-                break;
-            case 1: // email
-                where = "email='" + email + "' and password='" + password + "'";
-                break;
-            case 2: // mobile
-                where = "mobile='" + mobile + "' and password='" + password + "'";
-                break;
-        }
-        entity.setWhere(where);
-
+    /**
+     * 是否存在用户
+     * @param type
+     * @param table
+     * @param password
+     * @param uid
+     * @param email
+     * @param mobile
+     * @return
+     */
+    private boolean hasUser(int type, String table, String password, int uid, String email, String mobile) {
         List<Map<String, Object>> list = null;
         try {
-            list = commonService.list(entity);
+            switch (type) {
+                case 0: // uid
+                    list = commonService.list(CommonSqlManager.queryPasswordForId(table, password, uid));
+                    break;
+                case 1: // email
+                    list = commonService.list(CommonSqlManager.queryPasswordForEmail(table, password, email));
+                    break;
+                case 2: // mobile
+                    list = commonService.list(CommonSqlManager.queryPasswordForMobile(table, password, mobile));
+                    break;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -155,33 +138,34 @@ public class AuthenticationControllerV2 extends BaseController {
         int uid = 0;
         String email = "";
         String mobile = "";
-        String where = "";
         switch (type) {
             case 0: // uid
                 uid = jsonObject.get("id").getAsInt();
-                where = "id='" + uid + "'";
                 break;
             case 1: // email
                 email = jsonObject.get("email").getAsString();
-                where = "email='" + email + "'";
                 break;
             case 2: // mobile
                 mobile = jsonObject.get("mobile").getAsString();
-                where = "mobile='" + mobile + "'";
                 break;
         }
-        boolean hasUser = checkUser(type, table, passwordOld, uid, email, mobile);
+        boolean hasUser = hasUser(type, table, passwordOld, uid, email, mobile);
         if (!hasUser) {
             return JsonCryptUtil.makeFail("old password error");
         }
-        String set = "password='" + password + "'";
-        CommonUpdateEntity entity = new CommonUpdateEntity();
-        entity.setSet(set);
-        entity.setWhere(where);
-        entity.setTable(table);
         boolean result = false;
         try {
-            result = commonService.update(entity);
+            switch (type) {
+                case 0: // uid
+                    result = commonService.update(CommonSqlManager.updatePasswordForUid(table, password, uid));
+                    break;
+                case 1: // email
+                    result = commonService.update(CommonSqlManager.updatePasswordForEmail(table, password, email));
+                    break;
+                case 2: // mobile
+                    result = commonService.update(CommonSqlManager.updatePasswordForMobile(table, password, mobile));
+                    break;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -207,16 +191,10 @@ public class AuthenticationControllerV2 extends BaseController {
         String value = jsonObject.get("value").getAsString();
         int uid = jsonObject.get("id").getAsInt();
         String table = AppCodeManager.getUserTable(appcode);
-        String set = column + "='" + value + "'";
 
-        String where = "id='" + uid + "'";
-        CommonUpdateEntity entity = new CommonUpdateEntity();
-        entity.setSet(set);
-        entity.setWhere(where);
-        entity.setTable(table);
         boolean result = false;
         try {
-            result = commonService.update(entity);
+            result = commonService.update(CommonSqlManager.updateAttr(table, uid, column, value));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());

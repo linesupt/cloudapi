@@ -5,6 +5,15 @@ package com.lineying.data;
  */
 public @interface Column {
 
+
+    // 查询所有字段
+    String COLUMN_ALL = "*";
+    // 倒序排序
+    String SORT_DESC = "desc";
+    // 顺序排序
+    String SORT_ASC = "asc";
+
+    // 数据表字段
     String ID = "id";
     String USERNAME = "username";
     String PASSWORD = "password";
@@ -39,6 +48,7 @@ public @interface Column {
      */
     String STATUS = "status";
     String VERSION = "version";
+    String APPCODE = "appcode";
     String CODE = "code";
     String NAME = "name";
     String DESCRIBE = "describe";
