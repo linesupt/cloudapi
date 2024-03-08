@@ -4,13 +4,12 @@ import cn.hutool.core.lang.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.common.AppCodeManager;
+import com.lineying.common.ErrorCode;
 import com.lineying.common.LoginType;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
-import com.lineying.entity.LoginEntity;
+import com.lineying.data.Column;
+import com.lineying.entity.*;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -152,6 +151,40 @@ public class AuthenticationController extends BaseController {
     }
 
     /**
+     * 是否存在用户名
+     * @param table
+     * @param username
+     * @return
+     */
+    private boolean hasUsername(String table, String username) {
+        CommonQueryEntity entity = CommonSqlManager.hasUsername(table, username);
+        try {
+            List<Map<String, Object>> list = commonService.list(entity);
+            return !list.isEmpty();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 是否存在appleuser
+     * @param table
+     * @param appleuser
+     * @return
+     */
+    private boolean hasAppleUser(String table, String appleuser) {
+        CommonQueryEntity entity = CommonSqlManager.hasAppleUser(table, appleuser);
+        try {
+            List<Map<String, Object>> list = commonService.list(entity);
+            return !list.isEmpty();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * 添加用户到数据库
      * @param tableName
      * @param username
@@ -202,6 +235,9 @@ public class AuthenticationController extends BaseController {
         String table = AppCodeManager.getUserTable(appcode);
         String ipaddr = IPUtil.getIpAddress(request);
         try {
+            if (hasUsername(table, username)) {
+                return JsonCryptUtil.makeFail("username exist", ErrorCode.REGISTER_USERNAME_EXIST);
+            }
             boolean result = addUser(table, username, password, "", brand, model, ipaddr);
             if (!result) {
                 return JsonCryptUtil.makeFail("register error");
