@@ -281,10 +281,11 @@ public class CommonSqlManager {
     public static CommonUpdateEntity consumeRedeem(String table, String appcode, String code) {
         String where = String.format("%s='%s' and %s='%s' and %s='%s'", Column.CODE, code, Column.APPCODE, appcode, Column.STATUS, 0 + "");
         String set = String.format("%s='%s'", Column.STATUS, 1 + "");
-        CommonUpdateEntity updateEntity = new CommonUpdateEntity();
-        updateEntity.setTable(table);
-        updateEntity.setSet(set);
-        updateEntity.setWhere(where);
+        CommonUpdateEntity entity = new CommonUpdateEntity();
+        entity.setTable(table);
+        entity.setSet(set);
+        entity.setWhere(where);
+        return entity;
     }
 
     /**
