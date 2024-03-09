@@ -1,7 +1,9 @@
 package com.lineying.bean;
 
+import com.lineying.data.Column;
+
 /**
- * 订单
+ * 订单表，包含多个APP
  */
 public class Order {
 
@@ -9,6 +11,7 @@ public class Order {
     private int id;
     private int uid;
     private String appcode;
+    private int goodsId;
     private String goodsCode;
     private String outTradeNo;
     private String tradeNo;
@@ -25,11 +28,12 @@ public class Order {
 
     }
 
-    public Order(int uid, String appcode, String goodsCode, String outTradeNo,
+    public Order(int uid, String appcode, int goodsId, String goodsCode, String outTradeNo,
                  String tradeNo, String body, String payType, int status, String appid, String totalFee, long createTime,
                  long updateTime) {
         this.uid = uid;
         this.appcode = appcode;
+        this.goodsId = goodsId;
         this.goodsCode = goodsCode;
         this.outTradeNo = outTradeNo;
         this.tradeNo = tradeNo;
@@ -46,14 +50,15 @@ public class Order {
      * 创建订单
      * @param uid
      * @param appcode
+     * @param goodsId
      * @param goodsCode
      * @param outTradeNo
      * @param body
      * @param payType
      * @return
      */
-    public static Order makeOrder(int uid, String appcode, String goodsCode, String outTradeNo, String body, String payType, String appid, String totalFee) {
-        return new Order(uid, appcode, goodsCode, outTradeNo, "", body, payType, 0, appid, totalFee, System.currentTimeMillis(), System.currentTimeMillis());
+    public static Order makeOrder(int uid, String appcode, int goodsId, String goodsCode, String outTradeNo, String body, String payType, String appid, String totalFee) {
+        return new Order(uid, appcode, goodsId, goodsCode, outTradeNo, "", body, payType, 0, appid, totalFee, System.currentTimeMillis(), System.currentTimeMillis());
     }
 
     /**
@@ -61,7 +66,9 @@ public class Order {
      * @return
      */
     public String getColumn() {
-        String column = "`uid`,`appcode`,`goods_code`,`out_trade_no`,`trade_no`,`content`,`pay_type`,`status`,`create_time`,`update_time`";
+        String column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
+                Column.UID, Column.APPCODE, Column.GOODS_ID, Column.GOODS_CODE, Column.OUT_TRADE_NO, Column.TRADE_NO,
+                Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.CREATE_TIME, Column.UPDATE_TIME);
         return column;
     }
 
@@ -70,7 +77,7 @@ public class Order {
      * @return
      */
     public String getValue() {
-        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode,
+        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
                 goodsCode, outTradeNo, tradeNo, body, payType, status + "", createTime + "", updateTime + "");
         return value;
     }
@@ -97,6 +104,14 @@ public class Order {
 
     public void setAppcode(String appcode) {
         this.appcode = appcode;
+    }
+
+    public int getGoodsId() {
+        return goodsId;
+    }
+
+    public void setGoodsId(int goodsId) {
+        this.goodsId = goodsId;
     }
 
     public String getGoodsCode() {
@@ -185,6 +200,7 @@ public class Order {
                 "id=" + id +
                 ", uid=" + uid +
                 ", appcode='" + appcode + '\'' +
+                ", goodsId='" + goodsId + '\'' +
                 ", goodsCode='" + goodsCode + '\'' +
                 ", outTradeNo='" + outTradeNo + '\'' +
                 ", tradeNo='" + tradeNo + '\'' +

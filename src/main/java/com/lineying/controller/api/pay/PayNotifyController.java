@@ -1,14 +1,11 @@
 package com.lineying.controller.api.pay;
 
-import cn.hutool.core.io.FileUtil;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.lineying.common.CommonConstant;
 import com.lineying.common.SecureConfig;
-import com.lineying.controller.BaseController;
 import com.lineying.entity.CommonSqlManager;
-import com.lineying.service.ICommonService;
 import com.lineying.util.*;
-import com.wechat.pay.java.core.RSAAutoCertificateConfig;
 import com.wechat.pay.java.core.exception.ValidationException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
@@ -19,11 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -35,20 +30,8 @@ import java.util.logging.Logger;
  */
 @Component
 @RestController
-@RequestMapping("api")
-public class PayNotifyController extends BaseController {
-
-    @Resource
-    ICommonService commonService;
-
-    // 支付宝网关,注意这些使用的是沙箱的支付宝网关，与正常网关的区别是多了dev
-    public static final String GATEWAY_URL = "https://openapi.alipay.com/gateway.do";
-    public static final String GATEWAY_URL_DEV = "https://openapi.alipaydev.com/gateway.do";
-    public static final String ALIPAY_NOTIFY_URL = "cloud/api/pay/alipay/notify";
-    public static final String WXPAY_NOTIFY_URL = "cloud/api/pay/wxpay/notify";
-
-    // 签名方式
-    public static final String SIGN_TYPE = "RSA2";
+@RequestMapping("v3")
+public class PayNotifyController extends BasePayController {
 
     /**
      * 支付宝支付通知
@@ -72,7 +55,7 @@ public class PayNotifyController extends BaseController {
             }
             params.put(name, valueStr);
         }
-        boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, SIGN_TYPE); //调用SDK验证签名
+        boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, CommonConstant.SIGN_TYPE); //调用SDK验证签名
         if (signVerified) { // 验证成功
             // 商户订单号
             String outTradeNo = request.getParameter("out_trade_no");
@@ -91,17 +74,26 @@ public class PayNotifyController extends BaseController {
                 status = 1;
             }
 
-            boolean result = false;
-            try {
-                result = commonService.update(CommonSqlManager.updateOrder(tradeNo, outTradeNo, status, getCurrentTimeMs()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            handleOrderStatus(tradeNo, outTradeNo, status);
             // 处理订单数据保存
             return "success";
         }
 
         return "fail";
+    }
+
+    /**
+     * 处理订单状态
+     * @return
+     */
+    protected boolean handleOrderStatus(String tradeNo, String outTradeNo, int status) {
+        boolean result = false;
+        try {
+            result = commonService.update(CommonSqlManager.updateOrder(tradeNo, outTradeNo, status, getCurrentTimeMs()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     @RequestMapping("/pay/alipay/return")
@@ -126,7 +118,7 @@ public class PayNotifyController extends BaseController {
         // 验证签名
         boolean signVerified = false;
         try {
-            signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, SIGN_TYPE);
+            signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, CommonConstant.SIGN_TYPE);
             if (signVerified) {
                 return "success";
             } else {
@@ -136,29 +128,6 @@ public class PayNotifyController extends BaseController {
             e.printStackTrace();
             return "fail";
         }
-    }
-
-    ////////////////////////// wechat pay ///////////////////////////////
-    // 从 v0.2.10 开始，我们不再限制每个商户号只能创建一个 RSAAutoCertificateConfig。
-    private RSAAutoCertificateConfig wxpayConfig;
-    /** 创建配置 **/
-    private RSAAutoCertificateConfig makeWxpayConfig() throws FileNotFoundException {
-        if (wxpayConfig == null) {
-            URL url = getClass().getClassLoader().getResource(SecureConfig.WXPAY_PRI_KEY_PATH);
-            File file = new File(url.getFile());
-            String keyString = FileUtil.readString(url, "utf-8");
-            //File file = ResourceUtils.getFile("classpath:" + SecureConfig.WXPAY_PRI_KEY_PATH);
-            //String path = file.getAbsolutePath();
-            //LOGGER.info("私钥key::" + keyString);
-            wxpayConfig = new RSAAutoCertificateConfig.Builder()
-                    .merchantId(SecureConfig.WXPAY_MERCHANT_ID)
-                    //.privateKeyFromPath(path)
-                    .privateKey(keyString)
-                    .merchantSerialNumber(SecureConfig.WXPAY_MERCHANT_SERIAL_NUMBER)
-                    .apiV3Key(SecureConfig.WXPAY_APIV3_KEY)
-                    .build();
-        }
-        return wxpayConfig;
     }
 
     /**
@@ -194,7 +163,6 @@ public class PayNotifyController extends BaseController {
             return;
         }
 
-        HashMap<String, String> map = new HashMap<>();
         // 构造 RequestParam
         RequestParam requestParam = new RequestParam.Builder()
                 .serialNumber(serialNumber)
@@ -232,11 +200,8 @@ public class PayNotifyController extends BaseController {
                     break;
             }
             // 处理成功，返回 200 OK 状态码
-            boolean result = false;
-            try {
-                result = commonService.update(CommonSqlManager.updateOrder(transactionId, outTradeNo, status, getCurrentTimeMs()));
-            } catch (Exception e) {
-                e.printStackTrace();
+            boolean result = handleOrderStatus(transactionId, outTradeNo, status);
+            if (!result) {
                 // 如果处理失败，应返回 4xx/5xx 的状态码，例如 500 INTERNAL_SERVER_ERROR
                 response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             }

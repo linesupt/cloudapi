@@ -136,6 +136,17 @@ public class CommonSqlManager {
         return queryFieldValue(table, Column.USERNAME, username);
     }
 
+
+    /**
+     * 查询商品列表
+     * @param table
+     * @param locale
+     * @return
+     */
+    public static CommonQueryEntity queryOrder(String table, String outTradeNo) {
+        return queryAttrAll(table, Column.OUT_TRADE_NO, outTradeNo, Column.SORT_ASC, Column.ID);
+    }
+
     /**
      * 查询商品列表
      * @param table
@@ -144,6 +155,16 @@ public class CommonSqlManager {
      */
     public static CommonQueryEntity queryGoodsList(String table, String locale) {
         return queryAttrAll(table, Column.LOCALE, locale, Column.SORT_ASC, Column.ID);
+    }
+
+    /**
+     * 查询单条商品
+     * @param table
+     * @param goodsCode
+     * @return
+     */
+    public static CommonQueryEntity queryGoods(String table, String goodsCode) {
+        return queryAttrAll(table, Column.GOODS_CODE, goodsCode, Column.SORT_ASC, Column.ID);
     }
 
     /**
