@@ -143,7 +143,7 @@ public class CommonSqlManager {
      * @return
      */
     public static CommonQueryEntity queryGoodsList(String table, String locale) {
-        return queryAttr(table, Column.LOCALE, locale, Column.SORT_ASC, Column.ID);
+        return queryAttrAll(table, Column.LOCALE, locale, Column.SORT_ASC, Column.ID);
     }
 
     /**
@@ -158,6 +158,24 @@ public class CommonSqlManager {
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setColumn(column);
+        entity.setWhere(where);
+        entity.setSort(sort);
+        entity.setSortColumn(sortColumn);
+        return entity;
+    }
+
+    /**
+     * 查询列数据
+     * @param table
+     * @param column
+     * @param value
+     * @return
+     */
+    public static CommonQueryEntity queryAttrAll(String table, String column, String value, String sort, String sortColumn) {
+        String where = String.format("%s='%s'", column, value);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setColumn(Column.COLUMN_ALL);
         entity.setWhere(where);
         entity.setSort(sort);
         entity.setSortColumn(sortColumn);
