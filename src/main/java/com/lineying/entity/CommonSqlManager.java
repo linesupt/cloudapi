@@ -1,6 +1,9 @@
 package com.lineying.entity;
 
+import com.lineying.bean.Order;
+import com.lineying.common.LoginType;
 import com.lineying.data.Column;
+import com.lineying.util.JsonCryptUtil;
 
 /**
  * sql查询管理
@@ -85,6 +88,35 @@ public class CommonSqlManager {
     /////////////////// 通用sql查询 end //////////////////////
 
     /**
+     * 用户登录
+     * @param table
+     * @param username
+     * @param password
+     * @return
+     */
+    public static LoginEntity login(String table, String username, String password) {
+        LoginEntity entity = new LoginEntity();
+        entity.setTable(table);
+        entity.setUsername(username);
+        entity.setPassword(password);
+        return entity;
+    }
+
+    /**
+     * 用户登录
+     * @param table
+     * @param username
+     * @param password
+     * @return
+     */
+    public static LoginEntity loginForAppleUser(String table, String appleUser) {
+        LoginEntity entity = new LoginEntity();
+        entity.setTable(table);
+        entity.setUsername(appleUser);
+        return entity;
+    }
+
+    /**
      * 查询是否存在appleuser
      * @param table
      * @param appleUser
@@ -144,7 +176,6 @@ public class CommonSqlManager {
         return queryAttrForUid(table, uid, column, value, Column.SORT_DESC, column);
     }
 
-
     /**
      * 查询列属性
      * @param table
@@ -162,6 +193,18 @@ public class CommonSqlManager {
         entity.setSort(sort);
         entity.setSortColumn(sortColumn);
         return entity;
+    }
+
+    /**
+     * 查询列属性
+     * @param table
+     * @param uid
+     * @param column
+     * @param value
+     * @return
+     */
+    public static CommonQueryEntity queryAttr(String table, String column, String value) {
+        return queryFieldValue(table, column, value);
     }
 
     /**
@@ -235,18 +278,92 @@ public class CommonSqlManager {
     }
 
     /**
+     * 通过ID查询密码
+     * @param table
+     * @param password
+     * @param username
+     * @return
+     */
+    public static CommonQueryEntity queryPasswordForUsername(String table, String password, String username) {
+        return queryUserForField(table, password, Column.USERNAME, username);
+    }
+
+    /**
+     * 查询用户
+     * @param table
+     * @param username
+     * @param password
+     * @return
+     */
+    public static CommonQueryEntity queryUser(String table, String username, String password) {
+        String where = String.format("%s='%s' and %s='%s'", Column.USERNAME, username, Column.PASSWORD, password);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setColumn(Column.COLUMN_ALL);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
      * 查询用户
      * @param table
      * @param uid
      * @return
      */
     public static CommonQueryEntity queryUser(String table, int uid) {
+        String where = String.format("%s='%s'", Column.ID, uid + "");
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setColumn(Column.COLUMN_ALL);
         entity.setSort(Column.SORT_DESC);
         entity.setSortColumn(Column.ID);
-        String where = String.format("%s='%s'", Column.ID, uid + "");
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
+     * 添加用户
+     * @param table
+     * @param username
+     * @param password
+     * @param appleUser
+     * @param brand
+     * @param model
+     * @param ipaddr
+     * @param createTime
+     * @param updateTime
+     * @return
+     */
+    public static CommonAddEntity addUser(String table, String username, String password,
+                                          String appleUser, String brand, String model, String ipaddr,
+                                          long createTime, long updateTime) {
+        if ("".equals(appleUser)) { // 空的时候设置为NULL
+            appleUser = "NULL";
+        }
+        String dataFormatColumn = "`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`";
+        String dataFormatValue = "'%s','%s','%s','%s','%s','%s','%s','%s','%s'";
+        String column = String.format(dataFormatColumn, Column.USERNAME, Column.NICKNAME, Column.PASSWORD, Column.APPLE_USER,
+                Column.BRAND, Column.MODEL, Column.IPADDR, Column.CREATE_TIME, Column.UPDATE_TIME);
+        String value = String.format(dataFormatValue, username, username, password, appleUser, brand, model, ipaddr, createTime + "", updateTime + "");
+        CommonAddEntity entity = new CommonAddEntity();
+        entity.setTable(table);
+        entity.setColumn(column);
+        entity.setValue(value);
+        return entity;
+    }
+
+    /**
+     * 删除用户
+     * @param table
+     * @param username
+     * @return
+     */
+    public static CommonQueryEntity deleteUser(String table, String username) {
+        String where = String.format("%s='%s'", Column.USERNAME, username);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
         entity.setWhere(where);
         return entity;
     }
@@ -427,6 +544,32 @@ public class CommonSqlManager {
     }
 
     /**
+     * 添加反馈建议
+     * @param table
+     * @param uid
+     * @param title
+     * @param content
+     * @param contact
+     * @param brand
+     * @param model
+     * @param ipaddr
+     * @param createTime
+     * @param updateTime
+     * @return
+     */
+    public static CommonAddEntity addFeedback(String table, int uid, String title, String content, String contact, String brand, String model, String ipaddr, long createTime, long updateTime) {
+        String column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
+                Column.UID, Column.TITLE, Column.CONTENT, Column.CONTACT, Column.BRAND, Column.MODEL, Column.IPADDR,
+                Column.CREATE_TIME, Column.UPDATE_TIME);
+        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid, title, content, contact, brand, model, ipaddr, createTime, updateTime);
+        CommonAddEntity entity = new CommonAddEntity();
+        entity.setTable(table);
+        entity.setColumn(column);
+        entity.setValue(value);
+        return entity;
+    }
+
+    /**
      * 更新设置表
      * @param table
      * @param uid
@@ -444,5 +587,23 @@ public class CommonSqlManager {
         return entity;
     }
 
+    /**
+     * 更新订单状态
+     * @param tradeNo
+     * @param outTradeNo
+     * @param status
+     * @param updateTime
+     * @return
+     */
+    public static CommonUpdateEntity updateOrder(String tradeNo, String outTradeNo, int status, long updateTime) {
+        CommonUpdateEntity entity = new CommonUpdateEntity();
+        String set = String.format("%s='%s', %s='%s', %s='%s'", Column.TRADE_NO, tradeNo, Column.STATUS,
+                status + "", Column.UPDATE_TIME, updateTime + "");
+        String where = String.format("%s='%s'", Column.OUT_TRADE_NO, outTradeNo);
+        entity.setSet(set);
+        entity.setWhere(where);
+        entity.setTable(Order.TABLE);
+        return entity;
+    }
 
 }

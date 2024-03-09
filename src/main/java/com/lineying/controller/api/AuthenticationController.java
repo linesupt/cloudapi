@@ -8,8 +8,7 @@ import com.lineying.common.ErrorCode;
 import com.lineying.common.LoginType;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
-import com.lineying.data.Column;
-import com.lineying.entity.*;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,10 +43,9 @@ public class AuthenticationController extends BaseController {
         JsonObject jsonObject = pair.getDataObject();
         List<Map<String, Object>> list = null;
         String appcode = jsonObject.get("appcode").getAsString();
-        String tableName = AppCodeManager.getUserTable(appcode);
+        String table = AppCodeManager.getUserTable(appcode);
         // username可以代表用户名、邮箱、apple token、wechat token
         String username = jsonObject.get("username").getAsString();
-        LoginEntity entity = new LoginEntity();
         @LoginType
         int type = jsonObject.get("type").getAsInt();
         LOGGER.info("login type " + type);
@@ -55,14 +53,11 @@ public class AuthenticationController extends BaseController {
             case LoginType.USERNAME:
             case LoginType.EMAIL:
                 String password = jsonObject.get("password").getAsString();
-                entity.setUsername(username);
-                entity.setPassword(password);
-                entity.setTable(tableName);
                 try {
                     if (type == LoginType.USERNAME) {
-                        list = commonService.loginForUsername(entity);
+                        list = commonService.loginForUsername(CommonSqlManager.login(table, username, password));
                     } else {
-                        list = commonService.loginForEmail(entity);
+                        list = commonService.loginForEmail(CommonSqlManager.login(table, username, password));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -84,10 +79,7 @@ public class AuthenticationController extends BaseController {
                 }
                 try {
                     LOGGER.info("token login::" + userInfo.getKey() + " - " + userInfo.getValue());
-                    entity.setUsername(userInfo.getKey() + "");
-                    entity.setPassword(userInfo.getValue());
-                    entity.setTable(tableName);
-                    list = commonService.loginForUserId(entity);
+                    list = commonService.loginForUserId(CommonSqlManager.login(table, userInfo.getKey() + "", userInfo.getValue()));
                 } catch (Exception e) {
                     e.printStackTrace();
                     return JsonCryptUtil.makeFail(e.getMessage());
@@ -103,18 +95,16 @@ public class AuthenticationController extends BaseController {
                 //  return JsonCryptUtil.makeFail("apple verify fail");
                 //}
                 try {
-                    entity.setUsername(username);
-                    entity.setTable(tableName);
-                    list = commonService.loginForApple(entity);
+                    list = commonService.loginForApple(CommonSqlManager.loginForAppleUser(table, username));
                     if (list.isEmpty()) {
                         String appleUser = username;
                         String genUsername = RandomUtil.makeName();
                         String ipaddr = IPUtil.getIpAddress(request);
                         try {
-                            boolean result = addUser(tableName, genUsername,
+                            boolean result = addUser(table, genUsername,
                                     "", appleUser, brand, model, ipaddr);
                             if (result) {
-                                list = commonService.loginForApple(entity);
+                                list = commonService.loginForApple(CommonSqlManager.loginForAppleUser(table, username));
                             } else {
                                 return JsonCryptUtil.makeFail("register error");
                             }
@@ -157,9 +147,8 @@ public class AuthenticationController extends BaseController {
      * @return
      */
     private boolean hasUsername(String table, String username) {
-        CommonQueryEntity entity = CommonSqlManager.hasUsername(table, username);
         try {
-            List<Map<String, Object>> list = commonService.list(entity);
+            List<Map<String, Object>> list = commonService.list(CommonSqlManager.hasUsername(table, username));
             return !list.isEmpty();
         } catch (Exception e){
             e.printStackTrace();
@@ -174,9 +163,8 @@ public class AuthenticationController extends BaseController {
      * @return
      */
     private boolean hasAppleUser(String table, String appleuser) {
-        CommonQueryEntity entity = CommonSqlManager.hasAppleUser(table, appleuser);
         try {
-            List<Map<String, Object>> list = commonService.list(entity);
+            List<Map<String, Object>> list = commonService.list(CommonSqlManager.hasAppleUser(table, appleuser));
             return !list.isEmpty();
         } catch (Exception e){
             e.printStackTrace();
@@ -186,7 +174,7 @@ public class AuthenticationController extends BaseController {
 
     /**
      * 添加用户到数据库
-     * @param tableName
+     * @param table
      * @param username
      * @param password
      * @param appleUser
@@ -195,24 +183,11 @@ public class AuthenticationController extends BaseController {
      * @param ipaddr
      * @return
      */
-    private boolean addUser(String tableName, String username, String password,
+    private boolean addUser(String table, String username, String password,
                             String appleUser, String brand, String model, String ipaddr) {
-        String curTime = getCurrentTimeMs() + "";
-        String column = "";
-        String value = "";
-        if ("".equals(appleUser)) { // 空的时候由于字段唯一性不准保存
-            column = "`username`,`nickname`,`password`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
-            value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s'", username, username, password, brand, model, ipaddr, curTime, curTime);
-        } else {
-            column = "`username`,`nickname`,`password`,`apple_user`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
-            value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s'", username, username, password, appleUser, brand, model, ipaddr, curTime, curTime);
-        }
-        CommonAddEntity entityAdd = new CommonAddEntity();
-        entityAdd.setTable(tableName);
-        entityAdd.setColumn(column);
-        entityAdd.setValue(value);
+        long curTime = getCurrentTimeMs();
         try {
-            return commonService.add(entityAdd);
+            return commonService.add(CommonSqlManager.addUser(table, username, password, appleUser, brand, model, ipaddr, curTime, curTime));
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -261,23 +236,12 @@ public class AuthenticationController extends BaseController {
         String appcode = jsonObject.get("appcode").getAsString();
         String username = jsonObject.get("username").getAsString();
         String password = jsonObject.get("password").getAsString();
-
         String table = AppCodeManager.getUserTable(appcode);
-        String where = "username='" + username + "' and " + "password='" + password + "'";
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setWhere(where);
         boolean result = false;
         try {
-
-            entity.setColumn("*");
-            entity.setSort("desc");
-            entity.setSortColumn("id");
-            List<Map<String, Object>> list = commonService.list(entity);
+            List<Map<String, Object>> list = commonService.list(CommonSqlManager.queryUser(table, username, password));
             if (list.size() > 0) {
-                String whereDel = "username='" + username + "'";
-                entity.setWhere(whereDel);
-                result = commonService.delete(entity);
+                result = commonService.delete(CommonSqlManager.deleteUser(table, username));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -294,21 +258,11 @@ public class AuthenticationController extends BaseController {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
         String table = AppCodeManager.getUserTable(appcode);
-        String where = "username='" + username + "' and " + "password='" + password + "'";
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(table);
-        entity.setWhere(where);
         boolean result = false;
         try {
-
-            entity.setColumn("*");
-            entity.setSort("desc");
-            entity.setSortColumn("id");
-            List<Map<String, Object>> list = commonService.list(entity);
+            List<Map<String, Object>> list = commonService.list(CommonSqlManager.queryUser(table, username, password));
             if (list.size() > 0) {
-                String whereDel = "username='" + username + "'";
-                entity.setWhere(whereDel);
-                result = commonService.delete(entity);
+                result = commonService.delete(CommonSqlManager.deleteUser(table, username));
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -27,7 +27,7 @@ public class BaseVerifyController extends BaseController {
     private List<String> zhHants = Arrays.asList("zh-TW", "zh_TW", "zh-Hant");
 
     @Resource
-    ISmsService smsService;
+    protected ISmsService smsService;
 
     /**
      * 获取语言类环境

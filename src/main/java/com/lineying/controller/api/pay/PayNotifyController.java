@@ -2,21 +2,10 @@ package com.lineying.controller.api.pay;
 
 import cn.hutool.core.io.FileUtil;
 import com.alipay.api.AlipayApiException;
-import com.alipay.api.AlipayClient;
-import com.alipay.api.DefaultAlipayClient;
-import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.internal.util.AlipaySignature;
-import com.alipay.api.request.AlipayTradeAppPayRequest;
-import com.alipay.api.response.AlipayTradeAppPayResponse;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.lineying.bean.Order;
-import com.lineying.common.PayType;
-import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
-import com.lineying.entity.CommonAddEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
@@ -24,7 +13,6 @@ import com.wechat.pay.java.core.exception.ValidationException;
 import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.core.notification.RequestParam;
 import com.wechat.pay.java.service.partnerpayments.app.model.Transaction;
-import com.wechat.pay.java.service.payments.app.AppServiceExtension;
 import com.wechat.pay.java.service.payments.app.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -41,10 +29,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import static com.lineying.common.CommonConstant.BASE_URL;
-import static com.lineying.common.SignResult.KEY_ERROR;
-import static com.lineying.common.SignResult.SIGN_ERROR;
 
 /**
  * 应用级接口
@@ -91,29 +75,25 @@ public class PayNotifyController extends BaseController {
         boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, SIGN_TYPE); //调用SDK验证签名
         if (signVerified) { // 验证成功
             // 商户订单号
-            String out_trade_no = request.getParameter("out_trade_no");
+            String outTradeNo = request.getParameter("out_trade_no");
             // 支付宝交易号
-            String trade_no = request.getParameter("trade_no");
+            String tradeNo = request.getParameter("trade_no");
             // 交易状态
-            String trade_status = request.getParameter("trade_status");
-            Logger.getGlobal().info("处理支付宝通知!" + out_trade_no
-                    + " - " + trade_no + " - " + trade_status);
+            String tradeStatus = request.getParameter("trade_status");
+            Logger.getGlobal().info("处理支付宝通知!" + outTradeNo
+                    + " - " + tradeNo + " - " + tradeStatus);
             int status = 0;
-            if (trade_status.equals("TRADE_FINISHED")) {
+            if (tradeStatus.equals("TRADE_FINISHED")) {
                 // 判断该笔订单是否在商户网站中已经做过处理
                 status = 1;
-            } else if (trade_status.equals("TRADE_SUCCESS")) {
+            } else if (tradeStatus.equals("TRADE_SUCCESS")) {
                 //判断该笔订单是否在商户网站中已经做过处理
                 status = 1;
             }
 
-            CommonUpdateEntity entity = new CommonUpdateEntity();
-            entity.setSet(String.format("trade_no='%s', status='%s', update_time='%s'", trade_no, status + "", getCurrentTimeMs()));
-            entity.setWhere(String.format("out_trade_no=%s", out_trade_no));
-            entity.setTable(Order.TABLE);
             boolean result = false;
             try {
-                result = commonService.update(entity);
+                result = commonService.update(CommonSqlManager.updateOrder(tradeNo, outTradeNo, status, getCurrentTimeMs()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -252,13 +232,9 @@ public class PayNotifyController extends BaseController {
                     break;
             }
             // 处理成功，返回 200 OK 状态码
-            CommonUpdateEntity entity = new CommonUpdateEntity();
-            entity.setSet(String.format("trade_no='%s', status='%s', update_time='%s'", transactionId, status + "", getCurrentTimeMs()));
-            entity.setWhere(String.format("out_trade_no=%s", outTradeNo));
-            entity.setTable(Order.TABLE);
             boolean result = false;
             try {
-                result = commonService.update(entity);
+                result = commonService.update(CommonSqlManager.updateOrder(transactionId, outTradeNo, status, getCurrentTimeMs()));
             } catch (Exception e) {
                 e.printStackTrace();
                 // 如果处理失败，应返回 4xx/5xx 的状态码，例如 500 INTERNAL_SERVER_ERROR

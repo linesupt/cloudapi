@@ -37,6 +37,7 @@ public @interface Column {
     String PAY_TYPE = "pay_type";
     String PLATFORM_TYPE = "platform_type";
     String TRADE_NO = "trade_no";
+    String OUT_TRADE_NO = "out_trade_no";
     String GOODS_ID = "goods_id";
     String CONTENT = "content";
     /**

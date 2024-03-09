@@ -1,4 +1,4 @@
-package com.lineying.controller.api.verify;
+package com.lineying.controller.v2.verify;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -6,8 +6,9 @@ import com.lineying.bean.VerifyCode;
 import com.lineying.common.AppCodeManager;
 import com.lineying.common.ErrorCode;
 import com.lineying.common.SignResult;
-import com.lineying.entity.CommonQueryEntity;
-import com.lineying.entity.CommonUpdateEntity;
+import com.lineying.controller.api.verify.BaseVerifyController;
+import com.lineying.data.Column;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.mail.EmailSenderManager;
 import com.lineying.service.ICommonService;
 import com.lineying.sms.SmsEntity;
@@ -34,27 +35,20 @@ public class VerifyControllerV2 extends BaseVerifyController {
 
     /**
      * 查询是否存在
-     * @param tableName
+     * @param table
      * @param type
      * @param target
      * @return
      */
-    private boolean queryExist(String tableName, int type, String target) {
-        CommonQueryEntity entity = new CommonQueryEntity();
-        entity.setTable(tableName);
-        if (type == 1) { // 邮件
-            entity.setColumn("email");
-            entity.setWhere("email='" + target + "'");
-        } else if (type == 2) { // 手机
-            entity.setColumn("mobile");
-            entity.setWhere("mobile='" + target + "'");
-        }
-        entity.setSort("desc");
-        entity.setSortColumn("id");
-        List<Map<String, Object>> list;
+    private boolean queryExist(String table, int type, String target) {
+        List<Map<String, Object>> list = null;
         try {
-            list = commonService.list(entity);
-            return !list.isEmpty();
+            if (type == 1) { // 邮件
+                list = commonService.list(CommonSqlManager.queryAttr(table, Column.EMAIL, target));
+            } else if (type == 2) { // 手机
+                list = commonService.list(CommonSqlManager.queryAttr(table, Column.MOBILE, target));
+            }
+            return list != null && !list.isEmpty();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -63,22 +57,19 @@ public class VerifyControllerV2 extends BaseVerifyController {
 
     /**
      * 查询是否存在
-     * @param tableName
+     * @param table
      * @param type
      * @param target
      * @return
      */
-    private boolean updatePassword(String tableName, int type, String target, String password) {
-        CommonUpdateEntity entity = new CommonUpdateEntity();
-        entity.setTable(tableName);
-        entity.setSet("password='" + password + "'");
-        if (type == 1) { // 邮件
-            entity.setWhere("email='" + target + "'");
-        } else if (type == 2) { // 手机
-            entity.setWhere("mobile='" + target + "'");
-        }
+    private boolean updatePassword(String table, int type, String target, String password) {
         try {
-            return commonService.update(entity);
+            if (type == 1) { // 邮件
+                return commonService.update(CommonSqlManager.updatePasswordForEmail(table, password, target));
+            } else if (type == 2) { // 手机
+                return commonService.update(CommonSqlManager.updatePasswordForMobile(table, password, target));
+            }
+            return false;
         } catch (Exception e) {
             e.printStackTrace();
         }

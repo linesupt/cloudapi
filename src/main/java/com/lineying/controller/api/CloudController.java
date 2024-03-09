@@ -6,7 +6,7 @@ import com.lineying.bean.CloudData;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
-import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -100,16 +100,10 @@ public class CloudController extends BaseController {
             String brand = jsonObject.get("brand").getAsString();
             String model = jsonObject.get("model").getAsString();
             String ipaddr = IPUtil.getIpAddress(request);
-            String tableName = AppCodeManager.getFeedbackTable(appcode);
+            String table = AppCodeManager.getFeedbackTable(appcode);
 
             long curTime = getCurrentTimeMs();
-            String column = "`uid`,`title`,`content`,`contact`,`brand`,`model`,`ipaddr`,`create_time`,`update_time`";
-            String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid, title, content, contact, brand, model, ipaddr, curTime, curTime);
-            CommonAddEntity entityAdd = new CommonAddEntity();
-            entityAdd.setTable(tableName);
-            entityAdd.setColumn(column);
-            entityAdd.setValue(value);
-            boolean flag = commonService.add(entityAdd);
+            boolean flag = commonService.add(CommonSqlManager.addFeedback(table, uid, title, content, contact, brand, model, ipaddr, curTime, curTime));
             if (flag) {
                 return JsonCryptUtil.makeSuccess();
             }

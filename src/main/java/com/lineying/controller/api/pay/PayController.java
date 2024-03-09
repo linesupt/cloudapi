@@ -13,7 +13,7 @@ import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
-import com.lineying.entity.CommonAddEntity;
+import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
@@ -72,15 +72,10 @@ public class PayController extends BaseController {
         String body = jsonObject.get("body").getAsString();
 
         Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, payType, appid, totalFee);
-
-        CommonAddEntity entity = new CommonAddEntity();
-        entity.setTable(Order.TABLE);
-        entity.setColumn(order.getColumn());
-        entity.setValue(order.getValue());
         boolean result = false;
         try {
             // 保存订单
-            result = commonService.add(entity);
+            result = commonService.add(CommonSqlManager.addColumnData(Order.TABLE, order.getColumn(), order.getValue()));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
@@ -167,15 +162,10 @@ public class PayController extends BaseController {
         int total = (int) Math.round(Double.parseDouble(totalFee) * 100);
 
         Order order = Order.makeOrder(uid, appcode, goodsCode, outTradeNo, body, payType, appid, totalFee);
-
-        CommonAddEntity entity = new CommonAddEntity();
-        entity.setTable(Order.TABLE);
-        entity.setColumn(order.getColumn());
-        entity.setValue(order.getValue());
         boolean result = false;
         try {
             // 保存订单
-            result = commonService.add(entity);
+            result = commonService.add(CommonSqlManager.addColumnData(Order.TABLE, order.getColumn(), order.getValue()));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
