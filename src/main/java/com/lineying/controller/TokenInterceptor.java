@@ -28,7 +28,9 @@ public class TokenInterceptor implements HandlerInterceptor {
         int resultCode = -1;
         //System.out.println("token::" + token);
         if (!"".equals(token) && !"null".equals(token)) {
-            resultCode = TokenUtil.verify(token);
+            try {
+                resultCode = TokenUtil.verify(token);
+            } catch (Exception e) { e.printStackTrace(); }
             if(resultCode == 0){
                 System.out.println("通过拦截器");
                 return true;

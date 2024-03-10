@@ -5,9 +5,11 @@ import com.google.gson.JsonObject;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
+import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
+import com.lineying.util.TokenUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -160,9 +162,17 @@ public class AuthenticationControllerV2 extends BaseController {
                     result = commonService.update(CommonSqlManager.updatePasswordForUid(table, password, uid));
                     break;
                 case 1: // email
+                    List<Map<String, Object>> userList = commonService.list(CommonSqlManager.queryUserForEmail(table, email, password));
+                    if (userList.size() > 0) {
+                        uid = (Integer) userList.get(0).get(Column.UID);
+                    }
                     result = commonService.update(CommonSqlManager.updatePasswordForEmail(table, password, email));
                     break;
                 case 2: // mobile
+                    List<Map<String, Object>> userMobileList = commonService.list(CommonSqlManager.queryUserForMobile(table, mobile, password));
+                    if (userMobileList.size() > 0) {
+                        uid = (Integer) userMobileList.get(0).get(Column.UID);
+                    }
                     result = commonService.update(CommonSqlManager.updatePasswordForMobile(table, password, mobile));
                     break;
             }
@@ -171,7 +181,13 @@ public class AuthenticationControllerV2 extends BaseController {
             return JsonCryptUtil.makeFail(e.getMessage());
         }
 
-        return JsonCryptUtil.makeResult(result);
+        String token = "";
+        if (uid > 0) {
+            token = TokenUtil.makeToken(uid, password);
+        }
+        JsonObject resultObj = new JsonObject();
+        resultObj.addProperty(Column.TOKEN, token);
+        return JsonCryptUtil.makeSuccess(resultObj);
     }
 
     /**

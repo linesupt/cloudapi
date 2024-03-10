@@ -89,7 +89,7 @@ public class BasePayController extends BaseController {
         int goodsId = 0;
         try {
             goodsId = jsonObject.get("goods_id").getAsInt();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { }
         String goodsCode = jsonObject.get("goods_code").getAsString();
         String appid = jsonObject.get("app_id").getAsString();
         String totalFee = jsonObject.get("total_fee").getAsString();

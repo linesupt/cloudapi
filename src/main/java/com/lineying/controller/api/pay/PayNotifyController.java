@@ -30,7 +30,7 @@ import java.util.logging.Logger;
  */
 @Component
 @RestController
-@RequestMapping("v3")
+@RequestMapping("api")
 public class PayNotifyController extends BasePayController {
 
     /**

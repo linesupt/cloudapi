@@ -49,6 +49,7 @@ public class PayController extends BasePayController {
                 CommonConstant.FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, CommonConstant.SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
+        LOGGER.info("设置alipay通知路径::" + getAlipayNotifyUrl());
         alipayRequest.setNotifyUrl(getAlipayNotifyUrl());
         // 设置订单信息
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
@@ -106,6 +107,7 @@ public class PayController extends BasePayController {
         prepayRequest.setMchid(SecureConfig.WXPAY_MERCHANT_ID);
         prepayRequest.setDescription(order.getBody());
         prepayRequest.setNotifyUrl(getWxpayNotifyUrl());
+        LOGGER.info("设置wxpay通知路径::" + getWxpayNotifyUrl());
         prepayRequest.setOutTradeNo(order.getOutTradeNo());
 
         // 调用下单方法，得到应答

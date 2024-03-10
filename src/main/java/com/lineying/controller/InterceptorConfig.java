@@ -35,12 +35,14 @@ public class InterceptorConfig implements WebMvcConfigurer {
         excludePath.add("**/cloud/select");
         excludePath.add("**/verify/send_code");
         excludePath.add("**/verify/code_verify");
-        excludePath.add("**/pay/alipay/notify");
-        excludePath.add("**/pay/wxpay/notify");
+        excludePath.add("/api/pay/alipay/notify");
+        excludePath.add("/api/pay/wxpay/notify");
+        excludePath.add("/v3/pay/alipay/notify");
+        excludePath.add("/v3/pay/wxpay/notify");
         registry.addInterceptor(tokenInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(excludePath);
-        WebMvcConfigurer.super.addInterceptors(registry);//除了登陆接口其他所有接口都需要token验证
+        WebMvcConfigurer.super.addInterceptors(registry);
     }
 
 }

@@ -15,6 +15,7 @@ public @interface Column {
 
     // 数据表字段
     String ID = "id";
+    String TOKEN = "token";
     String USERNAME = "username";
     String PASSWORD = "password";
     String NICKNAME = "nickname";

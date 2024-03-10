@@ -160,11 +160,11 @@ public class CommonSqlManager {
     /**
      * 查询单条商品
      * @param table
-     * @param goodsCode
+     * @param code
      * @return
      */
-    public static CommonQueryEntity queryGoods(String table, String goodsCode) {
-        return queryAttrAll(table, Column.GOODS_CODE, goodsCode, Column.SORT_ASC, Column.ID);
+    public static CommonQueryEntity queryGoods(String table, String code) {
+        return queryAttrAll(table, Column.CODE, code, Column.SORT_ASC, Column.ID);
     }
 
     /**
@@ -336,6 +336,42 @@ public class CommonSqlManager {
      */
     public static CommonQueryEntity queryUser(String table, String username, String password) {
         String where = String.format("%s='%s' and %s='%s'", Column.USERNAME, username, Column.PASSWORD, password);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setColumn(Column.COLUMN_ALL);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
+     * 通过邮箱查询用户
+     * @param table
+     * @param email
+     * @param password
+     * @return
+     */
+    public static CommonQueryEntity queryUserForEmail(String table, String email, String password) {
+        String where = String.format("%s='%s' and %s='%s'", Column.EMAIL, email, Column.PASSWORD, password);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setColumn(Column.COLUMN_ALL);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
+     * 通过手机号查询用户
+     * @param table
+     * @param mobile
+     * @param password
+     * @return
+     */
+    public static CommonQueryEntity queryUserForMobile(String table, String mobile, String password) {
+        String where = String.format("%s='%s' and %s='%s'", Column.MOBILE, mobile, Column.PASSWORD, password);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setColumn(Column.COLUMN_ALL);
