@@ -345,6 +345,17 @@ public class CommonSqlManager {
         return entity;
     }
 
+    public static CommonQueryEntity queryUserForAppleUser(String table, String username, String password) {
+        String where = String.format("%s='%s' and %s='%s'", Column.USERNAME, username, Column.APPLE_USER, password);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setColumn(Column.COLUMN_ALL);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
     /**
      * 通过邮箱查询用户
      * @param table

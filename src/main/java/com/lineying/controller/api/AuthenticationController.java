@@ -8,6 +8,7 @@ import com.lineying.common.ErrorCode;
 import com.lineying.common.LoginType;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
+import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -234,12 +236,27 @@ public class AuthenticationController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
         String appcode = jsonObject.get("appcode").getAsString();
-        String username = jsonObject.get("username").getAsString();
-        String password = jsonObject.get("password").getAsString();
+        int type = 0;
+        try {
+            type = jsonObject.get("type").getAsInt();
+        } catch (Exception e) { }
+        String username = jsonObject.get(Column.USERNAME).getAsString();
+        String password = "";
+        String appleUser = "";
+        if (type == 0) {
+            password = jsonObject.get(Column.PASSWORD).getAsString();
+        } else if (type == 1) {
+            appleUser = jsonObject.get(Column.APPLE_USER).getAsString();
+        }
         String table = AppCodeManager.getUserTable(appcode);
         boolean result = false;
         try {
-            List<Map<String, Object>> list = commonService.list(CommonSqlManager.queryUser(table, username, password));
+            List<Map<String, Object>> list = new ArrayList<>();
+            if (type == 0) {
+                list = commonService.list(CommonSqlManager.queryUser(table, username, password));
+            } else if (type == 1) {
+                list = commonService.list(CommonSqlManager.queryUserForAppleUser(table, username, appleUser));
+            }
             if (list.size() > 0) {
                 result = commonService.delete(CommonSqlManager.deleteUser(table, username));
             }
