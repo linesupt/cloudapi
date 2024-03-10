@@ -21,27 +21,8 @@ public class BaseVerifyController extends BaseController {
 
     public static Map<String, VerifyCode> mVerifyCodes = new HashMap<>();
 
-    // 简体中文
-    private List<String> zhCNs = Arrays.asList("zh-CN", "zh_CN", "zh-Hans");
-    // 繁体中文
-    private List<String> zhHants = Arrays.asList("zh-TW", "zh_TW", "zh-Hant");
-
     @Resource
     protected ISmsService smsService;
-
-    /**
-     * 获取语言类环境
-     * @param locale
-     * @return
-     */
-    protected Locale getLocale(String locale) {
-        if (zhCNs.contains(locale)) {
-            return Locale.SIMPLIFIED_CHINESE;
-        } else if (zhHants.contains(locale)) {
-            return Locale.TRADITIONAL_CHINESE;
-        }
-        return Locale.ENGLISH;
-    }
 
     /**
      * 执行验证码缓存清除

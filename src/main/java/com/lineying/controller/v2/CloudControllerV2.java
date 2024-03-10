@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.bean.CloudData;
 import com.lineying.common.AppCodeManager;
+import com.lineying.common.LocaleManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
 import com.lineying.entity.CommonSqlManager;
@@ -54,7 +55,7 @@ public class CloudControllerV2 extends BaseController {
 
         List<Map<String, Object>> list;
         try {
-            list = commonService.list(CommonSqlManager.queryGoodsList(table, locale));
+            list = commonService.list(CommonSqlManager.queryGoodsList(table, LocaleManager.getGoodsLocale(locale)));
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());

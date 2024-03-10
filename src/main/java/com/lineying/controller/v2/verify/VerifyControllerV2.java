@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.lineying.bean.VerifyCode;
 import com.lineying.common.AppCodeManager;
 import com.lineying.common.ErrorCode;
+import com.lineying.common.LocaleManager;
 import com.lineying.common.SignResult;
 import com.lineying.controller.api.verify.BaseVerifyController;
 import com.lineying.data.Column;
@@ -130,8 +131,8 @@ public class VerifyControllerV2 extends BaseVerifyController {
         if (type == 1) {
             // 处理邮件发送
             MessageSource messageSource = MessageSourceFactory.buildDefaultMessageSource();
-            String subject = messageSource.getMessage("email_verify_title", null, getLocale(locale));
-            String verifyMsg = messageSource.getMessage("email_verify_msg", null, getLocale(locale));
+            String subject = messageSource.getMessage("email_verify_title", null, LocaleManager.getLocale(locale));
+            String verifyMsg = messageSource.getMessage("email_verify_msg", null, LocaleManager.getLocale(locale));
             sendCode = VerifyCodeGenerator.generate();
             String content = String.format(verifyMsg, sendCode);
             sendResult = EmailSenderManager.relayEmail(subject, content, target);
