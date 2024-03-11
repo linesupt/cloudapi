@@ -6,6 +6,8 @@ import com.lineying.bean.CloudData;
 import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
+import com.lineying.data.Column;
+import com.lineying.data.Param;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
@@ -39,7 +41,7 @@ public class CloudController extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String cate = jsonObject.get("cate").getAsString();
+        String cate = jsonObject.get(Column.CATE).getAsString();
         CloudData bean = mCloudData.get(cate);
         if (bean == null) {
             return JsonUtil.makeFailNoData();
@@ -51,7 +53,7 @@ public class CloudController extends BaseController {
         List<Map<String, Object>> list = new ArrayList<>();
         list.add(bean.toData());
         JsonObject obj = new JsonObject();
-        obj.add("data", new Gson().toJsonTree(list));
+        obj.add(Column.DATA, new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -68,11 +70,11 @@ public class CloudController extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        int uid = jsonObject.get("uid").getAsInt();
-        String cate = jsonObject.get("cate").getAsString();
-        String text = jsonObject.get("text").getAsString();
-        String model = jsonObject.get("model").getAsString();
-        String ipaddr = jsonObject.get("ipaddr").getAsString();
+        int uid = jsonObject.get(Column.UID).getAsInt();
+        String cate = jsonObject.get(Column.CATE).getAsString();
+        String text = jsonObject.get(Column.TEXT).getAsString();
+        String model = jsonObject.get(Column.MODEL).getAsString();
+        String ipaddr = jsonObject.get(Column.IPADDR).getAsString();
         CloudData bean = new CloudData(uid, cate, text, model, ipaddr);
         mCloudData.put(cate, bean);
 
@@ -92,13 +94,13 @@ public class CloudController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
         try {
-            int uid = jsonObject.get("uid").getAsInt();
-            String appcode = jsonObject.get("appcode").getAsString();
-            String title = jsonObject.get("title").getAsString();
-            String content = jsonObject.get("content").getAsString();
-            String contact = jsonObject.get("contact").getAsString();
-            String brand = jsonObject.get("brand").getAsString();
-            String model = jsonObject.get("model").getAsString();
+            int uid = jsonObject.get(Column.UID).getAsInt();
+            String appcode = jsonObject.get(Column.APPCODE).getAsString();
+            String title = jsonObject.get(Column.TITLE).getAsString();
+            String content = jsonObject.get(Column.CONTENT).getAsString();
+            String contact = jsonObject.get(Column.CONTACT).getAsString();
+            String brand = jsonObject.get(Column.BRAND).getAsString();
+            String model = jsonObject.get(Column.MODEL).getAsString();
             String ipaddr = IPUtil.getIpAddress(request);
             String table = AppCodeManager.getFeedbackTable(appcode);
 

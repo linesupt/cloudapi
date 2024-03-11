@@ -1,6 +1,5 @@
 package com.lineying.sms;
 
-import com.lineying.common.CommonConstant;
 import com.lineying.common.SecureConfig;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;

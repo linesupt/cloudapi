@@ -85,11 +85,11 @@ public class VerifyControllerV2 extends BaseVerifyController {
     public String sendCode(HttpServletRequest request) {
         String platform = request.getHeader("platform");
         String locale = request.getHeader("locale");
-        Logger.getGlobal().info("platform:" + platform + " locale:" + locale);
+        LOGGER.info("platform:" + platform + " locale:" + locale);
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
-        Logger.getGlobal().info("接收消息::" + key + " - " + secretData + " - " + signature);
+        LOGGER.info("接收消息::" + key + " - " + secretData + " - " + signature);
         int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case SignResult.KEY_ERROR:
@@ -100,7 +100,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
 
         String data = AESUtil.decrypt(secretData);
         JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        Logger.getGlobal().info("data::" + data);
+        LOGGER.info("data::" + data);
         long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();
@@ -113,7 +113,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
 
         int sendResult = 0;
         if (!AppCodeManager.contains(appCode)) {
-            Logger.getGlobal().info("不存在当前应用::" + appCode);
+            LOGGER.info("不存在当前应用::" + appCode);
             return JsonCryptUtil.makeFailSendVerifyCode();
         }
         VerifyCode cacheVerifyCode = getCacheVerifyCode(targetKey);
@@ -137,7 +137,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
             String content = String.format(verifyMsg, sendCode);
             sendResult = EmailSenderManager.relayEmail(subject, content, target);
             if (sendResult == 0) {
-                Logger.getGlobal().info("邮件发送失败!");
+                LOGGER.info("邮件发送失败!");
             }
         } else if (type == 2) {
             String targetPhone = target;
@@ -152,13 +152,13 @@ public class VerifyControllerV2 extends BaseVerifyController {
             }
             SmsEntity smsEntity = SmsEntityFactory.make(appCode);
             if (smsEntity == null) {
-                Logger.getGlobal().info("appcode " + appCode + " not supported");
+                LOGGER.info("appcode " + appCode + " not supported");
                 return JsonCryptUtil.makeFail("appcode not supported");
             }
             sendCode = VerifyCodeGenerator.generateNum();
             sendResult = smsService.sendCode(smsEntity, target, sendCode);
             if (sendResult == 0) {
-                Logger.getGlobal().info("短信发送失败!");
+                LOGGER.info("短信发送失败!");
             }
         }
 
@@ -167,7 +167,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
         }
 
         clearVerifyCodes(); // 执行清理
-        Logger.getGlobal().info("生成验证码::" + sendCode);
+        LOGGER.info("生成验证码::" + sendCode);
         VerifyCode entity = new VerifyCode(appCode, target, sendCode, type, timestamp);
         mVerifyCodes.put(targetKey, entity);
         return makeSuccess(timestamp);
@@ -181,7 +181,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
     public String codeVerify(HttpServletRequest request) {
         String platform = request.getHeader("platform");
         String locale = request.getHeader("locale");
-        Logger.getGlobal().info("platform:" + platform + " locale:" + locale);
+        LOGGER.info("platform:" + platform + " locale:" + locale);
         String key = request.getParameter("key");
         String secretData = request.getParameter("data");
         String signature = request.getParameter("signature");
@@ -195,7 +195,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
 
         String data = AESUtil.decrypt(secretData);
         JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        Logger.getGlobal().info("data::" + data);
+        LOGGER.info("data::" + data);
         long timestamp = jsonObject.get("timestamp").getAsLong();
         if (!checkRequest(timestamp)) {
             return JsonCryptUtil.makeFailTime();

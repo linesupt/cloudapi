@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
+import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
@@ -34,11 +35,11 @@ public class DataController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
 
-        String table = jsonObject.get("table").getAsString();
-        String column = jsonObject.get("column").getAsString();
-        String where = jsonObject.get("where").getAsString();
-        String sort = jsonObject.get("sort").getAsString();
-        String sortColumn = jsonObject.get("sort_column").getAsString();
+        String table = jsonObject.get(Column.TABLE).getAsString();
+        String column = jsonObject.get(Column.COLUMN).getAsString();
+        String where = jsonObject.get(Column.WHERE).getAsString();
+        String sort = jsonObject.get(Column.SORT).getAsString();
+        String sortColumn = jsonObject.get(Column.SORT_COLUMN).getAsString();
 
         List<Map<String, Object>> list;
         try {
@@ -48,7 +49,7 @@ public class DataController extends BaseController {
             return JsonCryptUtil.makeFail(e.getMessage());
         }
         JsonObject obj = new JsonObject();
-        obj.add("data", new Gson().toJsonTree(list));
+        obj.add(Column.DATA, new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -61,9 +62,9 @@ public class DataController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
 
-        String table = jsonObject.get("table").getAsString();
-        String column = jsonObject.get("column").getAsString();
-        String value = jsonObject.get("value").getAsString();
+        String table = jsonObject.get(Column.TABLE).getAsString();
+        String column = jsonObject.get(Column.COLUMN).getAsString();
+        String value = jsonObject.get(Column.VALUE).getAsString();
         boolean result = false;
         try {
             result = commonService.add(CommonSqlManager.addColumnData(table, column, value));
@@ -83,8 +84,8 @@ public class DataController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
 
-        String table = jsonObject.get("table").getAsString();
-        String where = jsonObject.get("where").getAsString();
+        String table = jsonObject.get(Column.TABLE).getAsString();
+        String where = jsonObject.get(Column.WHERE).getAsString();
         boolean result = false;
         try {
             result = commonService.delete(CommonSqlManager.delete(table, where));
@@ -104,9 +105,9 @@ public class DataController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
 
-        String table = jsonObject.get("table").getAsString();
-        String set = jsonObject.get("set").getAsString();
-        String where = jsonObject.get("where").getAsString();
+        String table = jsonObject.get(Column.TABLE).getAsString();
+        String set = jsonObject.get(Column.SET).getAsString();
+        String where = jsonObject.get(Column.WHERE).getAsString();
         boolean result = false;
         try {
             result = commonService.update(CommonSqlManager.update(table, set, where));
@@ -126,7 +127,7 @@ public class DataController extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String sql = jsonObject.get("sql").getAsString();
+        String sql = jsonObject.get(Column.SQL).getAsString();
         boolean result = false;
         try {
             result = commonService.command(CommonSqlManager.command(sql));

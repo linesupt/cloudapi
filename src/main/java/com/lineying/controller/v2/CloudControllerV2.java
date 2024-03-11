@@ -7,6 +7,8 @@ import com.lineying.common.AppCodeManager;
 import com.lineying.common.LocaleManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
+import com.lineying.data.Column;
+import com.lineying.data.Param;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
@@ -50,7 +52,7 @@ public class CloudControllerV2 extends BaseController {
         }
         JsonObject jsonObject = checker.getDataObject();
         String locale = checker.getLocale();
-        String appcode = jsonObject.get("appcode").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
         String table = AppCodeManager.getGoodsTable(appcode);
 
         List<Map<String, Object>> list;
@@ -61,7 +63,7 @@ public class CloudControllerV2 extends BaseController {
             return JsonCryptUtil.makeFail(e.getMessage());
         }
         JsonObject obj = new JsonObject();
-        obj.add("data", new Gson().toJsonTree(list));
+        obj.add(Column.DATA, new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -79,9 +81,9 @@ public class CloudControllerV2 extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        int type = jsonObject.get("type").getAsInt();
-        int uid = jsonObject.get("uid").getAsInt();
-        String appcode = jsonObject.get("appcode").getAsString();
+        int type = jsonObject.get(Column.TYPE).getAsInt();
+        int uid = jsonObject.get(Column.UID).getAsInt();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
         String table = AppCodeManager.getUserSettingTable(appcode);
         if (type == 0) { // 查询用户设置
             List<Map<String, Object>> list;
@@ -92,11 +94,11 @@ public class CloudControllerV2 extends BaseController {
                 return JsonCryptUtil.makeFail(e.getMessage());
             }
             JsonObject obj = new JsonObject();
-            obj.add("data", new Gson().toJsonTree(list));
+            obj.add(Column.DATA, new Gson().toJsonTree(list));
             return JsonCryptUtil.makeSuccess(obj);
         } else if (type == 1) { // 上传用户设置
-            String settings = jsonObject.get("settings").getAsString();
-            String data = jsonObject.get("data").getAsString();
+            String settings = jsonObject.get(Column.SETTINGS).getAsString();
+            String data = jsonObject.get(Column.DATA).getAsString();
             // 先判断用户是否有设置数据
             boolean hasData = querySetting(table, uid);
             if (!hasData) { // 没有数据、添加
@@ -150,7 +152,7 @@ public class CloudControllerV2 extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String cate = jsonObject.get("cate").getAsString();
+        String cate = jsonObject.get(Column.CATE).getAsString();
         CloudData bean = mCloudData.get(cate);
         if (bean == null) {
             return JsonUtil.makeFailNoData();
@@ -162,7 +164,7 @@ public class CloudControllerV2 extends BaseController {
         List<Map<String, Object>> list = new ArrayList<>();
         list.add(bean.toData());
         JsonObject obj = new JsonObject();
-        obj.add("data", new Gson().toJsonTree(list));
+        obj.add(Column.DATA, new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -179,11 +181,11 @@ public class CloudControllerV2 extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        int uid = jsonObject.get("uid").getAsInt();
-        String cate = jsonObject.get("cate").getAsString();
-        String text = jsonObject.get("text").getAsString();
-        String model = jsonObject.get("model").getAsString();
-        String ipaddr = jsonObject.get("ipaddr").getAsString();
+        int uid = jsonObject.get(Column.UID).getAsInt();
+        String cate = jsonObject.get(Column.CATE).getAsString();
+        String text = jsonObject.get(Column.TEXT).getAsString();
+        String model = jsonObject.get(Column.MODEL).getAsString();
+        String ipaddr = jsonObject.get(Column.IPADDR).getAsString();
         CloudData bean = new CloudData(uid, cate, text, model, ipaddr);
         mCloudData.put(cate, bean);
 

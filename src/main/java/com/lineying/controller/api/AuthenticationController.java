@@ -44,17 +44,17 @@ public class AuthenticationController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
         List<Map<String, Object>> list = null;
-        String appcode = jsonObject.get("appcode").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
         String table = AppCodeManager.getUserTable(appcode);
         // username可以代表用户名、邮箱、apple token、wechat token
-        String username = jsonObject.get("username").getAsString();
+        String username = jsonObject.get(Column.USERNAME).getAsString();
         @LoginType
-        int type = jsonObject.get("type").getAsInt();
+        int type = jsonObject.get(Column.TYPE).getAsInt();
         LOGGER.info("login type " + type);
         switch (type) {
             case LoginType.USERNAME:
             case LoginType.EMAIL:
-                String password = jsonObject.get("password").getAsString();
+                String password = jsonObject.get(Column.PASSWORD).getAsString();
                 try {
                     if (type == LoginType.USERNAME) {
                         list = commonService.loginForUsername(CommonSqlManager.login(table, username, password));
@@ -88,10 +88,10 @@ public class AuthenticationController extends BaseController {
                 }
                 break;
             case LoginType.APPLE: // 请求Apple公钥再验证太耗时了，直接查询
-                String identityToken = jsonObject.get("identity_token").getAsString();
-                String clientId = jsonObject.get("client_id").getAsString();
-                String brand = jsonObject.get("brand").getAsString();
-                String model = jsonObject.get("model").getAsString();
+                String identityToken = jsonObject.get(Column.IDENTITY_TOKEN).getAsString();
+                String clientId = jsonObject.get(Column.CLIENT_ID).getAsString();
+                String brand = jsonObject.get(Column.BRAND).getAsString();
+                String model = jsonObject.get(Column.MODEL).getAsString();
                 //String appleUser = AppleUtil.login(clientId, identityToken);
                 //if ("".equals(appleUser)) {
                 //  return JsonCryptUtil.makeFail("apple verify fail");
@@ -130,13 +130,13 @@ public class AuthenticationController extends BaseController {
 
         if (list.size() == 1) {
             Map<String, Object> objUser = list.get(0);
-            int uid = (int) objUser.get("id");
-            String pwd = (String) objUser.get("password");
+            int uid = (int) objUser.get(Column.ID);
+            String pwd = (String) objUser.get(Column.PASSWORD);
             String token = TokenUtil.makeToken(uid, pwd);
-            objUser.put("token", token);
-            objUser.remove("password");
+            objUser.put(Column.TOKEN, token);
+            objUser.remove(Column.PASSWORD);
             JsonObject obj = new JsonObject();
-            obj.add("data", new Gson().toJsonTree(list));
+            obj.add(Column.DATA, new Gson().toJsonTree(list));
             return JsonCryptUtil.makeSuccess(obj);
         }
         return JsonCryptUtil.makeFail("unknown");
@@ -204,11 +204,11 @@ public class AuthenticationController extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String appcode = jsonObject.get("appcode").getAsString();
-        String username = jsonObject.get("username").getAsString();
-        String password = jsonObject.get("password").getAsString();
-        String brand = jsonObject.get("brand").getAsString();
-        String model = jsonObject.get("model").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
+        String username = jsonObject.get(Column.USERNAME).getAsString();
+        String password = jsonObject.get(Column.PASSWORD).getAsString();
+        String brand = jsonObject.get(Column.BRAND).getAsString();
+        String model = jsonObject.get(Column.MODEL).getAsString();
         String table = AppCodeManager.getUserTable(appcode);
         String ipaddr = IPUtil.getIpAddress(request);
         try {
@@ -235,10 +235,10 @@ public class AuthenticationController extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String appcode = jsonObject.get("appcode").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
         int type = 0;
         try {
-            type = jsonObject.get("type").getAsInt();
+            type = jsonObject.get(Column.TYPE).getAsInt();
         } catch (Exception e) { }
         String username = jsonObject.get(Column.USERNAME).getAsString();
         String password = "";
@@ -271,9 +271,9 @@ public class AuthenticationController extends BaseController {
     @RequestMapping("/logoutweb")
     public String logoutweb(HttpServletRequest request) {
 
-        String appcode = request.getParameter("appcode");
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+        String appcode = request.getParameter(Column.APPCODE);
+        String username = request.getParameter(Column.USERNAME);
+        String password = request.getParameter(Column.PASSWORD);
         String table = AppCodeManager.getUserTable(appcode);
         boolean result = false;
         try {

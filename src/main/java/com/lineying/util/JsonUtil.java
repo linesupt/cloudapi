@@ -1,6 +1,7 @@
 package com.lineying.util;
 
 import com.google.gson.Gson;
+import com.lineying.data.Param;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -111,7 +112,7 @@ public class JsonUtil {
      */
     public static String makeResult(boolean result) {
         int code = result ? 1 : 0;
-        String msg = result ? "success" : "fail";
+        String msg = result ? Param.Result.SUCCESS : Param.Result.FAIL;
         return makeResult(code, msg, null);
     }
 
@@ -124,9 +125,9 @@ public class JsonUtil {
      */
     public static String makeResult(int code, String msg, String data) {
         Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("code", code);
-        jsonMap.put("msg", msg);
-        jsonMap.put("data", data);
+        jsonMap.put(Param.Key.CODE, code);
+        jsonMap.put(Param.Key.MSG, msg);
+        jsonMap.put(Param.Key.DATA, data);
         return new Gson().toJson(jsonMap);
     }
 
@@ -140,10 +141,10 @@ public class JsonUtil {
      */
     public static String makeResultError(int code, String msg, String data, int statusCode) {
         Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("code", code);
-        jsonMap.put("msg", msg);
-        jsonMap.put("status", statusCode);
-        jsonMap.put("data", data);
+        jsonMap.put(Param.Key.CODE, code);
+        jsonMap.put(Param.Key.MSG, msg);
+        jsonMap.put(Param.Key.STATUS, statusCode);
+        jsonMap.put(Param.Key.DATA, data);
         return new Gson().toJson(jsonMap);
     }
 
@@ -154,9 +155,9 @@ public class JsonUtil {
      */
     public static String makeSuccess(Object data) {
         Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("code", 1);
-        jsonMap.put("msg", "success");
-        jsonMap.put("data", data);
+        jsonMap.put(Param.Key.CODE, 1);
+        jsonMap.put(Param.Key.MSG, Param.Result.SUCCESS);
+        jsonMap.put(Param.Key.DATA, data);
         return new Gson().toJson(jsonMap);
     }
 
@@ -168,11 +169,11 @@ public class JsonUtil {
     public static String makeWXPayResult(boolean isSuccess) {
         Map<String, String> jsonMap = new HashMap<>();
         if (isSuccess) {
-            jsonMap.put("code", "SUCCESS");
-            jsonMap.put("message", "SUCCESS");
+            jsonMap.put(Param.Key.CODE, Param.Result.CAP_SUCCESS);
+            jsonMap.put(Param.Key.MESSAGE, Param.Result.CAP_SUCCESS);
         } else {
-            jsonMap.put("code", "FAIL");
-            jsonMap.put("message", "FAIL");
+            jsonMap.put(Param.Key.CODE, Param.Result.CAP_FAIL);
+            jsonMap.put(Param.Key.MESSAGE, Param.Result.CAP_FAIL);
         }
         return new Gson().toJson(jsonMap);
     }

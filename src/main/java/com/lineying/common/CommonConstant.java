@@ -14,6 +14,10 @@ public class CommonConstant {
     // 时间误差内允许请求
     public static long TIME_INTERVAL = 60 * 2;
 
+    // 字符编码
+    public static final String CHARSET = "UTF-8";
+    // 内容类型
+    public static final String CONTENT_TYPE = "application/json; charset=utf-8";
     // 数据格式
     public static final String FORMAT = "json";
     // 订单超时时间

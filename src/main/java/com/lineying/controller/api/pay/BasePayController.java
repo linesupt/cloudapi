@@ -9,6 +9,7 @@ import com.lineying.common.Platform;
 import com.lineying.common.SecureConfig;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
+import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.TimeUtil;
@@ -54,7 +55,7 @@ public class BasePayController extends BaseController {
         if (wxpayConfig == null) {
             URL url = getClass().getClassLoader().getResource(SecureConfig.WXPAY_PRI_KEY_PATH);
             File file = new File(url.getFile());
-            String keyString = FileUtil.readString(url, "utf-8");
+            String keyString = FileUtil.readString(url, CommonConstant.CHARSET);
             //File file = ResourceUtils.getFile("classpath:" + SecureConfig.WXPAY_PRI_KEY_PATH);
             //String path = file.getAbsolutePath();
             //LOGGER.info("私钥key::" + keyString);
@@ -81,19 +82,19 @@ public class BasePayController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
         // 生成订单号
-        int platform = Platform.get(request.getHeader("platform")).getId();
-        String payType = jsonObject.get("pay_type").getAsString();
+        int platform = Platform.get(request.getHeader(Column.PLATFORM)).getId();
+        String payType = jsonObject.get(Column.PAY_TYPE).getAsString();
         String outTradeNo = PayType.get(payType).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
-        int uid = jsonObject.get("uid").getAsInt();
-        String appcode = jsonObject.get("appcode").getAsString();
+        int uid = jsonObject.get(Column.UID).getAsInt();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
         int goodsId = 0;
         try {
-            goodsId = jsonObject.get("goods_id").getAsInt();
+            goodsId = jsonObject.get(Column.GOODS_ID).getAsInt();
         } catch (Exception e) { }
-        String goodsCode = jsonObject.get("goods_code").getAsString();
-        String appid = jsonObject.get("app_id").getAsString();
-        String totalFee = jsonObject.get("total_fee").getAsString();
-        String body = jsonObject.get("body").getAsString();
+        String goodsCode = jsonObject.get(Column.GOODS_CODE).getAsString();
+        String appid = jsonObject.get(Column.APP_ID).getAsString();
+        String totalFee = jsonObject.get(Column.TOTAL_FEE).getAsString();
+        String body = jsonObject.get(Column.BODY).getAsString();
         Order order = Order.makeOrder(uid, appcode, goodsId, goodsCode, outTradeNo, body, payType, appid, totalFee);
 
         boolean result = false;

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.common.CommonConstant;
 import com.lineying.common.LocaleManager;
+import com.lineying.data.Param;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.SignUtil;
@@ -20,7 +21,6 @@ import static com.lineying.common.SignResult.SIGN_ERROR;
  */
 public class BaseController {
 
-    protected static final String CHARSET = "utf-8";
     // 日志
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseController.class);
 
@@ -55,11 +55,11 @@ public class BaseController {
      */
     protected Checker doCheck(HttpServletRequest request) {
 
-        String platform = request.getHeader("platform");
-        String locale = request.getHeader("locale");
-        String key = request.getParameter("key");
-        String secretData = request.getParameter("data");
-        String signature = request.getParameter("signature");
+        String platform = request.getHeader(Param.Key.PLATFORM);
+        String locale = request.getHeader(Param.Key.LOCALE);
+        String key = request.getParameter(Param.Key.KEY);
+        String secretData = request.getParameter(Param.Key.DATA);
+        String signature = request.getParameter(Param.Key.SIGNATURE);
         int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
@@ -70,7 +70,7 @@ public class BaseController {
 
         String data = AESUtil.decrypt(secretData);
         JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-        long timestamp = jsonObject.get("timestamp").getAsLong();
+        long timestamp = jsonObject.get(Param.Key.TIMESTAMP).getAsLong();
         if (!checkRequest(timestamp)) {
             return new Checker(platform, locale, null, JsonCryptUtil.makeFailTime());
         }

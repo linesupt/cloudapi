@@ -4,6 +4,8 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.lineying.common.CommonConstant;
 import com.lineying.common.SecureConfig;
+import com.lineying.data.Column;
+import com.lineying.data.Param;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.util.*;
 import com.wechat.pay.java.core.exception.ValidationException;
@@ -55,21 +57,22 @@ public class PayNotifyController extends BasePayController {
             }
             params.put(name, valueStr);
         }
-        boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, CommonConstant.SIGN_TYPE); //调用SDK验证签名
+        boolean signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY,
+                CommonConstant.CHARSET, CommonConstant.SIGN_TYPE); //调用SDK验证签名
         if (signVerified) { // 验证成功
             // 商户订单号
-            String outTradeNo = request.getParameter("out_trade_no");
+            String outTradeNo = request.getParameter(Column.OUT_TRADE_NO);
             // 支付宝交易号
-            String tradeNo = request.getParameter("trade_no");
+            String tradeNo = request.getParameter(Column.TRADE_NO);
             // 交易状态
-            String tradeStatus = request.getParameter("trade_status");
-            Logger.getGlobal().info("处理支付宝通知!" + outTradeNo
+            String tradeStatus = request.getParameter(Column.TRADE_STATUS);
+            LOGGER.info("处理支付宝通知!" + outTradeNo
                     + " - " + tradeNo + " - " + tradeStatus);
             int status = 0;
-            if (tradeStatus.equals("TRADE_FINISHED")) {
+            if (tradeStatus.equals(Param.Trade.FINISHED)) {
                 // 判断该笔订单是否在商户网站中已经做过处理
                 status = 1;
-            } else if (tradeStatus.equals("TRADE_SUCCESS")) {
+            } else if (tradeStatus.equals(Param.Trade.SUCCESS)) {
                 //判断该笔订单是否在商户网站中已经做过处理
                 status = 1;
             }
@@ -110,7 +113,7 @@ public class PayNotifyController extends BasePayController {
             }
             // 解码
             try {
-                params.put(name, URLDecoder.decode(valueStr, "UTF-8"));
+                params.put(name, URLDecoder.decode(valueStr, CommonConstant.CHARSET));
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -118,15 +121,16 @@ public class PayNotifyController extends BasePayController {
         // 验证签名
         boolean signVerified = false;
         try {
-            signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY, CHARSET, CommonConstant.SIGN_TYPE);
+            signVerified = AlipaySignature.rsaCheckV1(params, SecureConfig.ALIPAY_PUB_KEY,
+                    CommonConstant.CHARSET, CommonConstant.SIGN_TYPE);
             if (signVerified) {
-                return "success";
+                return Param.Result.SUCCESS;
             } else {
-                return "fail";
+                return Param.Result.FAIL;
             }
         } catch (AlipayApiException e) {
             e.printStackTrace();
-            return "fail";
+            return Param.Result.FAIL;
         }
     }
 
@@ -138,15 +142,15 @@ public class PayNotifyController extends BasePayController {
     public void wxpayNotify(HttpServletRequest request, HttpServletResponse response) {
         LOGGER.info("接收到微信支付通知!");
         //从请求头获取验签字段
-        String timestamp = request.getHeader("Wechatpay-Timestamp");
+        String timestamp = request.getHeader(Param.Wechatpay.TIMESTAMP);
         // 随机数
-        String nonce = request.getHeader("Wechatpay-Nonce");
+        String nonce = request.getHeader(Param.Wechatpay.NONCE);
         // 微信签名
-        String signature = request.getHeader("Wechatpay-Signature");
+        String signature = request.getHeader(Param.Wechatpay.SIGNATURE);
         // 证书序列号、多个证书的情况下用于查询对应的证书
-        String serialNumber = request.getHeader("Wechatpay-Serial");
+        String serialNumber = request.getHeader(Param.Wechatpay.SERIAL);
         // 签名方式
-        String signType = request.getHeader("Wechatpay-Signature-Type");
+        String signType = request.getHeader(Param.Wechatpay.SIGNATURE_TYPE);
 
         int status = 0;
         String requestBody = "";

@@ -1,5 +1,7 @@
 package com.lineying.controller;
 
+import com.lineying.common.CommonConstant;
+import com.lineying.data.Param;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.TokenUtil;
 import org.springframework.stereotype.Component;
@@ -23,8 +25,8 @@ public class TokenInterceptor implements HandlerInterceptor {
         }
         String servletPath = request.getServletPath();
         System.out.println("api path::" + servletPath);
-        response.setCharacterEncoding("utf-8");
-        String token = request.getHeader("token");
+        response.setCharacterEncoding(CommonConstant.CHARSET);
+        String token = request.getHeader(Param.Key.TOKEN);
         int resultCode = -1;
         //System.out.println("token::" + token);
         if (!"".equals(token) && !"null".equals(token)) {
@@ -36,8 +38,8 @@ public class TokenInterceptor implements HandlerInterceptor {
                 return true;
             }
         }
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json; charset=utf-8");
+        response.setCharacterEncoding(CommonConstant.CHARSET);
+        response.setContentType(CommonConstant.CONTENT_TYPE);
         String result = JsonCryptUtil.makeFail("token verify fail " + resultCode);
         response.getWriter().append(result);
         return false;

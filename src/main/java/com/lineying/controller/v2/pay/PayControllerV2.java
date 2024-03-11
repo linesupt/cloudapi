@@ -6,6 +6,7 @@ import com.lineying.bean.Order;
 import com.lineying.common.*;
 import com.lineying.controller.Checker;
 import com.lineying.controller.api.pay.PayController;
+import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.util.*;
 import org.springframework.stereotype.Component;
@@ -13,10 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 应用级接口
@@ -57,7 +55,102 @@ public class PayControllerV2 extends PayController {
         if (order == null) {
             return JsonCryptUtil.makeFail("create order fail");
         }
-        return JsonCryptUtil.makeSuccess();
+        Map<String, String> data = new HashMap<>();
+        data.put(Column.OUT_TRADE_NO, order.getOutTradeNo());
+        return JsonCryptUtil.makeSuccess(data);
+    }
+
+    /**
+     * 创建订单(Apple)
+     * Android通过mkpay自动创建订单
+     * @return
+     */
+    @RequestMapping("/order/update")
+    public String updateOrder(HttpServletRequest request) {
+        Checker pair = doCheck(request);
+        String cause = "order update fail";
+
+        if (!pair.isValid()) {
+            return JsonCryptUtil.makeFail(cause);
+        }
+        try {
+            JsonObject jsonObject = pair.getDataObject();
+            String appcode = jsonObject.get(Column.APPCODE).getAsString();
+            int uid = jsonObject.get(Column.UID).getAsInt();
+            String outTradeNo = jsonObject.get(Column.OUT_TRADE_NO).getAsString();
+            String goodsCode = queryGoodsCode(appcode, outTradeNo);
+            if (goodsCode == null || goodsCode.isEmpty()) {
+                return JsonCryptUtil.makeFail(cause);
+            }
+
+            long duration = queryGoodsDuration(appcode, goodsCode);
+            if (duration == 0) {
+                return JsonCryptUtil.makeFail(cause);
+            }
+
+            long expireTime = handleExpireTime(appcode, uid, duration);
+            if (expireTime <= 0) {
+                return JsonCryptUtil.makeFail(cause);
+            } else {
+                String table = AppCodeManager.getOrderTable(appcode);
+                boolean result = commonService.update(CommonSqlManager.updateExpireTime(table, uid, expireTime));
+                if (!result) {
+                    return JsonCryptUtil.makeFail(cause);
+                }
+            }
+
+            Map<String, Object> data = new HashMap<>();
+            data.put(Column.EXPIRE_TIME, expireTime);
+            return JsonCryptUtil.makeSuccess(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JsonCryptUtil.makeFail(cause);
+    }
+
+    /**
+     * 查询商品会员时长
+     * @param appcode
+     * @param goodsCode
+     * @return
+     */
+    private long queryGoodsDuration(String appcode, String goodsCode) {
+        String tableGoods = AppCodeManager.getGoodsTable(appcode);
+        List<Map<String, Object>> listGoods = null;
+        try {
+            listGoods = commonService.list(CommonSqlManager.queryGoods(tableGoods, goodsCode));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (listGoods == null || listGoods.isEmpty()) {
+            return 0;
+        }
+
+        Map<String, Object> goodsData = listGoods.get(0);
+        Long duration = (Long) goodsData.get(Column.DURATION);
+        return duration;
+    }
+
+    /**
+     * 查询商品代码
+     * @param appcode
+     * @param outTradeNo
+     * @return
+     */
+    private String queryGoodsCode(String appcode, String outTradeNo) {
+        String table = AppCodeManager.getOrderTable(appcode);
+        List<Map<String, Object>> list = null;
+        try {
+            list = commonService.list(CommonSqlManager.queryOrder(table, outTradeNo));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (list == null || list.isEmpty()) {
+            return "";
+        }
+        Map<String, Object> orderMap = list.get(0);
+        String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
+        return goodsCode;
     }
 
     /**
@@ -72,9 +165,9 @@ public class PayControllerV2 extends PayController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String appcode = jsonObject.get("appcode").getAsString();
-        int uid = jsonObject.get("uid").getAsInt();
-        String code = jsonObject.get("code").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
+        int uid = jsonObject.get(Column.UID).getAsInt();
+        String code = jsonObject.get(Column.CODE).getAsString();
         String table = AppCodeManager.getRedeemTable(appcode);
 
         List<Map<String, Object>> list = null;
@@ -88,7 +181,7 @@ public class PayControllerV2 extends PayController {
         }
 
         Map<String, Object> redeem = list.get(0);
-        Long duration = (Long) redeem.get("amount");
+        Long duration = (Long) redeem.get(Column.AMOUNT);
 
         long expireTime = handleExpireTime(appcode, uid, duration);
         if (expireTime <= 0) {
@@ -101,10 +194,10 @@ public class PayControllerV2 extends PayController {
         }
         List<Map<String, Object>> resultList = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
-        map.put("expire_time", expireTime);
+        map.put(Column.EXPIRE_TIME, expireTime);
         resultList.add(map);
         JsonObject resultObj = new JsonObject();
-        resultObj.add("data", new Gson().toJsonTree(resultList));
+        resultObj.add(Column.DATA, new Gson().toJsonTree(resultList));
         return JsonCryptUtil.makeSuccess(resultObj);
     }
 
@@ -123,7 +216,7 @@ public class PayControllerV2 extends PayController {
             List<Map<String, Object>> list = commonService.list(CommonSqlManager.queryUser(table, uid));
             if (list != null && !list.isEmpty()) {
                 Map<String, Object> objectMap = list.get(0);
-                long curExpireTime = (Long) objectMap.get("expire_time");
+                long curExpireTime = (Long) objectMap.get(Column.EXPIRE_TIME);
                 long expireTime = getCurrentTimeMs();
                 if (curExpireTime < getCurrentTimeMs()) {
                     expireTime = getCurrentTimeMs() + durationAdd;

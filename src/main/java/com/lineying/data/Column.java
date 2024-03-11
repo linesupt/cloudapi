@@ -8,6 +8,20 @@ public @interface Column {
 
     // 查询所有字段
     String COLUMN_ALL = "*";
+    String TABLE = "table";
+    String WHERE = "where";
+    String SET = "set";
+    String SORT = "sort";
+    String SORT_COLUMN = "sort_column";
+    String COLUMN = "column";
+    String VALUE = "value";
+    String SQL = "sql";
+    String TARGET = "target";
+    String ORDER_INFO = "order_info";
+    String TOTAL_FEE = "total_fee";
+    String BODY = "body";
+    String APP_ID = "app_id";
+
     // 倒序排序
     String SORT_DESC = "desc";
     // 顺序排序
@@ -18,6 +32,7 @@ public @interface Column {
     String TOKEN = "token";
     String USERNAME = "username";
     String PASSWORD = "password";
+    String PASSWORD_OLD = "password_old";
     String NICKNAME = "nickname";
     String MOBILE = "mobile";
     String EMAIL = "email";
@@ -35,9 +50,11 @@ public @interface Column {
     String UID = "uid";
     String SETTINGS = "settings";
     String DATA = "data";
+    String SIGNATURE = "signature";
     String PAY_TYPE = "pay_type";
     String PLATFORM_TYPE = "platform_type";
     String TRADE_NO = "trade_no";
+    String TRADE_STATUS = "trade_status";
     String OUT_TRADE_NO = "out_trade_no";
     String GOODS_CODE = "goods_code";
     String GOODS_ID = "goods_id";
@@ -59,6 +76,7 @@ public @interface Column {
     String PRICE = "price";
     String PRICE_ORIGINAL = "price_original";
     String TYPE = "type"; // 产品类型 0内购 1订阅
+    String PLATFORM = "platform"; // 系统平台
     String LOCALE = "locale"; // 地区
     String DURATION = "duration"; // 会员时长
     String AMOUNT = "amount"; // 兑换数量
@@ -69,5 +87,17 @@ public @interface Column {
     String TITLE = "title"; // 反馈标题
     String CONTACT = "contact"; // 联系方式
     String REPLY = "reply"; // 回复内容
+    String IDENTITY_TOKEN = "identity_token"; // APPLE token
+    String CLIENT_ID = "client_id"; // APPLE client_id
+    String TIMESTAMP = "timestamp"; // 时间戳
+    String REMAIN_INTERVAL = "remain_interval"; // 有效间隔
+
+    // 支付宝支付
+    String APPID = "appid";
+    String PARTNER_ID = "partnerid";
+    String PREPAY_ID = "prepayid";
+    String NONCESTR = "noncestr";
+    String PACKAGE = "package";
+    String SIGN = "sign";
 
 }

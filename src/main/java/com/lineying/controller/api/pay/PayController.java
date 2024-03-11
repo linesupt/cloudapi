@@ -10,6 +10,7 @@ import com.lineying.bean.Order;
 import com.lineying.common.CommonConstant;
 import com.lineying.common.SecureConfig;
 import com.lineying.controller.Checker;
+import com.lineying.data.Column;
 import com.lineying.util.*;
 import com.wechat.pay.java.service.payments.app.AppServiceExtension;
 import com.wechat.pay.java.service.payments.app.model.*;
@@ -43,10 +44,10 @@ public class PayController extends BasePayController {
         if (order == null) {
             return JsonCryptUtil.makeFail("create order fail");
         }
-        Logger.getGlobal().info("处理支付宝支付!" + order);
+        LOGGER.info("处理支付宝支付!" + order);
         // 实例化客户端
         AlipayClient alipayClient = new DefaultAlipayClient(CommonConstant.GATEWAY_URL, order.getAppid(), SecureConfig.ALIPAY_APP_PRI_KEY,
-                CommonConstant.FORMAT, CHARSET, SecureConfig.ALIPAY_PUB_KEY, CommonConstant.SIGN_TYPE);
+                CommonConstant.FORMAT, CommonConstant.CHARSET, SecureConfig.ALIPAY_PUB_KEY, CommonConstant.SIGN_TYPE);
         // 实例化请求对象
         AlipayTradeAppPayRequest alipayRequest = new AlipayTradeAppPayRequest();
         LOGGER.info("设置alipay通知路径::" + getAlipayNotifyUrl());
@@ -64,8 +65,8 @@ public class PayController extends BasePayController {
             AlipayTradeAppPayResponse resp = alipayClient.sdkExecute(alipayRequest);
             String respResult = resp.getBody();
             JsonObject resultObj = new JsonObject();
-            resultObj.addProperty("trade_no", order.getOutTradeNo());
-            resultObj.addProperty("order_info", respResult);
+            resultObj.addProperty(Column.TRADE_NO, order.getOutTradeNo());
+            resultObj.addProperty(Column.ORDER_INFO, respResult);
             return JsonCryptUtil.makeSuccess(resultObj);
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,14 +122,14 @@ public class PayController extends BasePayController {
         String sign = response.getSign();
         LOGGER.info("sign::" + sign);
         JsonObject resultObj = new JsonObject();
-        resultObj.addProperty("out_trade_no", order.getOutTradeNo());
-        resultObj.addProperty("appid", appId);
-        resultObj.addProperty("partnerid", partnerId);
-        resultObj.addProperty("prepayid", prepayId);
-        resultObj.addProperty("noncestr", nonceStr);
-        resultObj.addProperty("timestamp", timestampRep);
-        resultObj.addProperty("package", packageVal);
-        resultObj.addProperty("sign", sign);
+        resultObj.addProperty(Column.OUT_TRADE_NO, order.getOutTradeNo());
+        resultObj.addProperty(Column.APPID, appId);
+        resultObj.addProperty(Column.PARTNER_ID, partnerId);
+        resultObj.addProperty(Column.PREPAY_ID, prepayId);
+        resultObj.addProperty(Column.NONCESTR, nonceStr);
+        resultObj.addProperty(Column.TIMESTAMP, timestampRep);
+        resultObj.addProperty(Column.PACKAGE, packageVal);
+        resultObj.addProperty(Column.SIGN, sign);
         return JsonCryptUtil.makeSuccess(resultObj);
     }
 

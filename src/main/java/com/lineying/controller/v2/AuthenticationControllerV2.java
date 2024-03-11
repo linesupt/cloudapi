@@ -6,6 +6,7 @@ import com.lineying.common.AppCodeManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
 import com.lineying.data.Column;
+import com.lineying.data.Param;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
@@ -40,9 +41,9 @@ public class AuthenticationControllerV2 extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String appcode = jsonObject.get("appcode").getAsString();
-        int id = jsonObject.get("id").getAsInt();
-        String password = jsonObject.get("password").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
+        int id = jsonObject.get(Column.ID).getAsInt();
+        String password = jsonObject.get(Column.PASSWORD).getAsString();
         String table = AppCodeManager.getUserTable(appcode);
         List<Map<String, Object>> list;
         try {
@@ -52,7 +53,7 @@ public class AuthenticationControllerV2 extends BaseController {
             return JsonCryptUtil.makeFail(e.getMessage());
         }
         JsonObject obj = new JsonObject();
-        obj.add("data", new Gson().toJsonTree(list));
+        obj.add(Param.Key.DATA, new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -68,10 +69,10 @@ public class AuthenticationControllerV2 extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String appcode = jsonObject.get("appcode").getAsString();
-        int uid = jsonObject.get("id").getAsInt();
-        String column = jsonObject.get("column").getAsString();
-        String value = jsonObject.get("value").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
+        int uid = jsonObject.get(Column.ID).getAsInt();
+        String column = jsonObject.get(Column.COLUMN).getAsString();
+        String value = jsonObject.get(Column.VALUE).getAsString();
         String table = AppCodeManager.getUserTable(appcode);
 
         List<Map<String, Object>> list;
@@ -82,7 +83,7 @@ public class AuthenticationControllerV2 extends BaseController {
             return JsonCryptUtil.makeFail(e.getMessage());
         }
         JsonObject obj = new JsonObject();
-        obj.add("data", new Gson().toJsonTree(list));
+        obj.add(Param.Key.DATA, new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
@@ -131,10 +132,10 @@ public class AuthenticationControllerV2 extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String appcode = jsonObject.get("appcode").getAsString();
-        int type = jsonObject.get("type").getAsInt();
-        String password = jsonObject.get("password").getAsString();
-        String passwordOld = jsonObject.get("password_old").getAsString();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
+        int type = jsonObject.get(Column.TYPE).getAsInt();
+        String password = jsonObject.get(Column.PASSWORD).getAsString();
+        String passwordOld = jsonObject.get(Column.PASSWORD_OLD).getAsString();
         String table = AppCodeManager.getUserTable(appcode);
 
         int uid = 0;
@@ -142,13 +143,13 @@ public class AuthenticationControllerV2 extends BaseController {
         String mobile = "";
         switch (type) {
             case 0: // uid
-                uid = jsonObject.get("id").getAsInt();
+                uid = jsonObject.get(Column.ID).getAsInt();
                 break;
             case 1: // email
-                email = jsonObject.get("email").getAsString();
+                email = jsonObject.get(Column.EMAIL).getAsString();
                 break;
             case 2: // mobile
-                mobile = jsonObject.get("mobile").getAsString();
+                mobile = jsonObject.get(Column.MOBILE).getAsString();
                 break;
         }
         boolean hasUser = hasUser(type, table, passwordOld, uid, email, mobile);
@@ -202,10 +203,10 @@ public class AuthenticationControllerV2 extends BaseController {
             return pair.getResult();
         }
         JsonObject jsonObject = pair.getDataObject();
-        String appcode = jsonObject.get("appcode").getAsString();
-        String column = jsonObject.get("column").getAsString();
-        String value = jsonObject.get("value").getAsString();
-        int uid = jsonObject.get("id").getAsInt();
+        String appcode = jsonObject.get(Column.APPCODE).getAsString();
+        String column = jsonObject.get(Column.COLUMN).getAsString();
+        String value = jsonObject.get(Column.VALUE).getAsString();
+        int uid = jsonObject.get(Column.ID).getAsInt();
         String table = AppCodeManager.getUserTable(appcode);
 
         boolean result = false;

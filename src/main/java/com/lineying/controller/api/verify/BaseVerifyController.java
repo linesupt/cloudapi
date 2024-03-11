@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.bean.VerifyCode;
 import com.lineying.controller.BaseController;
+import com.lineying.data.Column;
+import com.lineying.data.Param;
 import com.lineying.service.ISmsService;
 import com.lineying.util.*;
 
@@ -75,13 +77,13 @@ public class BaseVerifyController extends BaseController {
         long expireTime = timestamp + VERIFY_INTERVAL;
         long remainInterval = expireTime - getCurrentTime();
         // 后端时间不准可能引起问题
-        map.put("expire_time", expireTime);
+        map.put(Column.EXPIRE_TIME, expireTime);
         // 返回剩余时间更可靠
-        map.put("remain_interval", remainInterval);
+        map.put(Column.REMAIN_INTERVAL, remainInterval);
         list.add(map);
 
         JsonObject obj = new JsonObject();
-        obj.add("data", new Gson().toJsonTree(list));
+        obj.add(Column.DATA, new Gson().toJsonTree(list));
         return JsonCryptUtil.makeSuccess(obj);
     }
 
