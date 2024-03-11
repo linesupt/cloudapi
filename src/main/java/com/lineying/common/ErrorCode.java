@@ -11,9 +11,13 @@ public @interface ErrorCode {
     int PHONE_NOT_REGISTER = 10002;
     // 修改密码失败
     int MOD_PASSWORD_FAILED = 10003;
-    // 注册用户名已存在
-    int REGISTER_USERNAME_EXIST = 10004;
-    // 注册appleuser已存在
-    int REGISTER_APPLE_USER_EXIST = 10005;
+    // 用户名已存在
+    int USERNAME_EXIST = 10004;
+    // appleuser已存在
+    int APPLE_USER_EXIST = 10005;
+    // 邮箱已存在
+    int EMAIL_EXIST = 10006;
+    // 手机号已存在
+    int MOBILE_EXIST = 10007;
 
 }

@@ -247,6 +247,46 @@ public class CommonSqlManager {
     }
 
     /**
+     * 查询用户名
+     * @param table
+     * @param username
+     * @return
+     */
+    public static CommonQueryEntity queryUsername(String table, String username) {
+        return queryFieldValue(table, Column.USERNAME, username);
+    }
+
+    /**
+     * 查询邮箱
+     * @param table
+     * @param email
+     * @return
+     */
+    public static CommonQueryEntity queryEmail(String table, String email) {
+        return queryFieldValue(table, Column.EMAIL, email);
+    }
+
+    /**
+     * 查询手机号
+     * @param table
+     * @param mobile
+     * @return
+     */
+    public static CommonQueryEntity queryMobile(String table, String mobile) {
+        return queryFieldValue(table, Column.MOBILE, mobile);
+    }
+
+    /**
+     * 查询Appleuser
+     * @param table
+     * @param appleUser
+     * @return
+     */
+    public static CommonQueryEntity queryAppleUser(String table, String appleUser) {
+        return queryFieldValue(table, Column.APPLE_USER, appleUser);
+    }
+
+    /**
      * 查询是否存在某个字段
      * @param table
      * @param field

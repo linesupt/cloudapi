@@ -61,7 +61,7 @@ public class PayControllerV2 extends PayController {
     }
 
     /**
-     * 创建订单(Apple)
+     * 更新订单状态(Apple)
      * Android通过mkpay自动创建订单
      * @return
      */
@@ -78,6 +78,12 @@ public class PayControllerV2 extends PayController {
             String appcode = jsonObject.get(Column.APPCODE).getAsString();
             int uid = jsonObject.get(Column.UID).getAsInt();
             String outTradeNo = jsonObject.get(Column.OUT_TRADE_NO).getAsString();
+            // 是否有未完成了订单
+            boolean hasOrderUpdate = queryOrderStatus(appcode, outTradeNo);
+            if (!hasOrderUpdate) {
+                return JsonCryptUtil.makeFail(cause);
+            }
+
             String goodsCode = queryGoodsCode(appcode, outTradeNo);
             if (goodsCode == null || goodsCode.isEmpty()) {
                 return JsonCryptUtil.makeFail(cause);
@@ -93,7 +99,8 @@ public class PayControllerV2 extends PayController {
                 return JsonCryptUtil.makeFail(cause);
             } else {
                 String table = AppCodeManager.getOrderTable(appcode);
-                boolean result = commonService.update(CommonSqlManager.updateExpireTime(table, uid, expireTime));
+                boolean result = commonService.update(CommonSqlManager.updateOrder(table,
+                        outTradeNo, 1, getCurrentTimeMs()));
                 if (!result) {
                     return JsonCryptUtil.makeFail(cause);
                 }
@@ -106,6 +113,29 @@ public class PayControllerV2 extends PayController {
             e.printStackTrace();
         }
         return JsonCryptUtil.makeFail(cause);
+    }
+
+    /**
+     * 是否存在未完成的订单
+     * @param appcode
+     * @param outTradeNo
+     * @return
+     */
+    private boolean queryOrderStatus(String appcode, String outTradeNo) {
+        String tableGoods = AppCodeManager.getGoodsTable(appcode);
+        List<Map<String, Object>> listOrder = null;
+        try {
+            listOrder = commonService.list(CommonSqlManager.queryOrder(tableGoods, outTradeNo));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (listOrder == null || listOrder.isEmpty()) {
+            return false;
+        }
+
+        Map<String, Object> goodsData = listOrder.get(0);
+        int status = (int) goodsData.get(Column.STATUS);
+        return status == 0;
     }
 
     /**

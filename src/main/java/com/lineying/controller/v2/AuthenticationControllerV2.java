@@ -3,6 +3,7 @@ package com.lineying.controller.v2;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.common.AppCodeManager;
+import com.lineying.common.ErrorCode;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
 import com.lineying.data.Column;
@@ -18,6 +19,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 授权认证服务接口
@@ -209,6 +211,23 @@ public class AuthenticationControllerV2 extends BaseController {
         int uid = jsonObject.get(Column.ID).getAsInt();
         String table = AppCodeManager.getUserTable(appcode);
 
+        if (Objects.equals(Column.USERNAME, column)) {
+            if (hasUsername(table, column)) {
+                return JsonCryptUtil.makeFail("username exist", ErrorCode.USERNAME_EXIST);
+            }
+        } else if (Objects.equals(Column.EMAIL, column)) {
+            if (hasEmail(table, column)) {
+                return JsonCryptUtil.makeFail("email exist", ErrorCode.EMAIL_EXIST);
+            }
+        } else if (Objects.equals(Column.MOBILE, column)) {
+            if (hasMobile(table, column)) {
+                return JsonCryptUtil.makeFail("mobile exist", ErrorCode.MOBILE_EXIST);
+            }
+        } else if (Objects.equals(Column.APPLE_USER, column)) {
+            if (hasAppleUser(table, column)) {
+                return JsonCryptUtil.makeFail("appleUser exist", ErrorCode.APPLE_USER_EXIST);
+            }
+        }
         boolean result = false;
         try {
             result = commonService.update(CommonSqlManager.updateAttr(table, uid, column, value));
@@ -220,5 +239,64 @@ public class AuthenticationControllerV2 extends BaseController {
         return JsonCryptUtil.makeResult(result);
     }
 
+    /**
+     * 判断用户名是否存在
+     * @param table
+     * @param username
+     * @return
+     */
+    private boolean hasUsername(String table, String username) {
+        try {
+            return !commonService.list(CommonSqlManager.queryUsername(table, username)).isEmpty();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 判断邮箱是否存在
+     * @param table
+     * @param email
+     * @return
+     */
+    private boolean hasEmail(String table, String email) {
+        try {
+            return !commonService.list(CommonSqlManager.queryEmail(table, email)).isEmpty();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 判断手机号是否存在
+     * @param table
+     * @param mobile
+     * @return
+     */
+    private boolean hasMobile(String table, String mobile) {
+        try {
+            return !commonService.list(CommonSqlManager.queryMobile(table, mobile)).isEmpty();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 判断Appleuser是否存在
+     * @param table
+     * @param appleUser
+     * @return
+     */
+    private boolean hasAppleUser(String table, String appleUser) {
+        try {
+            return !commonService.list(CommonSqlManager.queryAppleUser(table, appleUser)).isEmpty();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
 }

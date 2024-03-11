@@ -20,7 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 授权认证服务接口
@@ -213,7 +212,7 @@ public class AuthenticationController extends BaseController {
         String ipaddr = IPUtil.getIpAddress(request);
         try {
             if (hasUsername(table, username)) {
-                return JsonCryptUtil.makeFail("username exist", ErrorCode.REGISTER_USERNAME_EXIST);
+                return JsonCryptUtil.makeFail("username exist", ErrorCode.USERNAME_EXIST);
             }
             boolean result = addUser(table, username, password, "", brand, model, ipaddr);
             if (!result) {
