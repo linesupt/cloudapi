@@ -143,8 +143,8 @@ public class CommonSqlManager {
      * @param locale
      * @return
      */
-    public static CommonQueryEntity queryOrder(String table, String outTradeNo) {
-        return queryAttrAll(table, Column.OUT_TRADE_NO, outTradeNo, Column.SORT_ASC, Column.ID);
+    public static CommonQueryEntity queryOrder(String outTradeNo) {
+        return queryAttrAll(Order.TABLE, Column.OUT_TRADE_NO, outTradeNo, Column.SORT_ASC, Column.ID);
     }
 
     /**

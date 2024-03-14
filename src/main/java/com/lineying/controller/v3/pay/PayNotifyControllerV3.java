@@ -53,7 +53,7 @@ public class PayNotifyControllerV3 extends PayNotifyController {
     protected boolean handleOrderStatus(String tradeNo, String outTradeNo, int status) {
 
         try {
-            List<Map<String, Object>> orderList = commonService.list(CommonSqlManager.queryOrder(Order.TABLE, outTradeNo));
+            List<Map<String, Object>> orderList = commonService.list(CommonSqlManager.queryOrder(outTradeNo));
             if (orderList == null || orderList.size() != 1) {
                 return false;
             }

@@ -55,9 +55,9 @@ public class PayControllerV2 extends PayController {
         if (order == null) {
             return JsonCryptUtil.makeFail("create order fail");
         }
-        Map<String, String> data = new HashMap<>();
-        data.put(Column.OUT_TRADE_NO, order.getOutTradeNo());
-        return JsonCryptUtil.makeSuccess(data);
+        JsonObject resultObj = new JsonObject();
+        resultObj.addProperty(Column.OUT_TRADE_NO, order.getOutTradeNo());
+        return JsonCryptUtil.makeSuccess(resultObj);
     }
 
     /**
@@ -79,12 +79,12 @@ public class PayControllerV2 extends PayController {
             int uid = jsonObject.get(Column.UID).getAsInt();
             String outTradeNo = jsonObject.get(Column.OUT_TRADE_NO).getAsString();
             // 是否有未完成了订单
-            boolean hasOrderUpdate = queryOrderStatus(appcode, outTradeNo);
+            boolean hasOrderUpdate = queryOrderStatus(outTradeNo);
             if (!hasOrderUpdate) {
                 return JsonCryptUtil.makeFail(cause);
             }
 
-            String goodsCode = queryGoodsCode(appcode, outTradeNo);
+            String goodsCode = queryGoodsCode(outTradeNo);
             if (goodsCode == null || goodsCode.isEmpty()) {
                 return JsonCryptUtil.makeFail(cause);
             }
@@ -98,17 +98,15 @@ public class PayControllerV2 extends PayController {
             if (expireTime <= 0) {
                 return JsonCryptUtil.makeFail(cause);
             } else {
-                String table = AppCodeManager.getOrderTable(appcode);
-                boolean result = commonService.update(CommonSqlManager.updateOrder(table,
+                boolean result = commonService.update(CommonSqlManager.updateOrder("",
                         outTradeNo, 1, getCurrentTimeMs()));
                 if (!result) {
                     return JsonCryptUtil.makeFail(cause);
                 }
             }
-
-            Map<String, Object> data = new HashMap<>();
-            data.put(Column.EXPIRE_TIME, expireTime);
-            return JsonCryptUtil.makeSuccess(data);
+            JsonObject resultObj = new JsonObject();
+            resultObj.addProperty(Column.EXPIRE_TIME, expireTime);
+            return JsonCryptUtil.makeSuccess(resultObj);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -117,15 +115,13 @@ public class PayControllerV2 extends PayController {
 
     /**
      * 是否存在未完成的订单
-     * @param appcode
      * @param outTradeNo
      * @return
      */
-    private boolean queryOrderStatus(String appcode, String outTradeNo) {
-        String tableGoods = AppCodeManager.getGoodsTable(appcode);
+    private boolean queryOrderStatus(String outTradeNo) {
         List<Map<String, Object>> listOrder = null;
         try {
-            listOrder = commonService.list(CommonSqlManager.queryOrder(tableGoods, outTradeNo));
+            listOrder = commonService.list(CommonSqlManager.queryOrder(outTradeNo));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -163,15 +159,13 @@ public class PayControllerV2 extends PayController {
 
     /**
      * 查询商品代码
-     * @param appcode
      * @param outTradeNo
      * @return
      */
-    private String queryGoodsCode(String appcode, String outTradeNo) {
-        String table = AppCodeManager.getOrderTable(appcode);
+    private String queryGoodsCode(String outTradeNo) {
         List<Map<String, Object>> list = null;
         try {
-            list = commonService.list(CommonSqlManager.queryOrder(table, outTradeNo));
+            list = commonService.list(CommonSqlManager.queryOrder(outTradeNo));
         } catch (Exception e) {
             e.printStackTrace();
         }

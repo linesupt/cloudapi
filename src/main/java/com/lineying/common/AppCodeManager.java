@@ -67,7 +67,7 @@ public class AppCodeManager {
      * @return
      */
     public static String getOrderTable(String appcode) {
-        return "order" + getTableSuffix(appcode);
+        return "order_gen";
     }
 
     /**
