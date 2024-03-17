@@ -224,8 +224,12 @@ public class AuthenticationControllerV2 extends BaseController {
                 return JsonCryptUtil.makeFail("mobile exist", ErrorCode.MOBILE_EXIST);
             }
         } else if (Objects.equals(Column.APPLE_USER, column)) {
-            if (hasAppleUser(table, column)) {
-                return JsonCryptUtil.makeFail("appleUser exist", ErrorCode.APPLE_USER_EXIST);
+            if (!"".equals(value)) {
+                if (hasAppleUser(table, column)) {
+                    return JsonCryptUtil.makeFail("appleUser exist", ErrorCode.APPLE_USER_EXIST);
+                }
+            } else { // 解除绑定
+
             }
         }
         boolean result = false;
@@ -291,6 +295,9 @@ public class AuthenticationControllerV2 extends BaseController {
      * @return
      */
     private boolean hasAppleUser(String table, String appleUser) {
+        if ("NULL".equals(appleUser)) {
+            return false;
+        }
         try {
             return !commonService.list(CommonSqlManager.queryAppleUser(table, appleUser)).isEmpty();
         } catch (Exception e) {

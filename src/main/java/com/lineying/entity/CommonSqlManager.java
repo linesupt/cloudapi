@@ -662,6 +662,9 @@ public class CommonSqlManager {
     public static CommonUpdateEntity updateAttr(String table, int uid, String column, String value) {
         String where = String.format("%s='%s'", Column.ID, uid + "");
         String set = String.format("%s='%s'", column, value);
+        if ("".equals(value) || "NULL".equals(value)) {
+            set = String.format("%s=NULL", column);
+        }
         CommonUpdateEntity entity = new CommonUpdateEntity();
         entity.setSet(set);
         entity.setWhere(where);
