@@ -3,7 +3,7 @@ package com.lineying.controller.v2.verify;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.VerifyCode;
-import com.lineying.common.AppCodeManager;
+import com.lineying.common.TableManager;
 import com.lineying.common.ErrorCode;
 import com.lineying.common.LocaleManager;
 import com.lineying.common.SignResult;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * 应用级接口,验证码验证
@@ -112,7 +111,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
         String targetKey = makeTargetKey(appCode, type, target);
 
         int sendResult = 0;
-        if (!AppCodeManager.contains(appCode)) {
+        if (!TableManager.contains(appCode)) {
             LOGGER.info("不存在当前应用::" + appCode);
             return JsonCryptUtil.makeFailSendVerifyCode();
         }
@@ -121,7 +120,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
             timestamp = cacheVerifyCode.getTimestamp();
             return makeSuccess(timestamp);
         }
-        boolean flag = queryExist(AppCodeManager.getUserTable(appCode), type, target);
+        boolean flag = queryExist(TableManager.getUserTable(appCode), type, target);
         if (!flag) { // 用户不存在
             String cause = type == 1 ? "email not register" : "phone not register";
             int statusCode = type == 1 ? ErrorCode.EMAIL_NOT_REGISTER : ErrorCode.PHONE_NOT_REGISTER;
@@ -232,7 +231,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
 
         mVerifyCodes.remove(targetKey);
         String password = jsonObject.get("password").getAsString();
-        boolean flag = updatePassword(AppCodeManager.getUserTable(appCode), type, target, password);
+        boolean flag = updatePassword(TableManager.getUserTable(appCode), type, target, password);
         if (!flag) {
             return JsonCryptUtil.makeFail("fail update password", ErrorCode.MOD_PASSWORD_FAILED);
         }

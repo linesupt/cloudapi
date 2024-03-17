@@ -1,6 +1,7 @@
 package com.lineying.util;
 
 import com.google.gson.Gson;
+import com.lineying.common.ErrorCode;
 import com.lineying.data.Param;
 
 import java.util.HashMap;
@@ -18,7 +19,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailVerifyCode() {
-        return makeResult(0, "fail, err: verify code error", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: verify code error", null);
     }
 
 
@@ -27,7 +28,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailVerifyTimeout() {
-        return makeResult(0, "fail, err: verify code timeout", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: verify code timeout", null);
     }
 
     /**
@@ -35,7 +36,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailSendVerifyCode() {
-        return makeResult(0, "fail, err: send verify code error", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: send verify code error", null);
     }
 
     /**
@@ -51,7 +52,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailKey() {
-        return makeResult(0, "fail, err: key error", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: key error", null);
     }
 
     /**
@@ -59,7 +60,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailSign() {
-        return makeResult(0, "fail, err: sign error", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: sign error", null);
     }
 
     /**
@@ -67,7 +68,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailTime() {
-        return makeResult(0, "fail, err: timestamp error", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: timestamp error", null);
     }
 
     /**
@@ -75,7 +76,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailNoData() {
-        return makeResult(0, "fail, err: data null", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: data null", null);
     }
 
     /**
@@ -83,7 +84,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailDataExpired() {
-        return makeResult(0, "fail, err: data expired", null);
+        return makeResult(ErrorCode.FAIL, "fail, err: data expired", null);
     }
 
     /**
@@ -92,7 +93,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFail(String cause) {
-        return makeResult(0, "fail, err: " + cause, null);
+        return makeResult(ErrorCode.FAIL, "fail, err: " + cause, null);
     }
 
     /**
@@ -102,7 +103,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeFailError(String cause, int statusCode) {
-        return makeResultError(0, "fail, err: " + cause, null, statusCode);
+        return makeResultError(ErrorCode.FAIL, "fail, err: " + cause, null, statusCode);
     }
 
     /**
@@ -111,7 +112,7 @@ public class JsonUtil {
      * @return
      */
     public static String makeResult(boolean result) {
-        int code = result ? 1 : 0;
+        int code = result ? ErrorCode.SUCCESS : ErrorCode.FAIL;
         String msg = result ? Param.Result.SUCCESS : Param.Result.FAIL;
         return makeResult(code, msg, null);
     }
@@ -155,7 +156,7 @@ public class JsonUtil {
      */
     public static String makeSuccess(Object data) {
         Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put(Param.Key.CODE, 1);
+        jsonMap.put(Param.Key.CODE, ErrorCode.SUCCESS);
         jsonMap.put(Param.Key.MSG, Param.Result.SUCCESS);
         jsonMap.put(Param.Key.DATA, data);
         return new Gson().toJson(jsonMap);

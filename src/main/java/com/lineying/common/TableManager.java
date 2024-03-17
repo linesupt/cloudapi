@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * appcode管理
  */
-public class AppCodeManager {
+public class TableManager {
 
     private static List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
 
@@ -86,6 +86,22 @@ public class AppCodeManager {
      */
     public static String getRedeemTable(String appcode) {
         return "redeemcode_gen";
+    }
+
+    /**
+     * 获取广告配置表
+     * @return
+     */
+    public static String getAdTable() {
+        return "adgen";
+    }
+
+    /**
+     * 获取媒体播放计划
+     * @return
+     */
+    public static String getMediaPlanTable() {
+        return "media_plan";
     }
 
 }

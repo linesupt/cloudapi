@@ -21,6 +21,7 @@ public @interface Column {
     String TOTAL_FEE = "total_fee";
     String BODY = "body";
     String APP_ID = "app_id";
+    String PKGNAME = "pkgname";
 
     // 倒序排序
     String SORT_DESC = "desc";
@@ -91,6 +92,10 @@ public @interface Column {
     String CLIENT_ID = "client_id"; // APPLE client_id
     String TIMESTAMP = "timestamp"; // 时间戳
     String REMAIN_INTERVAL = "remain_interval"; // 有效间隔
+    String START_TIME = "start_time";
+    String END_TIME = "end_time";
+    String CYCLE_TYPE = "cycle_type";
+    String ADTYPE = "adtype";
 
     // 支付宝支付
     String APPID = "appid";

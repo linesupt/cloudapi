@@ -1,5 +1,7 @@
 package com.lineying.data;
 
+import com.lineying.common.Config;
+
 /**
  * json参数或结果
  */
@@ -18,6 +20,9 @@ public @interface Param {
         String KEY = "key";
         String TIMESTAMP = "timestamp";
         String SIGNATURE = "signature";
+        String ADLIST = "adlist";
+        String ADDEF = "addef";
+        String MEDIA_PLAN = "media_plan";
     }
 
     @interface Result {

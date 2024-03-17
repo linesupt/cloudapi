@@ -2,7 +2,7 @@ package com.lineying.controller.v2;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.lineying.common.AppCodeManager;
+import com.lineying.common.TableManager;
 import com.lineying.common.ErrorCode;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
@@ -46,7 +46,7 @@ public class AuthenticationControllerV2 extends BaseController {
         String appcode = jsonObject.get(Column.APPCODE).getAsString();
         int id = jsonObject.get(Column.ID).getAsInt();
         String password = jsonObject.get(Column.PASSWORD).getAsString();
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
         List<Map<String, Object>> list;
         try {
             list = commonService.list(CommonSqlManager.queryPasswordForId(table, password, id));
@@ -75,7 +75,7 @@ public class AuthenticationControllerV2 extends BaseController {
         int uid = jsonObject.get(Column.ID).getAsInt();
         String column = jsonObject.get(Column.COLUMN).getAsString();
         String value = jsonObject.get(Column.VALUE).getAsString();
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
 
         List<Map<String, Object>> list;
         try {
@@ -138,7 +138,7 @@ public class AuthenticationControllerV2 extends BaseController {
         int type = jsonObject.get(Column.TYPE).getAsInt();
         String password = jsonObject.get(Column.PASSWORD).getAsString();
         String passwordOld = jsonObject.get(Column.PASSWORD_OLD).getAsString();
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
 
         int uid = 0;
         String email = "";
@@ -209,7 +209,7 @@ public class AuthenticationControllerV2 extends BaseController {
         String column = jsonObject.get(Column.COLUMN).getAsString();
         String value = jsonObject.get(Column.VALUE).getAsString();
         int uid = jsonObject.get(Column.ID).getAsInt();
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
 
         if (Objects.equals(Column.USERNAME, column)) {
             if (hasUsername(table, column)) {

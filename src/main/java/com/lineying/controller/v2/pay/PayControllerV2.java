@@ -141,7 +141,7 @@ public class PayControllerV2 extends PayController {
      * @return
      */
     private long queryGoodsDuration(String appcode, String goodsCode) {
-        String tableGoods = AppCodeManager.getGoodsTable(appcode);
+        String tableGoods = TableManager.getGoodsTable(appcode);
         List<Map<String, Object>> listGoods = null;
         try {
             listGoods = commonService.list(CommonSqlManager.queryGoods(tableGoods, goodsCode));
@@ -192,7 +192,7 @@ public class PayControllerV2 extends PayController {
         String appcode = jsonObject.get(Column.APPCODE).getAsString();
         int uid = jsonObject.get(Column.UID).getAsInt();
         String code = jsonObject.get(Column.CODE).getAsString();
-        String table = AppCodeManager.getRedeemTable(appcode);
+        String table = TableManager.getRedeemTable(appcode);
 
         List<Map<String, Object>> list = null;
         try {
@@ -235,7 +235,7 @@ public class PayControllerV2 extends PayController {
     private long handleExpireTime(String appcode, int uid, long durationAdd) {
 
         // 添加时长
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
         try {
             List<Map<String, Object>> list = commonService.list(CommonSqlManager.queryUser(table, uid));
             if (list != null && !list.isEmpty()) {

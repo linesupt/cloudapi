@@ -3,7 +3,7 @@ package com.lineying.controller.api;
 import cn.hutool.core.lang.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.lineying.common.AppCodeManager;
+import com.lineying.common.TableManager;
 import com.lineying.common.ErrorCode;
 import com.lineying.common.LoginType;
 import com.lineying.controller.BaseController;
@@ -44,7 +44,7 @@ public class AuthenticationController extends BaseController {
         JsonObject jsonObject = pair.getDataObject();
         List<Map<String, Object>> list = null;
         String appcode = jsonObject.get(Column.APPCODE).getAsString();
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
         // username可以代表用户名、邮箱、apple token、wechat token
         String username = jsonObject.get(Column.USERNAME).getAsString();
         @LoginType
@@ -208,7 +208,7 @@ public class AuthenticationController extends BaseController {
         String password = jsonObject.get(Column.PASSWORD).getAsString();
         String brand = jsonObject.get(Column.BRAND).getAsString();
         String model = jsonObject.get(Column.MODEL).getAsString();
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
         String ipaddr = IPUtil.getIpAddress(request);
         try {
             if (hasUsername(table, username)) {
@@ -247,7 +247,7 @@ public class AuthenticationController extends BaseController {
         } else if (type == 1) {
             appleUser = jsonObject.get(Column.APPLE_USER).getAsString();
         }
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
         boolean result = false;
         try {
             List<Map<String, Object>> list = new ArrayList<>();
@@ -273,7 +273,7 @@ public class AuthenticationController extends BaseController {
         String appcode = request.getParameter(Column.APPCODE);
         String username = request.getParameter(Column.USERNAME);
         String password = request.getParameter(Column.PASSWORD);
-        String table = AppCodeManager.getUserTable(appcode);
+        String table = TableManager.getUserTable(appcode);
         boolean result = false;
         try {
             List<Map<String, Object>> list = commonService.list(CommonSqlManager.queryUser(table, username, password));

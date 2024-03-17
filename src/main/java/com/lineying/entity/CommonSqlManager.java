@@ -2,6 +2,7 @@ package com.lineying.entity;
 
 import com.lineying.bean.Order;
 import com.lineying.common.LoginType;
+import com.lineying.common.TableManager;
 import com.lineying.data.Column;
 import com.lineying.util.JsonCryptUtil;
 
@@ -136,6 +137,57 @@ public class CommonSqlManager {
         return queryFieldValue(table, Column.USERNAME, username);
     }
 
+    /**
+     * 查询媒体播放计划
+     * @param table
+     * @param locale
+     * @return
+     */
+    public static CommonQueryEntity queryMediaPlan() {
+        String where = String.format("%s='%s'", Column.CYCLE_TYPE, "1");
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(TableManager.getMediaPlanTable());
+        entity.setColumn(Column.COLUMN_ALL);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
+     * 查询默认播放媒体
+     * @param table
+     * @param locale
+     * @return
+     */
+    public static CommonQueryEntity queryDefaultMedia() {
+        String where = String.format("%s='%s' and %s='%s'", Column.CYCLE_TYPE, "" + 0, Column.START_TIME, "" + 0);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(TableManager.getMediaPlanTable());
+        entity.setColumn(Column.TYPE);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
+     * 查询广告配置列表
+     * @param table
+     * @param locale
+     * @return
+     */
+    public static CommonQueryEntity queryAdList(String appcode, String platform, String pkgname) {
+        String where = String.format("%s='%s' and %s='%s' and %s='%s'", Column.APPCODE, appcode,
+                Column.PLATFORM, platform, Column.PKGNAME, pkgname);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(TableManager.getAdTable());
+        entity.setColumn(Column.COLUMN_ALL);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
 
     /**
      * 查询商品列表

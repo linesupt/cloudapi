@@ -3,12 +3,11 @@ package com.lineying.controller.v2;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.bean.CloudData;
-import com.lineying.common.AppCodeManager;
+import com.lineying.common.TableManager;
 import com.lineying.common.LocaleManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
 import com.lineying.data.Column;
-import com.lineying.data.Param;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.JsonCryptUtil;
@@ -53,7 +52,7 @@ public class CloudControllerV2 extends BaseController {
         JsonObject jsonObject = checker.getDataObject();
         String locale = checker.getLocale();
         String appcode = jsonObject.get(Column.APPCODE).getAsString();
-        String table = AppCodeManager.getGoodsTable(appcode);
+        String table = TableManager.getGoodsTable(appcode);
 
         List<Map<String, Object>> list;
         try {
@@ -84,7 +83,7 @@ public class CloudControllerV2 extends BaseController {
         int type = jsonObject.get(Column.TYPE).getAsInt();
         int uid = jsonObject.get(Column.UID).getAsInt();
         String appcode = jsonObject.get(Column.APPCODE).getAsString();
-        String table = AppCodeManager.getUserSettingTable(appcode);
+        String table = TableManager.getUserSettingTable(appcode);
         if (type == 0) { // 查询用户设置
             List<Map<String, Object>> list;
             try {

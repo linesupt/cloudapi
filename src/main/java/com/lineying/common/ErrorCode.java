@@ -5,6 +5,10 @@ package com.lineying.common;
  */
 public @interface ErrorCode {
 
+    // 失败
+    int FAIL = 0;
+    // 成功
+    int SUCCESS = 1;
     // 邮箱未注册
     int EMAIL_NOT_REGISTER = 10001;
     // 手机号未注册

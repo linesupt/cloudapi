@@ -1,8 +1,7 @@
 package com.lineying.controller.v3.pay;
 
 import com.alipay.api.AlipayApiException;
-import com.lineying.bean.Order;
-import com.lineying.common.AppCodeManager;
+import com.lineying.common.TableManager;
 import com.lineying.controller.api.pay.PayNotifyController;
 import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
@@ -59,8 +58,8 @@ public class PayNotifyControllerV3 extends PayNotifyController {
             }
             Map<String, Object> orderMap = orderList.get(0);
             String appcode = (String) orderMap.get(Column.APPCODE);
-            String table = AppCodeManager.getUserTable(appcode);
-            String tableGoods = AppCodeManager.getGoodsTable(appcode);
+            String table = TableManager.getUserTable(appcode);
+            String tableGoods = TableManager.getGoodsTable(appcode);
             String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
             int uid = (Integer) orderMap.get(Column.UID);
 
