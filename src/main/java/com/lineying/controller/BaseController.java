@@ -57,24 +57,44 @@ public class BaseController {
 
         String platform = request.getHeader(Param.Key.PLATFORM);
         String locale = request.getHeader(Param.Key.LOCALE);
+        String token = "";
+        try {
+            token = request.getHeader(Param.Key.TOKEN);
+        } catch (Exception e) { e.printStackTrace(); }
+        String appcode = "";
+        try {
+            appcode = request.getHeader(Param.Key.APPCODE);
+        } catch (Exception e) { e.printStackTrace(); }
+        String brand = "";
+        try {
+            brand = request.getHeader(Param.Key.BRAND);
+        } catch (Exception e) { e.printStackTrace(); }
+        String model = "";
+        try {
+            model = request.getHeader(Param.Key.MODEL);
+        } catch (Exception e) { e.printStackTrace(); }
+        String appVersion = request.getHeader(Param.Key.APP_VERSION);
+        try {
+            appVersion = request.getHeader(Param.Key.APP_VERSION);
+        } catch (Exception e) { e.printStackTrace(); }
         String key = request.getParameter(Param.Key.KEY);
         String secretData = request.getParameter(Param.Key.DATA);
         String signature = request.getParameter(Param.Key.SIGNATURE);
         int signResult = SignUtil.validateSign(key, secretData, signature);
         switch (signResult) {
             case KEY_ERROR:
-                return new Checker(platform, locale, null, JsonCryptUtil.makeFailKey());
+                return new Checker(platform, locale, token, appcode, brand, model, appVersion, null, JsonCryptUtil.makeFailKey());
             case SIGN_ERROR:
-                return new Checker(platform, locale, null, JsonCryptUtil.makeFailSign());
+                return new Checker(platform, locale, token, appcode, brand, model, appVersion, null, JsonCryptUtil.makeFailSign());
         }
 
         String data = AESUtil.decrypt(secretData);
         JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
         long timestamp = jsonObject.get(Param.Key.TIMESTAMP).getAsLong();
         if (!checkRequest(timestamp)) {
-            return new Checker(platform, locale, null, JsonCryptUtil.makeFailTime());
+            return new Checker(platform, locale, token, appcode, brand, model, appVersion,null, JsonCryptUtil.makeFailTime());
         }
-        return new Checker(platform, locale, jsonObject, null, timestamp);
+        return new Checker(platform, locale, token, appcode, brand, model, appVersion, jsonObject, null, timestamp);
     }
 
 }

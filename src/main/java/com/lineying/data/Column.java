@@ -95,6 +95,7 @@ public @interface Column {
     String START_TIME = "start_time";
     String END_TIME = "end_time";
     String CYCLE_TYPE = "cycle_type";
+    String FORCE = "force";
     String ADTYPE = "adtype";
 
     // 支付宝支付

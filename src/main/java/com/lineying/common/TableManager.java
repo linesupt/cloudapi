@@ -104,4 +104,13 @@ public class TableManager {
         return "media_plan";
     }
 
+    /**
+     * 获取版本信息表
+     * @param appcode
+     * @return
+     */
+    public static String getVersionTable(String appcode) {
+        return "version" + getTableSuffix(appcode);
+    }
+
 }

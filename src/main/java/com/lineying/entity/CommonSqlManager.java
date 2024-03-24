@@ -6,6 +6,8 @@ import com.lineying.common.TableManager;
 import com.lineying.data.Column;
 import com.lineying.util.JsonCryptUtil;
 
+import java.awt.*;
+
 /**
  * sql查询管理
  */
@@ -165,6 +167,23 @@ public class CommonSqlManager {
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(TableManager.getMediaPlanTable());
         entity.setColumn(Column.TYPE);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
+     * 查询默认播放媒体
+     * @param table
+     * @param locale
+     * @return
+     */
+    public static CommonQueryEntity queryVersion(String table, String locale) {
+        String where = String.format("%s='%s' and %s=(select MAX(`%s`) from %s)", Column.LOCALE, locale, Column.CODE, Column.CODE, table);
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(table);
+        entity.setColumn(Column.COLUMN_ALL);
         entity.setSort(Column.SORT_DESC);
         entity.setSortColumn(Column.ID);
         entity.setWhere(where);

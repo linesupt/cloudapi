@@ -31,7 +31,7 @@ public class CloudController extends BaseController {
     ICommonService commonService;
 
     /**
-     * 应用配置
+     * 更新配置
      * @param request
      * @return
      */
@@ -97,6 +97,38 @@ public class CloudController extends BaseController {
             confMap.put(Param.Key.ADDEF, Config.defMedia);
             confMap.put(Param.Key.MEDIA_PLAN, Config.mediaPlanList);
             return JsonCryptUtil.makeSuccess(confMap);
+        } catch (Exception e){
+            e.printStackTrace();
+            return JsonCryptUtil.makeFail(e.getMessage());
+        }
+    }
+
+
+    /**
+     * 获取最新版本信息
+     * @param request
+     * @return
+     */
+    @RequestMapping("/appversion")
+    public String appversion(HttpServletRequest request) {
+        Checker checker = doCheck(request);
+        if (!checker.isValid()) {
+            return checker.getResult();
+        }
+        try {
+            // 配置广告显示规则
+            String table = TableManager.getVersionTable(checker.getAppcode());
+            //String locale = checker.getLocale();
+            String locale = "zh-CN";
+            List<Map<String, Object>> versionList = commonService.list(CommonSqlManager.queryVersion(table, locale));
+
+            if (versionList.size() <= 0) {
+                return JsonCryptUtil.makeSuccess();
+            }
+            Map<String, Object> mapData = versionList.get(0);
+            JsonObject obj = new JsonObject();
+            obj.add(Column.DATA, new Gson().toJsonTree(mapData));
+            return JsonCryptUtil.makeSuccess(obj);
         } catch (Exception e){
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());

@@ -13,6 +13,10 @@ public @interface Param {
         String MSG = "msg";
         String DATA = "data";
         String TOKEN = "token";
+        String APPCODE = "appcode";
+        String BRAND = "brand";
+        String MODEL = "model";
+        String APP_VERSION = "app_version";
         String STATUS = "status";
         String MESSAGE = "message";
         String PLATFORM = "platform";
