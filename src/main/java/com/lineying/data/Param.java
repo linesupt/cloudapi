@@ -14,6 +14,7 @@ public @interface Param {
         String DATA = "data";
         String TOKEN = "token";
         String APPCODE = "appcode";
+        String PKGNAME = "pkgname";
         String BRAND = "brand";
         String MODEL = "model";
         String APP_VERSION = "app_version";

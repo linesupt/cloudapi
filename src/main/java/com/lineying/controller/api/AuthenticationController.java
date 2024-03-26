@@ -71,7 +71,7 @@ public class AuthenticationController extends BaseController {
                     return JsonCryptUtil.makeFail("token error");
                 }
                 int resultCode = TokenUtil.verify(token);
-                if (resultCode != 0) {
+                if (resultCode <= 0) {
                     return JsonCryptUtil.makeFail("token error " + resultCode);
                 }
                 Pair<Integer, String> userInfo = TokenUtil.parse(token);

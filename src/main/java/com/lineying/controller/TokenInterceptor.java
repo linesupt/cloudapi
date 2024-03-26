@@ -33,7 +33,7 @@ public class TokenInterceptor implements HandlerInterceptor {
             try {
                 resultCode = TokenUtil.verify(token);
             } catch (Exception e) { e.printStackTrace(); }
-            if(resultCode == 0){
+            if(resultCode > 0){
                 System.out.println("通过拦截器");
                 return true;
             }

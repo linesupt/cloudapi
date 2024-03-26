@@ -83,12 +83,10 @@ public class CloudController extends BaseController {
 
         checkMediaConfig(request);
 
-        JsonObject jsonObject = checker.getDataObject();
         try {
-            int uid = jsonObject.get(Column.UID).getAsInt();
-            String appcode = jsonObject.get(Column.APPCODE).getAsString();
-            String pkgname = jsonObject.get(Column.PKGNAME).getAsString();
             String platform = checker.getPlatform();
+            String appcode = checker.getAppcode();
+            String pkgname = request.getParameter(Column.PKGNAME);
 
             // 配置广告显示规则
             List<Map<String, Object>> adList = commonService.list(CommonSqlManager.queryAdList(appcode, platform, pkgname));

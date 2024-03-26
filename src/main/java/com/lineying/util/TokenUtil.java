@@ -61,25 +61,26 @@ public class TokenUtil {
      * @return
      */
     public static int verify(String token) {
+        int userId = 0;
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(TOKEN_SECRET))
                     .withIssuer(ISS).build();
             DecodedJWT jwt = verifier.verify(token);
-            int userId = jwt.getClaim("uid").asInt();
+            userId = jwt.getClaim("uid").asInt();
             if (userId <= 0) {
-                return 2; // 无效用户
+                return -2; // 无效用户
             }
         } catch (TokenExpiredException e) {
             e.printStackTrace();
-            return 1; // 过期
+            return -4; // 过期
         } catch (InvalidClaimException e) {
             e.printStackTrace();
-            return 3; // 发行者不对
+            return -3; // 发行者不对
         } catch (Exception e){
             e.printStackTrace();
             return -1; // 未知错误
         }
-        return 0;
+        return userId;
     }
 
     /**
