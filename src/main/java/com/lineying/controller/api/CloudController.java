@@ -49,7 +49,7 @@ public class CloudController extends BaseController {
                 Config.defMedia = defMedia;
             }
             List<Map<String, Object>> mediaPlanList = commonService.list(CommonSqlManager.queryMediaPlan());
-            Config.mediaPlanList = MediaPlan.parse(mediaPlanList);
+            Config.mediaPlanList = mediaPlanList;
 
             LOGGER.info("config::" + Config.defMedia + "\n" + Config.mediaPlanList);
             return JsonCryptUtil.makeSuccess();
@@ -82,11 +82,12 @@ public class CloudController extends BaseController {
         }
 
         checkMediaConfig(request);
-
+        LOGGER.info("device::" + checker);
         try {
             String platform = checker.getPlatform();
             String appcode = checker.getAppcode();
-            String pkgname = request.getParameter(Column.PKGNAME);
+            JsonObject jsonObject = checker.getDataObject();
+            String pkgname = jsonObject.get(Column.PKGNAME).getAsString();
 
             // 配置广告显示规则
             List<Map<String, Object>> adList = commonService.list(CommonSqlManager.queryAdList(appcode, platform, pkgname));
@@ -124,9 +125,7 @@ public class CloudController extends BaseController {
                 return JsonCryptUtil.makeSuccess();
             }
             Map<String, Object> mapData = versionList.get(0);
-            JsonObject obj = new JsonObject();
-            obj.add(Column.DATA, new Gson().toJsonTree(mapData));
-            return JsonCryptUtil.makeSuccess(obj);
+            return JsonCryptUtil.makeSuccess(mapData);
         } catch (Exception e){
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());

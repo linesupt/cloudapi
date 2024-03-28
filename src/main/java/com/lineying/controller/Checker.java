@@ -162,4 +162,19 @@ public class Checker {
         return dataObject != null && result == null;
     }
 
+    @Override
+    public String toString() {
+        return "Checker{" +
+                "platform='" + platform + '\'' +
+                ", locale='" + locale + '\'' +
+                ", token='" + token + '\'' +
+                ", appcode='" + appcode + '\'' +
+                ", appVersion='" + appVersion + '\'' +
+                ", brand='" + brand + '\'' +
+                ", model='" + model + '\'' +
+                ", dataObject=" + dataObject +
+                ", result='" + result + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }
