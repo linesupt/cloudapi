@@ -105,6 +105,14 @@ public class TableManager {
     }
 
     /**
+     * 获取媒体播放计划
+     * @return
+     */
+    public static String getAdBrandTable() {
+        return "adbrand";
+    }
+
+    /**
      * 获取版本信息表
      * @param appcode
      * @return

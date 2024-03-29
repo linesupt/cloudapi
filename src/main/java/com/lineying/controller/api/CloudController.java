@@ -3,7 +3,6 @@ package com.lineying.controller.api;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.lineying.bean.CloudData;
-import com.lineying.bean.MediaPlan;
 import com.lineying.common.Config;
 import com.lineying.common.TableManager;
 import com.lineying.controller.BaseController;
@@ -11,6 +10,7 @@ import com.lineying.controller.Checker;
 import com.lineying.data.Column;
 import com.lineying.data.Param;
 import com.lineying.entity.CommonSqlManager;
+import com.lineying.manager.AdMediaManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.*;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +51,13 @@ public class CloudController extends BaseController {
             List<Map<String, Object>> mediaPlanList = commonService.list(CommonSqlManager.queryMediaPlan());
             Config.mediaPlanList = mediaPlanList;
 
+            Config.adntBrandList.clear();
+            List<Map<String, Object>> adBrandList = commonService.list(CommonSqlManager.queryAdBrand());
+            for (Map<String, Object> map : adBrandList) {
+                String brand = (String) map.get("brand");
+                Config.adntBrandList.add(brand.toLowerCase());
+            }
+
             LOGGER.info("config::" + Config.defMedia + "\n" + Config.mediaPlanList);
             return JsonCryptUtil.makeSuccess();
         } catch (Exception e){
@@ -90,11 +97,19 @@ public class CloudController extends BaseController {
             String pkgname = jsonObject.get(Column.PKGNAME).getAsString();
 
             // 配置广告显示规则
-            List<Map<String, Object>> adList = commonService.list(CommonSqlManager.queryAdList(appcode, platform, pkgname));
             Map<String, Object> confMap = new HashMap<>();
-            confMap.put(Param.Key.ADLIST, adList);
+            String brand = checker.getBrand() == null ? "" : checker.getBrand().toLowerCase();
+            if (Config.adntBrandList.contains(brand)) {
+                List<Map<String, Object>> adList = AdMediaManager.makeEmptyAdList();
+                LOGGER.info("adlist::" + adList);
+                confMap.put(Param.Key.ADLIST, adList);
+            } else {
+                List<Map<String, Object>> adList = commonService.list(CommonSqlManager.queryAdList(appcode, platform, pkgname));
+                confMap.put(Param.Key.ADLIST, adList);
+            }
             confMap.put(Param.Key.ADDEF, Config.defMedia);
             confMap.put(Param.Key.MEDIA_PLAN, Config.mediaPlanList);
+            LOGGER.info("adlistmap::" + confMap);
             return JsonCryptUtil.makeSuccess(confMap);
         } catch (Exception e){
             e.printStackTrace();

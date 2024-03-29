@@ -157,6 +157,23 @@ public class CommonSqlManager {
     }
 
     /**
+     * 查询媒体播放计划
+     * @param table
+     * @param locale
+     * @return
+     */
+    public static CommonQueryEntity queryAdBrand() {
+        String where = String.format("%s='%s'", Column.STATUS, "0");
+        CommonQueryEntity entity = new CommonQueryEntity();
+        entity.setTable(TableManager.getAdBrandTable());
+        entity.setColumn(Column.BRAND);
+        entity.setSort(Column.SORT_DESC);
+        entity.setSortColumn(Column.ID);
+        entity.setWhere(where);
+        return entity;
+    }
+
+    /**
      * 查询默认播放媒体
      * @param table
      * @param locale
