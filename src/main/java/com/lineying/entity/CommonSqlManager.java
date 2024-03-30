@@ -558,6 +558,9 @@ public class CommonSqlManager {
         }
         String dataFormatColumn = "`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`";
         String dataFormatValue = "'%s','%s','%s','%s','%s','%s','%s','%s','%s'";
+        if ("".equals(appleUser) || "NULL".equals(appleUser)) {
+            dataFormatValue = "'%s','%s','%s',%s,'%s','%s','%s','%s','%s'";
+        }
         String column = String.format(dataFormatColumn, Column.USERNAME, Column.NICKNAME, Column.PASSWORD, Column.APPLE_USER,
                 Column.BRAND, Column.MODEL, Column.IPADDR, Column.CREATE_TIME, Column.UPDATE_TIME);
         String value = String.format(dataFormatValue, username, username, password, appleUser, brand, model, ipaddr, createTime + "", updateTime + "");
