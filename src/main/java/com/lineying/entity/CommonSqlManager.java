@@ -162,11 +162,11 @@ public class CommonSqlManager {
      * @param locale
      * @return
      */
-    public static CommonQueryEntity queryAdBrand() {
-        String where = String.format("%s='%s'", Column.STATUS, "0");
+    public static CommonQueryEntity queryAdBrand(int status) {
+        String where = String.format("%s='%s'", Column.STATUS, "" + status);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(TableManager.getAdBrandTable());
-        entity.setColumn(Column.BRAND);
+        entity.setColumn(Column.COLUMN_ALL);
         entity.setSort(Column.SORT_DESC);
         entity.setSortColumn(Column.ID);
         entity.setWhere(where);

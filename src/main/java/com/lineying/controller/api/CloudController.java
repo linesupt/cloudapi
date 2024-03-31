@@ -2,6 +2,7 @@ package com.lineying.controller.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.lineying.bean.AdntBrand;
 import com.lineying.bean.CloudData;
 import com.lineying.common.Config;
 import com.lineying.common.TableManager;
@@ -52,13 +53,17 @@ public class CloudController extends BaseController {
             Config.mediaPlanList = mediaPlanList;
 
             Config.adntBrandList.clear();
-            List<Map<String, Object>> adBrandList = commonService.list(CommonSqlManager.queryAdBrand());
+            List<Map<String, Object>> adBrandList = commonService.list(CommonSqlManager.queryAdBrand(0));
             for (Map<String, Object> map : adBrandList) {
-                String brand = (String) map.get("brand");
-                Config.adntBrandList.add(brand.toLowerCase());
+                String appcode = (String) map.get("appcode");
+                String platform = (String) map.get("platform");
+                String brand = ((String) map.get("brand")).toLowerCase();
+                int status = (Integer) map.get("status");
+                AdntBrand model = new AdntBrand(appcode, platform, brand, status);
+                Config.adntBrandList.add(model);
             }
 
-            LOGGER.info("config::" + Config.defMedia + "\n" + Config.mediaPlanList);
+            LOGGER.info("config::" + Config.defMedia + "\n" + Config.mediaPlanList + "\n" + Config.adntBrandList);
             return JsonCryptUtil.makeSuccess();
         } catch (Exception e){
             e.printStackTrace();
@@ -74,6 +79,28 @@ public class CloudController extends BaseController {
         if (Objects.equals(Config.defMedia, "")) {
             updateConf(request);
         }
+    }
+
+    /**
+     * 检查是否禁用广告
+     * @param appcode
+     * @param platform
+     * @param brand
+     * @return
+     */
+    private boolean checkAdnt(String appcode, String platform, String brand) {
+        try {
+            for (AdntBrand model : Config.adntBrandList) {
+                if (Objects.equals(appcode, model.getAppcode())
+                        && Objects.equals(platform, model.getPlatform())
+                        && Objects.equals(brand, model.getBrand())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
@@ -99,7 +126,7 @@ public class CloudController extends BaseController {
             // 配置广告显示规则
             Map<String, Object> confMap = new HashMap<>();
             String brand = checker.getBrand() == null ? "" : checker.getBrand().toLowerCase();
-            if (Config.adntBrandList.contains(brand)) {
+            if (checkAdnt(appcode, platform, brand)) {
                 List<Map<String, Object>> adList = AdMediaManager.makeEmptyAdList();
                 LOGGER.info("adlist::" + adList);
                 confMap.put(Param.Key.ADLIST, adList);
