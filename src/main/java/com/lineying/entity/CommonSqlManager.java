@@ -473,8 +473,15 @@ public class CommonSqlManager {
         return entity;
     }
 
-    public static CommonQueryEntity queryUserForAppleUser(String table, String username, String password) {
-        String where = String.format("%s='%s' and %s='%s'", Column.USERNAME, username, Column.APPLE_USER, password);
+    /**
+     * 通过AppleUser查询用户
+     * @param table
+     * @param username
+     * @param appleuser
+     * @return
+     */
+    public static CommonQueryEntity queryUserForAppleUser(String table, String appleuser) {
+        String where = String.format("%s='%s'", Column.APPLE_USER, appleuser);
         CommonQueryEntity entity = new CommonQueryEntity();
         entity.setTable(table);
         entity.setColumn(Column.COLUMN_ALL);
@@ -653,6 +660,17 @@ public class CommonSqlManager {
      */
     public static CommonUpdateEntity updatePasswordForMobile(String table, String password, String moile) {
         return updatePasswordForField(table, password, Column.MOBILE, moile);
+    }
+
+    /**
+     * 通过Appleuser更新密码
+     * @param table
+     * @param password
+     * @param appleuser
+     * @return
+     */
+    public static CommonUpdateEntity updatePasswordForAppleUser(String table, String password, String appleuser) {
+        return updatePasswordForField(table, password, Column.APPLE_USER, appleuser);
     }
 
     /**

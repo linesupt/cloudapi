@@ -254,7 +254,7 @@ public class AuthenticationController extends BaseController {
             if (type == 0) {
                 list = commonService.list(CommonSqlManager.queryUser(table, username, password));
             } else if (type == 1) {
-                list = commonService.list(CommonSqlManager.queryUserForAppleUser(table, username, appleUser));
+                list = commonService.list(CommonSqlManager.queryUserForAppleUser(table, appleUser));
             }
             if (list.size() > 0) {
                 result = commonService.delete(CommonSqlManager.deleteUser(table, username));

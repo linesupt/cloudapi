@@ -1,5 +1,7 @@
 package com.lineying.util;
 
+import java.util.logging.Logger;
+
 /**
  * json加密结果
  */
@@ -88,7 +90,7 @@ public class JsonCryptUtil {
      */
     public static String makeFail(String cause) {
         String result = JsonUtil.makeFail(cause);
-        System.out.println("原因错误::" + result);
+        Logger.getGlobal().info("错误原因::" + result);
         return AESUtil.encrypt(result);
     }
 
@@ -100,7 +102,7 @@ public class JsonCryptUtil {
      */
     public static String makeFail(String cause, int statusCode) {
         String result = JsonUtil.makeFailError(cause, statusCode);
-        System.out.println("原因错误::" + result);
+        Logger.getGlobal().info("错误原因2::" + result);
         return AESUtil.encrypt(result);
     }
 

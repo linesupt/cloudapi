@@ -46,6 +46,7 @@ public class BaseController {
      * @return
      */
     protected boolean checkRequest(long timestamp) {
+        LOGGER.info("time=====>>> " + getCurrentTime() + " - " + timestamp);
         return Math.abs(getCurrentTime() - timestamp) < CommonConstant.TIME_INTERVAL;
     }
 

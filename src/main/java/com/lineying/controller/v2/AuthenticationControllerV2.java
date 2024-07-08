@@ -99,7 +99,7 @@ public class AuthenticationControllerV2 extends BaseController {
      * @param mobile
      * @return
      */
-    private boolean hasUser(int type, String table, String password, int uid, String email, String mobile) {
+    private boolean hasUser(int type, String table, String password, int uid, String email, String mobile, String appleuser) {
         List<Map<String, Object>> list = null;
         try {
             switch (type) {
@@ -111,6 +111,9 @@ public class AuthenticationControllerV2 extends BaseController {
                     break;
                 case 2: // mobile
                     list = commonService.list(CommonSqlManager.queryPasswordForMobile(table, password, mobile));
+                    break;
+                case 3: // appleuser
+                    list = commonService.list(CommonSqlManager.queryUserForAppleUser(table, appleuser));
                     break;
             }
         } catch (Exception e) {
@@ -137,24 +140,35 @@ public class AuthenticationControllerV2 extends BaseController {
         String appcode = jsonObject.get(Column.APPCODE).getAsString();
         int type = jsonObject.get(Column.TYPE).getAsInt();
         String password = jsonObject.get(Column.PASSWORD).getAsString();
-        String passwordOld = jsonObject.get(Column.PASSWORD_OLD).getAsString();
         String table = TableManager.getUserTable(appcode);
 
         int uid = 0;
         String email = "";
         String mobile = "";
+        String appleuser = "";
+        String passwordOld = "";
         switch (type) {
             case 0: // uid
-                uid = jsonObject.get(Column.ID).getAsInt();
-                break;
             case 1: // email
-                email = jsonObject.get(Column.EMAIL).getAsString();
-                break;
             case 2: // mobile
-                mobile = jsonObject.get(Column.MOBILE).getAsString();
+                passwordOld = jsonObject.get(Column.PASSWORD_OLD).getAsString();
+                switch (type) {
+                    case 0:
+                        uid = jsonObject.get(Column.ID).getAsInt();
+                        break;
+                    case 1:
+                        email = jsonObject.get(Column.EMAIL).getAsString();
+                        break;
+                    case 2:
+                        mobile = jsonObject.get(Column.MOBILE).getAsString();
+                        break;
+                }
+                break;
+            case 3: // appleuser
+                appleuser = jsonObject.get(Column.APPLE_USER).getAsString();
                 break;
         }
-        boolean hasUser = hasUser(type, table, passwordOld, uid, email, mobile);
+        boolean hasUser = hasUser(type, table, passwordOld, uid, email, mobile, appleuser);
         if (!hasUser) {
             return JsonCryptUtil.makeFail("old password error");
         }
@@ -167,23 +181,31 @@ public class AuthenticationControllerV2 extends BaseController {
                 case 1: // email
                     List<Map<String, Object>> userList = commonService.list(CommonSqlManager.queryUserForEmail(table, email, password));
                     if (userList.size() > 0) {
-                        uid = (Integer) userList.get(0).get(Column.UID);
+                        uid = (Integer) userList.get(0).get(Column.ID);
                     }
                     result = commonService.update(CommonSqlManager.updatePasswordForEmail(table, password, email));
                     break;
                 case 2: // mobile
                     List<Map<String, Object>> userMobileList = commonService.list(CommonSqlManager.queryUserForMobile(table, mobile, password));
                     if (userMobileList.size() > 0) {
-                        uid = (Integer) userMobileList.get(0).get(Column.UID);
+                        uid = (Integer) userMobileList.get(0).get(Column.ID);
                     }
                     result = commonService.update(CommonSqlManager.updatePasswordForMobile(table, password, mobile));
+                    break;
+                case 3: // apple user
+                    List<Map<String, Object>> userAppleList = commonService.list(CommonSqlManager.queryUserForAppleUser(table, appleuser));
+                    if (userAppleList.size() > 0) {
+                        LOGGER.info("user data ===>>" + userAppleList.get(0));
+                        uid = (Integer) userAppleList.get(0).get(Column.ID);
+                    }
+                    result = commonService.update(CommonSqlManager.updatePasswordForAppleUser(table, password, appleuser));
                     break;
             }
         } catch (Exception e) {
             e.printStackTrace();
             return JsonCryptUtil.makeFail(e.getMessage());
         }
-
+        LOGGER.info("uid===>>" + uid);
         String token = "";
         if (uid > 0) {
             token = TokenUtil.makeToken(uid, password);
