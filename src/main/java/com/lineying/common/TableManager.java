@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class TableManager {
 
-    private static List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo");
+    private static List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo", "smsmessenger");
 
     /**
      * 是否包含
@@ -30,6 +30,10 @@ public class TableManager {
                 return "_cal";
             case "scancode":
                 return "_qrcode";
+            case "linevideo":
+                return "_video";
+            case "smsmessenger":
+                return "_messenger";
         }
         return "";
     }

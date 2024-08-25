@@ -15,6 +15,8 @@ public class SmsEntityFactory {
             return new SmsEntity("mathcalc", "1400875159", "千维计算器", "2014739");
         } else if ("scancode".equals(appcode)) {
             return new SmsEntity("scancode", "1400875160", "简码App", "2014740");
+        } else if ("smsmessenger".equals(appcode)) { // 此处需要处理
+            return new SmsEntity("smsmessenger", "1400875160", "小信使", "2014740");
         }
 
         return null;
