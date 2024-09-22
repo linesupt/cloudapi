@@ -179,4 +179,13 @@ public class JsonUtil {
         return new Gson().toJson(jsonMap);
     }
 
+    /**
+     * 生成json
+     * @param jsonMap
+     * @return
+     */
+    public static String makeData(Map<String, Object> jsonMap) {
+        return new Gson().toJson(jsonMap);
+    }
+
 }

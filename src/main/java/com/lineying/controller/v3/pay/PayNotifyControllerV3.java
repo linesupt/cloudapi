@@ -88,7 +88,7 @@ public class PayNotifyControllerV3 extends PayNotifyController {
                 return false;
             }
             // 更新订单状态
-            result = commonService.update(CommonSqlManager.updateOrder(tradeNo, outTradeNo, status, getCurrentTimeMs()));
+            result = commonService.update(CommonSqlManager.updateOrder("", tradeNo, outTradeNo, status, getCurrentTimeMs()));
             return result;
         } catch (Exception e) {
             e.printStackTrace();

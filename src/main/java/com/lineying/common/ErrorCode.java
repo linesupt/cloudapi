@@ -23,5 +23,7 @@ public @interface ErrorCode {
     int EMAIL_EXIST = 10006;
     // 手机号已存在
     int MOBILE_EXIST = 10007;
+    // 收据验证失败（验证为空）
+    int RECEIPT_VERIFY_EMPTY = 10008;
 
 }

@@ -55,6 +55,8 @@ public @interface Column {
     String PAY_TYPE = "pay_type";
     String PLATFORM_TYPE = "platform_type";
     String TRADE_NO = "trade_no";
+    // 原始交易订单号（订阅）
+    String ORIGINAL_TRADE_NO = "original_trade_no";
     String TRADE_STATUS = "trade_status";
     String OUT_TRADE_NO = "out_trade_no";
     String GOODS_CODE = "goods_code";
@@ -105,5 +107,10 @@ public @interface Column {
     String NONCESTR = "noncestr";
     String PACKAGE = "package";
     String SIGN = "sign";
+
+    // 收据
+    String RECEIPT = "receipt";
+    // 沙盒环境
+    String SANDBOX = "sandbox";
 
 }

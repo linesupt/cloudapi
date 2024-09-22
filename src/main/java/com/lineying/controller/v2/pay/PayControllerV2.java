@@ -98,7 +98,7 @@ public class PayControllerV2 extends PayController {
             if (expireTime <= 0) {
                 return JsonCryptUtil.makeFail(cause);
             } else {
-                boolean result = commonService.update(CommonSqlManager.updateOrder("",
+                boolean result = commonService.update(CommonSqlManager.updateOrder("", "",
                         outTradeNo, 1, getCurrentTimeMs()));
                 if (!result) {
                     return JsonCryptUtil.makeFail(cause);

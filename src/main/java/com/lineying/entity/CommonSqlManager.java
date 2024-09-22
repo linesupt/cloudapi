@@ -241,6 +241,16 @@ public class CommonSqlManager {
      * @param locale
      * @return
      */
+    public static CommonQueryEntity queryOrderForTradeNo(String tradeNo) {
+        return queryAttrAll(Order.TABLE, Column.TRADE_NO, tradeNo, Column.SORT_ASC, Column.ID);
+    }
+
+    /**
+     * 查询商品列表
+     * @param table
+     * @param locale
+     * @return
+     */
     public static CommonQueryEntity queryGoodsList(String table, String locale) {
         return queryAttrAll(table, Column.LOCALE, locale, Column.SORT_ASC, Column.ID);
     }
@@ -833,9 +843,9 @@ public class CommonSqlManager {
      * @param updateTime
      * @return
      */
-    public static CommonUpdateEntity updateOrder(String tradeNo, String outTradeNo, int status, long updateTime) {
+    public static CommonUpdateEntity updateOrder(String originalTradeNo, String tradeNo, String outTradeNo, int status, long updateTime) {
         CommonUpdateEntity entity = new CommonUpdateEntity();
-        String set = String.format("%s='%s', %s='%s', %s='%s'", Column.TRADE_NO, tradeNo, Column.STATUS,
+        String set = String.format("%s='%s', %s='%s', %s='%s', %s='%s'", Column.ORIGINAL_TRADE_NO, originalTradeNo, Column.TRADE_NO, tradeNo, Column.STATUS,
                 status + "", Column.UPDATE_TIME, updateTime + "");
         String where = String.format("%s='%s'", Column.OUT_TRADE_NO, outTradeNo);
         entity.setSet(set);

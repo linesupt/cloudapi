@@ -31,6 +31,10 @@ public class CommonConstant {
     public static final String WXPAY_NOTIFY_URL = "cloud/api/pay/wxpay/notify";
     public static final String ALIPAY_NOTIFY_URL_V3 = "cloud/v3/pay/alipay/notify";
     public static final String WXPAY_NOTIFY_URL_V3 = "cloud/v3/pay/wxpay/notify";
+    // 测试收据验证地址
+    public static final String VERIFY_RECEIPT_SANDBOX = "https://sandbox.itunes.apple.com/verifyReceipt";
+    // 正式收据验证地址
+    public static final String VERIFY_RECEIPT_BUY = "https://buy.itunes.apple.com/verifyReceipt";
 
     // 公钥，用于查找所属项目
     public static String BASE_URL;

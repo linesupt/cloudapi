@@ -92,7 +92,7 @@ public class PayNotifyController extends BasePayController {
     protected boolean handleOrderStatus(String tradeNo, String outTradeNo, int status) {
         boolean result = false;
         try {
-            result = commonService.update(CommonSqlManager.updateOrder(tradeNo, outTradeNo, status, getCurrentTimeMs()));
+            result = commonService.update(CommonSqlManager.updateOrder("", tradeNo, outTradeNo, status, getCurrentTimeMs()));
         } catch (Exception e) {
             e.printStackTrace();
         }
