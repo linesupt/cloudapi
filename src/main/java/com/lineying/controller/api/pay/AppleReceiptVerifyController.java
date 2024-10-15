@@ -52,15 +52,10 @@ public class AppleReceiptVerifyController extends BasePayController {
 
         String receipt = jsonObject.get(Column.RECEIPT).getAsString();
         String outTradeNo = jsonObject.get(Column.OUT_TRADE_NO).getAsString();
-        boolean isSandbox = jsonObject.get(Column.SANDBOX).getAsInt() == 1;
-        //isSandbox = false;
-        String verifyUrl = CommonConstant.VERIFY_RECEIPT_BUY;
-        if (isSandbox) {
-            verifyUrl = CommonConstant.VERIFY_RECEIPT_SANDBOX;
-        }
-        LOGGER.info("receiptVerify::" + outTradeNo + " isSandbox:" + isSandbox + "\n" + verifyUrl + "\n" + receipt);
+        // 这里需要先验证正式环境，判断是否是沙盒环境再考虑是否进行二次验证
+        LOGGER.info("receiptVerify::" + outTradeNo + "\n" + receipt);
         String secret = SecretManager.getSecret(appcode);
-        String result = doVerify(verifyUrl, receipt, secret);
+        String result = doVerify(CommonConstant.VERIFY_RECEIPT_BUY, receipt, secret);
         LOGGER.info("verify result::" + result);
         if (TextUtils.isEmpty(result)) {
             return JsonCryptUtil.makeFail("verify result empty", ErrorCode.RECEIPT_VERIFY_EMPTY);
@@ -73,9 +68,19 @@ public class AppleReceiptVerifyController extends BasePayController {
          * 再使用沙盒 URL 进行验证。
          * 这种方法可以确保您不必在 app 的测试期间、App Review 审核期间或已在 App Store 上架后切换 URL。
          */
+        if (status == ReceiptCode.STATUS_21007) {// 沙盒环境二次验证
+            result = doVerify(CommonConstant.VERIFY_RECEIPT_SANDBOX, receipt, secret);
+            LOGGER.info("verify result::" + result);
+            if (TextUtils.isEmpty(result)) {
+                return JsonCryptUtil.makeFail("verify result empty", ErrorCode.RECEIPT_VERIFY_EMPTY);
+            }
+            resultObject = JsonParser.parseString(result).getAsJsonObject();
+            status = resultObject.get(Column.STATUS).getAsInt();
+            LOGGER.info("verify status::" + status + "\n" + resultObject);
+        }
         if (status == ReceiptCode.STATUS_OK) {
             // 处理业务
-            long expireTime = handleTransaction(appcode, locale, outTradeNo, resultObject);
+            long expireTime = handleTransaction(appcode, outTradeNo, resultObject);
             if (expireTime <= 0) {
                 return JsonCryptUtil.makeFail("Inner error", ErrorCode.FAIL);
             }
@@ -91,11 +96,10 @@ public class AppleReceiptVerifyController extends BasePayController {
      * 处理交易逻辑
      * 查询/保存订单到数据库
      * @param appcode 对应产品
-     * @param locale 对应语言环境
      * @param jsonObject
      * @return 返回过期时间，大于0表示成功
      */
-    public long handleTransaction(String appcode, String locale, String outTradeNo, JsonObject jsonObject) {
+    public long handleTransaction(String appcode, String outTradeNo, JsonObject jsonObject) {
         try {
             JsonObject receiptJson = jsonObject.get("receipt").getAsJsonObject();
             JsonArray inAppArray = receiptJson.get("in_app").getAsJsonArray();
@@ -116,72 +120,86 @@ public class AppleReceiptVerifyController extends BasePayController {
             String productId = target.getProductId();
             String transactionId = target.getTransactionId(); // 订单号
             String originalTransactionId = target.getOriginalTransactionId(); // 原始订单号
-            //获取商品id和订单号以后 此处可以处理本地的订单逻辑
-            LOGGER.info("获取到产品id:" + productId + " 订单号:" + transactionId + " - " + originalTransactionId);
-            List<Map<String, Object>> appleOrderList = commonService.list(CommonSqlManager.queryOrderForTradeNo(transactionId));
-            if (appleOrderList != null) {
-                if (appleOrderList.size() == 1) { // 判断状态
-                    Map<String, Object> orderMap = appleOrderList.get(0);
-                    // 交易状态
-                    int tradeStatus = (Integer) orderMap.get(Column.STATUS);
-                    if (tradeStatus == 1) { // 订单已经处理过
-                        LOGGER.info("订单号已经处理过::" + transactionId);
-                        return 0;
-                    }
-                } else if (appleOrderList.size() > 1) { // 交易出错，订单号重复
-                    LOGGER.info("交易出错，订单号重复::" + transactionId);
-                    return 0;
-                }
-            }
-
-            List<Map<String, Object>> orderList = commonService.list(CommonSqlManager.queryOrder(outTradeNo));
-            if (orderList == null || orderList.size() != 1) {
-                return 0;
-            }
-            Map<String, Object> orderMap = orderList.get(0);
-
-            String table = TableManager.getUserTable(appcode);
-            String tableGoods = TableManager.getGoodsTable(appcode);
-            // 交易状态
-            int tradeStatus = (Integer) orderMap.get(Column.STATUS);
-            if (tradeStatus == 1) { // 订单已经处理过
-                LOGGER.info("订单号已经处理过 自订单号::" + outTradeNo);
-                return 0;
-            }
-            String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
-            int uid = (Integer) orderMap.get(Column.UID);
-            List<Map<String, Object>> goodsList = commonService.list(CommonSqlManager.queryGoods(tableGoods, goodsCode));
-            if (goodsList == null || goodsList.isEmpty()) {
-                return 0;
-            }
-            // 获取商品
-            Map<String, Object> goodsMap = goodsList.get(0);
-            long duration = (Long) goodsMap.get(Column.DURATION); //
-            List<Map<String, Object>> userList = commonService.list(CommonSqlManager.queryUser(table, uid));
-            if (userList == null || userList.size() != 1) {
-                return 0;
-            }
-            Map<String, Object> userMap = userList.get(0);
-            long expireTime = (Long) userMap.get(Column.EXPIRE_TIME);
-            // 计算出会员过期时长
-            if (expireTime > getCurrentTimeMs()) {
-                expireTime += duration;
-            } else {
-                expireTime = getCurrentTimeMs() + duration;
-            }
-            // 更新用户会员时间
-            boolean result = commonService.update(CommonSqlManager.updateAttr(table, uid, Column.EXPIRE_TIME, expireTime + ""));
-            if (!result) {
-                return 0;
-            }
-            // 更新订单状态
-            result = commonService.update(CommonSqlManager.updateOrder(originalTransactionId, transactionId, outTradeNo, 1, getCurrentTimeMs()));
-            if (result) {
-                return expireTime;
-            }
-            return 0;
+            return doHandleTransaction(appcode, outTradeNo, productId, transactionId, originalTransactionId);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * 处理数据库查询
+     * @param appcode
+     * @param outTradeNo
+     * @param productId
+     * @param transactionId
+     * @param originalTransactionId
+     * @return
+     */
+    public long doHandleTransaction(String appcode, String outTradeNo, String productId, String transactionId, String originalTransactionId) {
+
+        //获取商品id和订单号以后 此处可以处理本地的订单逻辑
+        LOGGER.info("获取到产品id:" + productId + " 订单号:" + transactionId + " - " + originalTransactionId);
+        List<Map<String, Object>> appleOrderList = commonService.list(CommonSqlManager.queryOrderForTradeNo(transactionId));
+        if (appleOrderList != null) {
+            if (appleOrderList.size() == 1) { // 判断状态
+                Map<String, Object> orderMap = appleOrderList.get(0);
+                // 交易状态
+                int tradeStatus = (Integer) orderMap.get(Column.STATUS);
+                if (tradeStatus == 1) { // 订单已经处理过
+                    LOGGER.info("订单号已经处理过::" + transactionId);
+                    return 0;
+                }
+            } else if (appleOrderList.size() > 1) { // 交易出错，订单号重复
+                LOGGER.info("交易出错，订单号重复::" + transactionId);
+                return 0;
+            }
+        }
+
+        List<Map<String, Object>> orderList = commonService.list(CommonSqlManager.queryOrder(outTradeNo));
+        if (orderList == null || orderList.size() != 1) {
+            return 0;
+        }
+        Map<String, Object> orderMap = orderList.get(0);
+
+        String table = TableManager.getUserTable(appcode);
+        String tableGoods = TableManager.getGoodsTable(appcode);
+        // 交易状态
+        int tradeStatus = (Integer) orderMap.get(Column.STATUS);
+        if (tradeStatus == 1) { // 订单已经处理过
+            LOGGER.info("订单号已经处理过 自订单号::" + outTradeNo);
+            return 0;
+        }
+        String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
+        int uid = (Integer) orderMap.get(Column.UID);
+        List<Map<String, Object>> goodsList = commonService.list(CommonSqlManager.queryGoods(tableGoods, goodsCode));
+        if (goodsList == null || goodsList.isEmpty()) {
+            return 0;
+        }
+        // 获取商品
+        Map<String, Object> goodsMap = goodsList.get(0);
+        long duration = (Long) goodsMap.get(Column.DURATION); //
+        List<Map<String, Object>> userList = commonService.list(CommonSqlManager.queryUser(table, uid));
+        if (userList == null || userList.size() != 1) {
+            return 0;
+        }
+        Map<String, Object> userMap = userList.get(0);
+        long expireTime = (Long) userMap.get(Column.EXPIRE_TIME);
+        // 计算出会员过期时长
+        if (expireTime > getCurrentTimeMs()) {
+            expireTime += duration;
+        } else {
+            expireTime = getCurrentTimeMs() + duration;
+        }
+        // 更新用户会员时间
+        boolean result = commonService.update(CommonSqlManager.updateAttr(table, uid, Column.EXPIRE_TIME, expireTime + ""));
+        if (!result) {
+            return 0;
+        }
+        // 更新订单状态
+        result = commonService.update(CommonSqlManager.updateOrder(originalTransactionId, transactionId, outTradeNo, 1, getCurrentTimeMs()));
+        if (result) {
+            return expireTime;
         }
         return 0;
     }
