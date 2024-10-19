@@ -131,6 +131,55 @@ public class SecureConfig {
         WXPAY_MERCHANT_SERIAL_NUMBER = serialNumber;
     }
 
+    // Apple API 集成 团队密钥issuer_id
+    public static String APPLE_ISSUER_ID;
+    @Value("${pay.apple.issuer_id}")
+    public void setAppleIssuerId(String issuerId) {
+        APPLE_ISSUER_ID = issuerId;
+    }
+
+    // Apple API 集成 团队密钥key_id
+    public static String APPLE_KEY_ID;
+    @Value("${pay.apple.key_id}")
+    public void setAppleKeyId(String keyId) {
+        APPLE_KEY_ID = keyId;
+    }
+
+    // Apple API 集成 团队密钥文件路径
+    public static String APPLE_AUTH_KEY_PATH;
+    @Value("${pay.apple.auth_key_path}")
+    public void setAppleAuthKeyPath(String authKeyPath) {
+        APPLE_AUTH_KEY_PATH = authKeyPath;
+    }
+
+    // Apple API 集成 根证书
+    public static String APPLE_COMPUTER_ROOT_CERT_PATH;
+    @Value("${pay.apple.computer_root_cert_path}")
+    public void setAppleComputerRootCertPath(String computerRootCertPath) {
+        APPLE_COMPUTER_ROOT_CERT_PATH = computerRootCertPath;
+    }
+
+    // Apple API 集成 根证书
+    public static String APPLE_INC_ROOT_CERT_PATH;
+    @Value("${pay.apple.inc_root_cert_path}")
+    public void setAppleIncRootCertPath(String incRootCertPath) {
+        APPLE_INC_ROOT_CERT_PATH = incRootCertPath;
+    }
+
+    // Apple API 集成 根证书
+    public static String APPLE_ROOT_CA_G2;
+    @Value("${pay.apple.root_ca_g2_path}")
+    public void setAppleRootCaG2(String rootCaG2) {
+        APPLE_ROOT_CA_G2 = rootCaG2;
+    }
+
+    // Apple API 集成 根证书
+    public static String APPLE_ROOT_CA_G3;
+    @Value("${pay.apple.root_ca_g3_path}")
+    public void setAppleRootCaG3(String rootCaG3) {
+        APPLE_ROOT_CA_G3 = rootCaG3;
+    }
+
     public static void printInfo() {
         LOGGER.info("secure info::" + DB_API_KEY);
         LOGGER.info(DB_SECRET_KEY);
@@ -147,6 +196,13 @@ public class SecureConfig {
         LOGGER.info(WXPAY_APIV3_KEY);
         LOGGER.info(WXPAY_PRI_KEY_PATH);
         LOGGER.info(WXPAY_MERCHANT_SERIAL_NUMBER);
+        LOGGER.info(APPLE_ISSUER_ID);
+        LOGGER.info(APPLE_KEY_ID);
+        LOGGER.info(APPLE_AUTH_KEY_PATH);
+        LOGGER.info(APPLE_COMPUTER_ROOT_CERT_PATH);
+        LOGGER.info(APPLE_INC_ROOT_CERT_PATH);
+        LOGGER.info(APPLE_ROOT_CA_G2);
+        LOGGER.info(APPLE_ROOT_CA_G3);
     }
 
 }
