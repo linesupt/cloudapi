@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Properties;
 
+/**
+ * 用于注入加载自定义yml文件
+ */
 public class YamlPropertySourceFactory implements PropertySourceFactory {
 
     @NotNull

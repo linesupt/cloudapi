@@ -3,10 +3,7 @@ package com.lineying.controller.v2.verify;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.bean.VerifyCode;
-import com.lineying.common.TableManager;
-import com.lineying.common.ErrorCode;
-import com.lineying.common.LocaleManager;
-import com.lineying.common.SignResult;
+import com.lineying.common.*;
 import com.lineying.controller.api.verify.BaseVerifyController;
 import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
@@ -111,7 +108,7 @@ public class VerifyControllerV2 extends BaseVerifyController {
         String targetKey = makeTargetKey(appCode, type, target);
 
         int sendResult = 0;
-        if (!TableManager.contains(appCode)) {
+        if (!AppcodeManager.contains(appCode)) {
             LOGGER.info("不存在当前应用::" + appCode);
             return JsonCryptUtil.makeFailSendVerifyCode();
         }

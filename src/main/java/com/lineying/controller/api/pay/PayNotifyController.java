@@ -1,15 +1,21 @@
 package com.lineying.controller.api.pay;
 
+import cn.hutool.core.io.FileUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.apple.itunes.storekit.client.APIException;
+import com.apple.itunes.storekit.client.AppStoreServerAPIClient;
+import com.apple.itunes.storekit.model.Environment;
+import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
+import com.apple.itunes.storekit.model.TransactionInfoResponse;
+import com.apple.itunes.storekit.verification.SignedDataVerifier;
+import com.apple.itunes.storekit.verification.VerificationException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.lineying.common.CommonConstant;
-import com.lineying.common.SecureConfig;
-import com.lineying.common.TableManager;
+import com.lineying.common.*;
 import com.lineying.data.Column;
 import com.lineying.data.Param;
 import com.lineying.entity.CommonSqlManager;
@@ -28,16 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 应用级接口
@@ -425,6 +429,55 @@ public class PayNotifyController extends BasePayController {
             return expireTime;
         }
         return 0;
+    }
+
+    /**
+     * 解签交易信息
+     * @param transactionId
+     * @throws IOException
+     * @throws APIException
+     * @throws VerificationException
+     * @throws VerificationException
+     */
+    private JWSTransactionDecodedPayload getTransactionFromApple(String appcode, String transactionId) throws IOException, APIException, VerificationException, VerificationException {
+
+        AppEntity entity = AppcodeManager.getEntity(appcode);
+        if (entity == null) {
+            return null;
+        }
+        String bundleId = entity.getBundleId();
+        long appleId = entity.getAppleId();
+
+        String keyId = SecureConfig.APPLE_KEY_ID;
+        String issuerId = SecureConfig.APPLE_ISSUER_ID;
+
+        ClassLoader loader = getClass().getClassLoader();
+        URL authKeyPath = loader.getResource(SecureConfig.APPLE_AUTH_KEY_PATH);
+        URL comRootCert = loader.getResource(SecureConfig.APPLE_COMPUTER_ROOT_CERT_PATH);
+        URL incRootCert = loader.getResource(SecureConfig.APPLE_INC_ROOT_CERT_PATH);
+        URL rootCaG2 = loader.getResource(SecureConfig.APPLE_ROOT_CA_G2);
+        URL rootCaG3 = loader.getResource(SecureConfig.APPLE_ROOT_CA_G3);
+        String encodedKey = FileUtil.readString(authKeyPath, CommonConstant.CHARSET);
+        Environment environment = Environment.SANDBOX;
+        Set<InputStream> rootCAs =  Set.of(
+                new FileInputStream(comRootCert.getPath()),
+                new FileInputStream(incRootCert.getPath()),
+                new FileInputStream(rootCaG2.getPath()),
+                new FileInputStream(rootCaG3.getPath())
+        );
+
+        //创建appleStoreServer对象
+        AppStoreServerAPIClient client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment);
+        //根据传输的订单号获取订单信息
+        TransactionInfoResponse sendResponse = client.getTransactionInfo(transactionId);
+        Boolean onlineChecks = false ;
+        SignedDataVerifier signedDataVerifier = new SignedDataVerifier(rootCAs, bundleId, appleId, environment, onlineChecks);
+        String signedPayLoad = sendResponse.getSignedTransactionInfo();
+        //对订单信息进行解析得到订单信息
+        JWSTransactionDecodedPayload payload = signedDataVerifier.verifyAndDecodeTransaction(signedPayLoad);
+        //进行订单信息处理
+        System.out.println("payload::" + signedPayLoad + "\n" + payload);
+        return payload;
     }
 
 }

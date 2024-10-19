@@ -1,23 +1,9 @@
 package com.lineying.common;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * appcode管理
+ * 数据表管理
  */
 public class TableManager {
-
-    private static List<String> mAppCodeServers = Arrays.asList("mathcalc", "scancode", "linevideo", "smsmessenger");
-
-    /**
-     * 是否包含
-     * @param appcode
-     * @return
-     */
-    public static boolean contains(String appcode) {
-        return mAppCodeServers.contains(appcode);
-    }
 
     /**
      * 获取表后缀
@@ -25,17 +11,7 @@ public class TableManager {
      * @return
      */
     private static String getTableSuffix(String appcode) {
-        switch (appcode) {
-            case "mathcalc":
-                return "_cal";
-            case "scancode":
-                return "_qrcode";
-            case "linevideo":
-                return "_video";
-            case "smsmessenger":
-                return "_messenger";
-        }
-        return "";
+        return AppcodeManager.getTableSuffix(appcode);
     }
 
     /**
