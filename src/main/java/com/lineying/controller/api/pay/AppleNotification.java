@@ -1,9 +1,9 @@
 package com.lineying.controller.api.pay;
 
 /**
- * IOS通知请求体
+ * Apple通知请求体
  */
-public class IosNotificationRequest {
+public class AppleNotification {
 
     private String signedPayLoad;
 

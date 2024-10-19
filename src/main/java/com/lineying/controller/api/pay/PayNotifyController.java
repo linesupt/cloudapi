@@ -275,35 +275,8 @@ public class PayNotifyController extends BasePayController {
      * 苹果支付通知
      * @return
      */
-    @RequestMapping("/pay/apple/notify/mathcalc")
-    public void appleNotifyMathCalc(@RequestBody IosNotificationRequest request) {
-        doAppleNotify("mathcalc", request);
-    }
-
-    /**
-     * 苹果支付通知
-     * @return
-     */
-    @RequestMapping("/pay/apple/notify/scancode")
-    public void appleNotifyScanCode(@RequestBody IosNotificationRequest request) {
-        doAppleNotify("scancode", request);
-    }
-
-    /**
-     * 苹果支付通知
-     * @return
-     */
-    @RequestMapping("/pay/apple/notify/linevideo")
-    public void appleNotifyLineVideo(@RequestBody IosNotificationRequest request) {
-        doAppleNotify("linevideo", request);
-    }
-
-    /**
-     * 苹果支付通知
-     * @return
-     */
-    //@RequestMapping("/pay/apple/notify")
-    public void doAppleNotify(String appcode, IosNotificationRequest request) {
+    @RequestMapping("/pay/apple/notify")
+    public void appleNotify(@RequestBody AppleNotification request) {
         LOGGER.info("接收到苹果订阅通知! apple ios server notification come in, request:{" + JSONObject.toJSONString(request) + "}");
         String signedPayLoad = request.getSignedPayLoad();
         try {
@@ -317,6 +290,7 @@ public class PayNotifyController extends BasePayController {
             LOGGER.info("apple ios server notification verify success");
             String signedTransactionInfo = data.get("signedTransactionInfo").toString();
             String environment = data.get("environment").toString();
+            String appcode = "mathcalc";
 
             JSONObject transactionInfo = verifyAppleNotify(signedTransactionInfo);
             String transactionId = transactionInfo.get("transactionId").toString();

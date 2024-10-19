@@ -2,6 +2,4 @@
 .idea/
 *.iml
 /src/main/resources/conf/secure.yml
-/src/main/resources/cert/wxpay/apiclient_cert.p12
-/src/main/resources/cert/wxpay/apiclient_cert.pem
-/src/main/resources/cert/wxpay/apiclient_key.pem
+/src/main/resources/cert/*
