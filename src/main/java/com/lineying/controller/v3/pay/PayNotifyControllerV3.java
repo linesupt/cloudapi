@@ -1,7 +1,7 @@
 package com.lineying.controller.v3.pay;
 
 import com.alipay.api.AlipayApiException;
-import com.lineying.common.TableManager;
+import com.lineying.manager.TableManager;
 import com.lineying.controller.api.pay.PayNotifyController;
 import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;

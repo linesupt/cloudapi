@@ -1,12 +1,8 @@
 package com.lineying.entity;
 
 import com.lineying.bean.Order;
-import com.lineying.common.LoginType;
-import com.lineying.common.TableManager;
+import com.lineying.manager.TableManager;
 import com.lineying.data.Column;
-import com.lineying.util.JsonCryptUtil;
-
-import java.awt.*;
 
 /**
  * sql查询管理

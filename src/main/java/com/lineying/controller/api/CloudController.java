@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.lineying.bean.AdntBrand;
 import com.lineying.bean.CloudData;
 import com.lineying.common.Config;
-import com.lineying.common.TableManager;
+import com.lineying.manager.TableManager;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;
 import com.lineying.data.Column;

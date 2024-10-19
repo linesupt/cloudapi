@@ -1,4 +1,4 @@
-package com.lineying.common;
+package com.lineying.manager;
 
 import java.util.Arrays;
 import java.util.List;

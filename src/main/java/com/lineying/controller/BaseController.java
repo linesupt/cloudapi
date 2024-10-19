@@ -3,7 +3,6 @@ package com.lineying.controller;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.lineying.common.CommonConstant;
-import com.lineying.common.LocaleManager;
 import com.lineying.data.Param;
 import com.lineying.util.AESUtil;
 import com.lineying.util.JsonCryptUtil;

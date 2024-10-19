@@ -10,6 +10,8 @@ import com.lineying.common.*;
 import com.lineying.controller.Checker;
 import com.lineying.data.Column;
 import com.lineying.entity.CommonSqlManager;
+import com.lineying.manager.AppcodeManager;
+import com.lineying.manager.TableManager;
 import com.lineying.util.JsonCryptUtil;
 import com.lineying.util.JsonUtil;
 import com.lineying.util.TextUtils;
@@ -54,7 +56,7 @@ public class AppleReceiptVerifyController extends BasePayController {
         String outTradeNo = jsonObject.get(Column.OUT_TRADE_NO).getAsString();
         // 这里需要先验证正式环境，判断是否是沙盒环境再考虑是否进行二次验证
         LOGGER.info("receiptVerify::" + outTradeNo + "\n" + receipt);
-        String secret = SecretManager.getSecret(appcode);
+        String secret = AppcodeManager.getSecret(appcode);
         String result = doVerify(CommonConstant.VERIFY_RECEIPT_BUY, receipt, secret);
         LOGGER.info("verify result::" + result);
         if (TextUtils.isEmpty(result)) {

@@ -2,7 +2,7 @@ package com.lineying.controller.v2;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.lineying.common.TableManager;
+import com.lineying.manager.TableManager;
 import com.lineying.common.ErrorCode;
 import com.lineying.controller.BaseController;
 import com.lineying.controller.Checker;

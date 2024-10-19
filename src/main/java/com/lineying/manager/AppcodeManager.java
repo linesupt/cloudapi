@@ -1,5 +1,6 @@
-package com.lineying.common;
+package com.lineying.manager;
 
+import com.lineying.entity.AppEntity;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -47,6 +48,19 @@ public class AppcodeManager {
             return "";
         }
         return entity.getTableSuffix();
+    }
+
+    /**
+     * 获取应用共享密钥
+     * @param appcode
+     * @return
+     */
+    public static String getSecret(String appcode) {
+        AppEntity entity = getEntity(appcode);
+        if (entity == null) {
+            return "";
+        }
+        return entity.getSecret();
     }
 
 }

@@ -1,4 +1,4 @@
-package com.lineying.common;
+package com.lineying.manager;
 
 /**
  * 数据表管理
