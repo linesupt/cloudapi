@@ -3,6 +3,8 @@ package com.lineying.manager;
 import com.lineying.entity.AppEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * appcode应用管理
  */
@@ -34,6 +36,22 @@ public class AppcodeManager {
      */
     public static boolean contains(String appcode) {
         return getEntity(appcode) != null;
+    }
+
+    /**
+     * 通过产品ID获取应用码
+     * @param productId
+     * @return
+     */
+    public static String getAppcode(String productId) {
+        AppEntity[] entities = AppEntity
+                .values();
+        for (AppEntity entity : entities) {
+            if (Objects.equals(entity.getAppleId() + "", productId)) {
+                return entity.getAppcode();
+            }
+        }
+        return "";
     }
 
     /**

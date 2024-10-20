@@ -174,7 +174,7 @@ public class PayNotifyController extends BasePayController {
         int status = 0;
         String requestBody = "";
         try {
-            requestBody = readReqData(request);
+            requestBody = readWXPayData(request);
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -257,17 +257,17 @@ public class PayNotifyController extends BasePayController {
     }
 
     // 发起退款
-    public String refund() {
+    public String wxpayRefund() {
         return "";
     }
 
     /**
-     * 读取请求原始报文
+     * 读取微信支付通知原始报文
      * @param request
      * @return
      * @throws IOException
      */
-    private String readReqData(HttpServletRequest request) throws IOException {
+    private String readWXPayData(HttpServletRequest request) throws IOException {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
         StringBuilder sb = new StringBuilder();
@@ -297,12 +297,12 @@ public class PayNotifyController extends BasePayController {
             LOGGER.info("apple ios server notification verify success");
             String signedTransactionInfo = data.get("signedTransactionInfo").toString();
             String environment = data.get("environment").toString();
-            String appcode = "mathcalc";
 
             JSONObject transactionInfo = verifyAppleNotify(signedTransactionInfo);
             String transactionId = transactionInfo.get("transactionId").toString();
             String originalTransactionId = transactionInfo.get("originalTransactionId").toString();
             String productId = transactionInfo.get("productId").toString();
+            String appcode = AppcodeManager.getAppcode(productId);
             LOGGER.info("apple pay=====>>" + environment + " - " + transactionId + " - " + originalTransactionId + " - " + productId);
             switch (notificationType) {
                 case AppleNotificationType.DID_RENEW: // 处理订阅续期业务逻辑
@@ -435,6 +435,25 @@ public class PayNotifyController extends BasePayController {
     }
 
     /**
+     * 服务器时间戳（s）
+     * @return
+     */
+    @RequestMapping("/timestamp2")
+    public long timestamp() {
+        /*try {
+            // 沙盒环境
+            JWSTransactionDecodedPayload p0 = getTransactionFromApple("mathcalc", "2000000743714173");
+            LOGGER.info("p0::" + p0);
+            // 生产环境
+            JWSTransactionDecodedPayload p1 = getTransactionFromApple("mathcalc", "2024092722001460861412318573");
+            LOGGER.info("p1::" + p1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+        return System.currentTimeMillis() / 1000;
+    }
+
+    /**
      * 解签交易信息
      * @param transactionId
      * @throws IOException
@@ -460,6 +479,16 @@ public class PayNotifyController extends BasePayController {
         URL incRootCert = loader.getResource(SecureConfig.APPLE_INC_ROOT_CERT_PATH);
         URL rootCaG2 = loader.getResource(SecureConfig.APPLE_ROOT_CA_G2);
         URL rootCaG3 = loader.getResource(SecureConfig.APPLE_ROOT_CA_G3);
+        LOGGER.info("authKeyPath::" + authKeyPath);
+        LOGGER.info("authKeyPath2::" + authKeyPath.getPath());
+        LOGGER.info("comRootCert::" + comRootCert);
+        LOGGER.info("comRootCert2::" + comRootCert.getPath());
+        LOGGER.info("incRootCert::" + incRootCert);
+        LOGGER.info("incRootCert2::" + incRootCert.getPath());
+        LOGGER.info("rootCaG2::" + rootCaG2);
+        LOGGER.info("rootCaG2-2::" + rootCaG2.getPath());
+        LOGGER.info("rootCaG3::" + rootCaG3);
+        LOGGER.info("rootCaG3-2::" + rootCaG3.getPath());
         String encodedKey = FileUtil.readString(authKeyPath, CommonConstant.CHARSET);
         Environment environment = Environment.SANDBOX;
         Set<InputStream> rootCAs =  Set.of(
