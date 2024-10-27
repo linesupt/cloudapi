@@ -1,9 +1,11 @@
 package com.lineying.util;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.lineying.common.ErrorCode;
 import com.lineying.data.Param;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -186,6 +188,40 @@ public class JsonUtil {
      */
     public static String makeData(Map<String, Object> jsonMap) {
         return new Gson().toJson(jsonMap);
+    }
+
+    /**
+     * 解析为对象
+     * @param text
+     * @param clazz
+     * @return
+     * @param <T>
+     */
+    public static <T> T fromJson(String text, Class<T> clazz) {
+        return new Gson().fromJson(text, clazz);
+    }
+
+    /**
+     *
+     * 解析json数据到字典中
+     * @param text
+     * @return
+     */
+    public static Map<String, Object> fromJson(String text) {
+        Type mapType = new TypeToken<Map<String, Object>>(){}.getType();
+        Map<String, Object> data = new Gson().fromJson(text, mapType);
+        return data;
+    }
+
+    /**
+     *
+     * 解析json数据到对象中
+     * @param param
+     * @return
+     */
+    public static <T> T fromJson(Map<String, Object> param, Class<T> clazz) {
+        String text = new Gson().toJson(param);
+        return new Gson().fromJson(text, clazz);
     }
 
 }

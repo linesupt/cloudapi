@@ -1,7 +1,6 @@
 package com.lineying.controller.api.pay;
 
 import cn.hutool.core.io.FileUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.apple.itunes.storekit.client.APIException;
@@ -15,10 +14,14 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.google.gson.JsonObject;
+import com.lineying.bean.Order;
 import com.lineying.common.*;
+import com.lineying.controller.Checker;
 import com.lineying.data.Column;
 import com.lineying.data.Param;
 import com.lineying.entity.AppEntity;
+import com.lineying.entity.AppleNotification;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.manager.AppcodeManager;
 import com.lineying.manager.TableManager;
@@ -30,6 +33,7 @@ import com.wechat.pay.java.service.partnerpayments.app.model.Transaction;
 import com.wechat.pay.java.service.payments.app.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.PublicKey;
@@ -282,31 +287,43 @@ public class PayNotifyController extends BasePayController {
      * 苹果支付通知
      * @return
      */
-    @RequestMapping("/pay/apple/notify")
-    public void appleNotify(@RequestBody AppleNotification request) {
-        LOGGER.info("接收到苹果订阅通知! apple ios server notification come in, request:{" + JSONObject.toJSONString(request) + "}");
-        String signedPayLoad = request.getSignedPayLoad();
+    @PostMapping("/pay/apple/notify2")
+    public int appleNotify(HttpServletRequest request) {
+        LOGGER.info("接收到苹果订阅通知::" + request);
+        String rawData = HttpUtil.readRaw(request);
+        if ("".equals(rawData)) {
+            return 0;
+        }
+        Map<String, Object> requestData = JsonUtil.fromJson(rawData);
+        String signedPayLoad = (String) requestData.get("signedPayload");
+        LOGGER.info("signedPayLoad::" + rawData + "\n" + signedPayLoad);
         try {
-            JSONObject payload = verifyAppleNotify(signedPayLoad);
+            Map<String, Object> payload = verifyAppleNotify(signedPayLoad);
+            String notificationType = (String) payload.get("notificationType");
+            long signedDate = (long) ((double) payload.get("signedDate"));
+            String notificationUUID = (String) payload.get("notificationUUID");
+            String version = (String) payload.get("version");
+            Map<String, Object> dataMap = (Map<String, Object>) payload.get("data");
+            AppleNotification notification = JsonUtil.fromJson(dataMap, AppleNotification.class);
+            notification.setNotificationType(notificationType);
+            notification.setNotificationUUID(notificationUUID);
+            notification.setSignedDate(signedDate);
+            notification.setVersion(version);
 
-            String notificationType = payload.get("notificationType").toString();
+            Map<String, Object> transactionInfo = verifyAppleNotify(notification.getSignedTransactionInfo());
+            String transactionId = (String) transactionInfo.get("transactionId");
+            String originalTransactionId = (String) transactionInfo.get("originalTransactionId");
+            String productId = (String) transactionInfo.get("productId");
+            notification.setTransactionId(transactionId);
+            notification.setOriginalTransactionId(originalTransactionId);
+            notification.setProductId(productId);
 
-            JSONObject data = payload.getJSONObject("data");
-            LOGGER.info("payload:" + payload);
-            LOGGER.info("data:" + data);
-            LOGGER.info("apple ios server notification verify success");
-            String signedTransactionInfo = data.get("signedTransactionInfo").toString();
-            String environment = data.get("environment").toString();
-
-            JSONObject transactionInfo = verifyAppleNotify(signedTransactionInfo);
-            String transactionId = transactionInfo.get("transactionId").toString();
-            String originalTransactionId = transactionInfo.get("originalTransactionId").toString();
-            String productId = transactionInfo.get("productId").toString();
-            String appcode = AppcodeManager.getAppcode(productId);
-            LOGGER.info("apple pay=====>>" + environment + " - " + transactionId + " - " + originalTransactionId + " - " + productId);
+            String appcode = AppcodeManager.getAppcode(notification.getAppAppleId());
+            LOGGER.info("notification::" + appcode + " - " + notification);
+            // apple pay=====>>Sandbox - 2000000748615906 - 2000000577510234 - cal_vip_monthly
             switch (notificationType) {
                 case AppleNotificationType.DID_RENEW: // 处理订阅续期业务逻辑
-                    doHandleTransaction(appcode, "", productId, transactionId, originalTransactionId);
+                    doHandleTransaction(appcode, "", notification.getAppAppleId(), transactionId, originalTransactionId);
                     break;
                 case AppleNotificationType.REFUND: // 处理退款业务逻辑
                     LOGGER.error("未处理:退款业务");
@@ -316,45 +333,10 @@ public class PayNotifyController extends BasePayController {
                     break;
             }
         } catch (CertificateException e) {
-            LOGGER.error("apple server notification verify error, signedPayLoad:{" + signedPayLoad + " - " + e.getMessage() + "}");
+            LOGGER.error("apple server notification verify error:{" + e.getMessage() + "}, signedPayLoad:{" + signedPayLoad + "}");
+            return 0;
         }
-    }
-
-    /**
-     * 验证苹果支付通知
-     * @param jws
-     * @return
-     * @throws CertificateException
-     */
-    public static JSONObject verifyAppleNotify(String jws) throws CertificateException {
-        DecodedJWT decodedJWT = JWT.decode(jws);
-        // 拿到 header 中 x5c 数组中第一个
-        String header = new String(java.util.Base64.getDecoder().decode(decodedJWT.getHeader()));
-        String x5c = JSONObject.parseObject(header).getJSONArray("x5c").getString(0);
-        // 获取公钥
-        PublicKey publicKey = getPublicKeyByX5c(x5c);
-        // 验证 token
-        Algorithm algorithm = Algorithm.ECDSA256((ECPublicKey) publicKey, null);
-        try {
-            algorithm.verify(decodedJWT);
-        } catch (SignatureVerificationException e) {
-            throw new RuntimeException("签名验证失败");
-        }
-        // 解析数据
-        return JSONObject.parseObject(new String(java.util.Base64.getDecoder().decode(decodedJWT.getPayload())));
-    }
-
-    /**
-     * 获取公钥
-     * @param x5c
-     * @return
-     * @throws CertificateException
-     */
-    private static PublicKey getPublicKeyByX5c(String x5c) throws CertificateException {
-        byte[] x5c0Bytes = java.util.Base64.getDecoder().decode(x5c);
-        CertificateFactory fact = CertificateFactory.getInstance("X.509");
-        X509Certificate cer = (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(x5c0Bytes));
-        return cer.getPublicKey();
+        return 1;
     }
 
     /**
@@ -366,42 +348,74 @@ public class PayNotifyController extends BasePayController {
      * @param originalTransactionId
      * @return
      */
-    public long doHandleTransaction(String appcode, String outTradeNo, String productId, String transactionId, String originalTransactionId) {
+    public long doHandleTransaction(String appcode, String outTradeNo, long productId, String transactionId, String originalTransactionId) {
 
         //获取商品id和订单号以后 此处可以处理本地的订单逻辑
         LOGGER.info("获取到产品id:" + productId + " 订单号:" + transactionId + " - " + originalTransactionId);
+
         List<Map<String, Object>> appleOrderList = commonService.list(CommonSqlManager.queryOrderForTradeNo(transactionId));
+
+        boolean isRecord = false;
         if (appleOrderList != null) {
             if (appleOrderList.size() == 1) { // 判断状态
+                isRecord = true;
                 Map<String, Object> orderMap = appleOrderList.get(0);
                 // 交易状态
                 int tradeStatus = (Integer) orderMap.get(Column.STATUS);
                 if (tradeStatus == 1) { // 订单已经处理过
                     LOGGER.info("订单号已经处理过::" + transactionId);
                     return 0;
+                } else {
+                    LOGGER.info("继续处理交易::" + transactionId);
                 }
             } else if (appleOrderList.size() > 1) { // 交易出错，订单号重复
+                isRecord = true;
                 LOGGER.info("交易出错，订单号重复::" + transactionId);
                 return 0;
+            } else {
+                // 需要保存交易数据
+                LOGGER.info("没有查询到订单数据::" + transactionId);
             }
         }
 
-        List<Map<String, Object>> orderList = commonService.list(CommonSqlManager.queryOrder(outTradeNo));
-        if (orderList == null || orderList.size() != 1) {
+        // 服务器通知可能没有outTradeNo
+        // 获取到产品id:1234239300 订单号:2000000748615906 - 2000000577510234
+        List<Map<String, Object>> orderList = commonService.list(CommonSqlManager.queryOrderForOriginalTradeNo(originalTransactionId));
+        if (orderList == null || orderList.size() < 1) {
+            LOGGER.info("没有查询到 自订单号::" + outTradeNo + " - " + originalTransactionId);
             return 0;
         }
         Map<String, Object> orderMap = orderList.get(0);
-
+        int uid = (Integer) orderMap.get(Column.UID);
+        String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
         String table = TableManager.getUserTable(appcode);
         String tableGoods = TableManager.getGoodsTable(appcode);
+        if (!isRecord) { // 若没有记录先保存到数据库,苹果支时用不到总金额
+            List<Map<String, Object>> goodsList = commonService.list(CommonSqlManager.queryGoods(tableGoods, goodsCode));
+            if (goodsList == null || goodsList.isEmpty()) {
+                return 0;
+            }
+            Map<String, Object> goodsMap = goodsList.get(0);
+            String name = (String) goodsMap.get(Column.NAME);
+            String price = (Float) goodsMap.get(Column.PRICE) + "";
+            Order order = makeOrder(appcode, uid, goodsCode, name, price, outTradeNo, productId, transactionId, originalTransactionId);
+            LOGGER.info("生成订单记录:" + order);
+            orderList = commonService.list(CommonSqlManager.queryOrderForTradeNo(transactionId));
+            if (orderList == null || orderList.size() != 1) {
+                LOGGER.info("没有查询到 自订单号::" + outTradeNo);
+                return 0;
+            }
+            orderMap = orderList.get(0);
+            LOGGER.info("订单数据::" + orderMap);
+        }
+
         // 交易状态
         int tradeStatus = (Integer) orderMap.get(Column.STATUS);
         if (tradeStatus == 1) { // 订单已经处理过
             LOGGER.info("订单号已经处理过 自订单号::" + outTradeNo);
             return 0;
         }
-        String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
-        int uid = (Integer) orderMap.get(Column.UID);
+
         List<Map<String, Object>> goodsList = commonService.list(CommonSqlManager.queryGoods(tableGoods, goodsCode));
         if (goodsList == null || goodsList.isEmpty()) {
             return 0;
@@ -435,22 +449,71 @@ public class PayNotifyController extends BasePayController {
     }
 
     /**
-     * 服务器时间戳（s）
+     * 通过通知创建订单到数据表
+     * @param request
      * @return
      */
-    @RequestMapping("/timestamp2")
-    public long timestamp() {
-        /*try {
-            // 沙盒环境
-            JWSTransactionDecodedPayload p0 = getTransactionFromApple("mathcalc", "2000000743714173");
-            LOGGER.info("p0::" + p0);
-            // 生产环境
-            JWSTransactionDecodedPayload p1 = getTransactionFromApple("mathcalc", "2024092722001460861412318573");
-            LOGGER.info("p1::" + p1);
+    protected Order makeOrder(String appcode, int uid, String goodsCode, String body, String totalFee, String outTradeNo,
+                              long productId, String transactionId, String originalTransactionId) {
+        int platform = Platform.iOS.getId();
+        String payType = PayType.APPLE.getCode();
+        String appid = productId + "";
+        Order order = Order.makeOrder(uid, appcode, 0, goodsCode, outTradeNo, transactionId, originalTransactionId,
+                body, payType, appid, totalFee);
+        boolean result = false;
+        try {
+            // 保存订单
+            result = commonService.add(CommonSqlManager.addColumnData(Order.TABLE, order.getColumn(), order.getValue()));
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
-        return System.currentTimeMillis() / 1000;
+        }
+        if (!result) {
+            return null;
+        }
+        return order;
+    }
+
+    /**
+     * 验证苹果支付通知
+     * @param jws
+     * @return
+     * @throws CertificateException
+     */
+    public static Map<String, Object> verifyAppleNotify(String jws) throws CertificateException {
+        DecodedJWT decodedJWT = JWT.decode(jws);
+        // 拿到 header 中 x5c 数组中第一个
+        String header = new String(java.util.Base64.getDecoder().decode(decodedJWT.getHeader()));
+        Map<String, Object> headerMap = JsonUtil.fromJson(header);
+        List<String> x5cList = (List<String>) headerMap.get("x5c");
+        if (x5cList == null || x5cList.size() == 0) {
+            return null;
+        }
+        String x5c = x5cList.get(0);
+        // 获取公钥
+        PublicKey publicKey = getPublicKeyByX5c(x5c);
+        // 验证 token
+        Algorithm algorithm = Algorithm.ECDSA256((ECPublicKey) publicKey, null);
+        try {
+            algorithm.verify(decodedJWT);
+        } catch (SignatureVerificationException e) {
+            throw new RuntimeException("签名验证失败");
+        }
+        String text = new String(java.util.Base64.getDecoder().decode(decodedJWT.getPayload()));
+        // 解析数据
+        return JsonUtil.fromJson(text);
+    }
+
+    /**
+     * 获取公钥
+     * @param x5c
+     * @return
+     * @throws CertificateException
+     */
+    private static PublicKey getPublicKeyByX5c(String x5c) throws CertificateException {
+        byte[] x5c0Bytes = java.util.Base64.getDecoder().decode(x5c);
+        CertificateFactory fact = CertificateFactory.getInstance("X.509");
+        X509Certificate cer = (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(x5c0Bytes));
+        return cer.getPublicKey();
     }
 
     /**
@@ -508,7 +571,7 @@ public class PayNotifyController extends BasePayController {
         //对订单信息进行解析得到订单信息
         JWSTransactionDecodedPayload payload = signedDataVerifier.verifyAndDecodeTransaction(signedPayLoad);
         //进行订单信息处理
-        System.out.println("payload::" + signedPayLoad + "\n" + payload);
+        LOGGER.info("payload::" + signedPayLoad + "\n" + payload);
         return payload;
     }
 

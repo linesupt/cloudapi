@@ -232,13 +232,24 @@ public class CommonSqlManager {
     }
 
     /**
-     * 查询商品列表
+     * 通过交易号查询订单数据
      * @param table
      * @param locale
      * @return
      */
     public static CommonQueryEntity queryOrderForTradeNo(String tradeNo) {
         return queryAttrAll(Order.TABLE, Column.TRADE_NO, tradeNo, Column.SORT_ASC, Column.ID);
+    }
+
+
+    /**
+     * 通过自定义交易号号查询订单数据
+     * @param table
+     * @param locale
+     * @return
+     */
+    public static CommonQueryEntity queryOrderForOriginalTradeNo(String tradeNo) {
+        return queryAttrAll(Order.TABLE, Column.ORIGINAL_TRADE_NO, tradeNo, Column.SORT_ASC, Column.ID);
     }
 
     /**

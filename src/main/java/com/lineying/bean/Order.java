@@ -11,25 +11,29 @@ public class Order {
     private int id;
     private int uid;
     private String appcode;
-    private int goodsId;
+    private long goodsId;
     private String goodsCode;
     private String outTradeNo;
     private String tradeNo;
+    private String originalTradeNo;
     private String body;
     private String payType;
     private int status;
     private long createTime;
     private long updateTime;
 
+    // 第三方平台的应用ID
     private String appid;
+    // 总金额
     private String totalFee;
 
     public Order() {
 
     }
 
-    public Order(int uid, String appcode, int goodsId, String goodsCode, String outTradeNo,
-                 String tradeNo, String body, String payType, int status, String appid, String totalFee, long createTime,
+    public Order(int uid, String appcode, long goodsId, String goodsCode, String outTradeNo,
+                 String tradeNo, String originalTradeNo, String body, String payType, int status,
+                 String appid, String totalFee, long createTime,
                  long updateTime) {
         this.uid = uid;
         this.appcode = appcode;
@@ -37,6 +41,7 @@ public class Order {
         this.goodsCode = goodsCode;
         this.outTradeNo = outTradeNo;
         this.tradeNo = tradeNo;
+        this.originalTradeNo = originalTradeNo;
         this.body = body;
         this.payType = payType;
         this.status = status;
@@ -57,8 +62,8 @@ public class Order {
      * @param payType
      * @return
      */
-    public static Order makeOrder(int uid, String appcode, int goodsId, String goodsCode, String outTradeNo, String body, String payType, String appid, String totalFee) {
-        return new Order(uid, appcode, goodsId, goodsCode, outTradeNo, "", body, payType, 0, appid, totalFee, System.currentTimeMillis(), System.currentTimeMillis());
+    public static Order makeOrder(int uid, String appcode, long goodsId, String goodsCode, String outTradeNo, String tradeNo, String originalTradeNo, String body, String payType, String appid, String totalFee) {
+        return new Order(uid, appcode, goodsId, goodsCode, outTradeNo, tradeNo, originalTradeNo, body, payType, 0, appid, totalFee, System.currentTimeMillis(), System.currentTimeMillis());
     }
 
     /**
@@ -66,9 +71,9 @@ public class Order {
      * @return
      */
     public String getColumn() {
-        String column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
+        String column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
                 Column.UID, Column.APPCODE, Column.GOODS_ID, Column.GOODS_CODE, Column.OUT_TRADE_NO, Column.TRADE_NO,
-                Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.CREATE_TIME, Column.UPDATE_TIME);
+                Column.ORIGINAL_TRADE_NO, Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.CREATE_TIME, Column.UPDATE_TIME);
         return column;
     }
 
@@ -77,8 +82,8 @@ public class Order {
      * @return
      */
     public String getValue() {
-        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
-                goodsCode, outTradeNo, tradeNo, body, payType, status + "", createTime + "", updateTime + "");
+        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
+                goodsCode, outTradeNo, tradeNo, originalTradeNo, body, payType, status + "", createTime + "", updateTime + "");
         return value;
     }
 
@@ -106,11 +111,11 @@ public class Order {
         this.appcode = appcode;
     }
 
-    public int getGoodsId() {
+    public long getGoodsId() {
         return goodsId;
     }
 
-    public void setGoodsId(int goodsId) {
+    public void setGoodsId(long goodsId) {
         this.goodsId = goodsId;
     }
 
@@ -200,10 +205,11 @@ public class Order {
                 "id=" + id +
                 ", uid=" + uid +
                 ", appcode='" + appcode + '\'' +
-                ", goodsId='" + goodsId + '\'' +
+                ", goodsId=" + goodsId +
                 ", goodsCode='" + goodsCode + '\'' +
                 ", outTradeNo='" + outTradeNo + '\'' +
                 ", tradeNo='" + tradeNo + '\'' +
+                ", originalTradeNo='" + originalTradeNo + '\'' +
                 ", body='" + body + '\'' +
                 ", payType='" + payType + '\'' +
                 ", status=" + status +

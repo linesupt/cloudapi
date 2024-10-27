@@ -43,11 +43,11 @@ public class AppcodeManager {
      * @param productId
      * @return
      */
-    public static String getAppcode(String productId) {
+    public static String getAppcode(long productId) {
         AppEntity[] entities = AppEntity
                 .values();
         for (AppEntity entity : entities) {
-            if (Objects.equals(entity.getAppleId() + "", productId)) {
+            if (entity.getAppleId() == productId) {
                 return entity.getAppcode();
             }
         }

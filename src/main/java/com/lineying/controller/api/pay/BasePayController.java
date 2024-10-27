@@ -95,7 +95,7 @@ public class BasePayController extends BaseController {
         String appid = jsonObject.get(Column.APP_ID).getAsString();
         String totalFee = jsonObject.get(Column.TOTAL_FEE).getAsString();
         String body = jsonObject.get(Column.BODY).getAsString();
-        Order order = Order.makeOrder(uid, appcode, goodsId, goodsCode, outTradeNo, body, payType, appid, totalFee);
+        Order order = Order.makeOrder(uid, appcode, goodsId, goodsCode, outTradeNo, "", "", body, payType, appid, totalFee);
 
         boolean result = false;
         try {
