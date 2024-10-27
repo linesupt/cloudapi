@@ -3,13 +3,13 @@ package com.lineying.controller.api.pay;
 import cn.hutool.core.io.FileUtil;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
-import com.apple.itunes.storekit.client.APIException;
-import com.apple.itunes.storekit.client.AppStoreServerAPIClient;
-import com.apple.itunes.storekit.model.Environment;
-import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
-import com.apple.itunes.storekit.model.TransactionInfoResponse;
-import com.apple.itunes.storekit.verification.SignedDataVerifier;
-import com.apple.itunes.storekit.verification.VerificationException;
+//import com.apple.itunes.storekit.client.APIException;
+//import com.apple.itunes.storekit.client.AppStoreServerAPIClient;
+//import com.apple.itunes.storekit.model.Environment;
+//import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
+//import com.apple.itunes.storekit.model.TransactionInfoResponse;
+//import com.apple.itunes.storekit.verification.SignedDataVerifier;
+//import com.apple.itunes.storekit.verification.VerificationException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
@@ -587,7 +587,7 @@ public class PayNotifyController extends BasePayController {
      * @throws VerificationException
      * @throws VerificationException
      */
-    public JWSTransactionDecodedPayload getTransactionFromApple(String appcode, String transactionId) throws IOException, APIException, VerificationException, VerificationException {
+    /*public JWSTransactionDecodedPayload getTransactionFromApple(String appcode, String transactionId) throws IOException, APIException, VerificationException, VerificationException {
 
         AppEntity entity = AppcodeManager.getEntity(appcode);
         if (entity == null) {
@@ -637,5 +637,5 @@ public class PayNotifyController extends BasePayController {
         LOGGER.info("payload::" + signedPayLoad + "\n" + payload);
         return payload;
     }
-
+*/
 }
