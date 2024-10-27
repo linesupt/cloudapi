@@ -855,6 +855,11 @@ public class CommonSqlManager {
         String set = String.format("%s='%s', %s='%s', %s='%s', %s='%s'", Column.ORIGINAL_TRADE_NO, originalTradeNo, Column.TRADE_NO, tradeNo, Column.STATUS,
                 status + "", Column.UPDATE_TIME, updateTime + "");
         String where = String.format("%s='%s'", Column.OUT_TRADE_NO, outTradeNo);
+        if (outTradeNo == null || "".equals(outTradeNo)) {
+            set = String.format("%s='%s', %s='%s', %s='%s'", Column.ORIGINAL_TRADE_NO, originalTradeNo, Column.STATUS,
+                    status + "", Column.UPDATE_TIME, updateTime + "");
+            where = String.format("%s='%s'", Column.TRADE_NO, tradeNo);
+        }
         entity.setSet(set);
         entity.setWhere(where);
         entity.setTable(Order.TABLE);

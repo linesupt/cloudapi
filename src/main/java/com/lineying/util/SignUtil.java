@@ -31,7 +31,7 @@ public class SignUtil {
         }
         String signText = key + data + SecureConfig.DB_SECRET_KEY;
         String signatureText = MD5.create().digestHex(signText);
-        Logger.getGlobal().info("执行签名验证 " + signText + " - " + signatureText);
+        //Logger.getGlobal().info("执行签名验证 " + signText + " - " + signatureText);
         if (!Objects.equals(signatureText, signature)) {
             return SignResult.SIGN_ERROR; // sign error
         }

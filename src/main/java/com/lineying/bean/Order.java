@@ -74,6 +74,12 @@ public class Order {
         String column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
                 Column.UID, Column.APPCODE, Column.GOODS_ID, Column.GOODS_CODE, Column.OUT_TRADE_NO, Column.TRADE_NO,
                 Column.ORIGINAL_TRADE_NO, Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.CREATE_TIME, Column.UPDATE_TIME);
+        if ("".equals(outTradeNo)) {
+            column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
+                    Column.UID, Column.APPCODE, Column.GOODS_ID, Column.GOODS_CODE, Column.TRADE_NO,
+                    Column.ORIGINAL_TRADE_NO, Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.CREATE_TIME, Column.UPDATE_TIME);
+        }
+
         return column;
     }
 
@@ -84,6 +90,10 @@ public class Order {
     public String getValue() {
         String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
                 goodsCode, outTradeNo, tradeNo, originalTradeNo, body, payType, status + "", createTime + "", updateTime + "");
+        if ("".equals(outTradeNo)) {
+            value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
+                    goodsCode, tradeNo, originalTradeNo, body, payType, status + "", createTime + "", updateTime + "");
+        }
         return value;
     }
 

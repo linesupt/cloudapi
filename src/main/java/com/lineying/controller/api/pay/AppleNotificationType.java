@@ -2,16 +2,6 @@ package com.lineying.controller.api.pay;
 
 /**
  * 苹果订阅支付通知类型
- * 首次购买：INITIAL_BUY
- * 升级订阅：CANCEL, DID_CHANGE_RENEWAL_STATUS, INTERACTIVE_RENEWAL
- * 降级订阅：INTERACTIVE_RENEWAL, DID_CHANGE_RENEWAL_PREF
- * 订阅已过期，重新订阅：DID_CHANGE_RENEWAL_STATUS
- * 订阅已过期，重新升级或降级订阅：INTERACTIVE_RENEWAL, DID_CHANGE_RENEWAL_STATUS
- * 用户取消订阅：DID_CHANGE_RENEWAL_STATUS
- * 用户退款：CANCEL, DID_CHANGE_RENEWAL_STATUS
- * 由于账单问题，续订失败：DID_FAIL_TO_RENEW
- * 账单问题解决，续订成功：DID_RECOVER
- * 由于账单问题，订阅被彻底取消：DID_CHANGE_RENEWAL_STATUS
  */
 public @interface AppleNotificationType {
 

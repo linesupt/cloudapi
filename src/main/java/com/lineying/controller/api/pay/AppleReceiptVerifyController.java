@@ -55,7 +55,8 @@ public class AppleReceiptVerifyController extends BasePayController {
         String receipt = jsonObject.get(Column.RECEIPT).getAsString();
         String outTradeNo = jsonObject.get(Column.OUT_TRADE_NO).getAsString();
         // 这里需要先验证正式环境，判断是否是沙盒环境再考虑是否进行二次验证
-        LOGGER.info("receiptVerify::" + outTradeNo + "\n" + receipt);
+        LOGGER.info("receiptVerify::" + outTradeNo);
+        //LOGGER.info("receipt::" + receipt);
         String secret = AppcodeManager.getSecret(appcode);
         String result = doVerify(CommonConstant.VERIFY_RECEIPT_BUY, receipt, secret);
         LOGGER.info("verify result::" + result);
@@ -64,7 +65,8 @@ public class AppleReceiptVerifyController extends BasePayController {
         }
         JsonObject resultObject = JsonParser.parseString(result).getAsJsonObject();
         int status = resultObject.get(Column.STATUS).getAsInt();
-        LOGGER.info("verify status::" + status + "\n" + resultObject);
+        LOGGER.info("verify status::" + status);
+        //LOGGER.info("verify object::" + resultObject);
         /**
          * 请先使用生产 URL 验证您的收据；如果收到 21007 状态代码，
          * 再使用沙盒 URL 进行验证。
@@ -78,7 +80,8 @@ public class AppleReceiptVerifyController extends BasePayController {
             }
             resultObject = JsonParser.parseString(result).getAsJsonObject();
             status = resultObject.get(Column.STATUS).getAsInt();
-            LOGGER.info("verify status::" + status + "\n" + resultObject);
+            LOGGER.info("verify status::" + status);
+            //LOGGER.info("verify object::" + resultObject);
         }
         if (status == ReceiptCode.STATUS_OK) {
             // 处理业务
@@ -168,7 +171,7 @@ public class AppleReceiptVerifyController extends BasePayController {
         String tableGoods = TableManager.getGoodsTable(appcode);
         // 交易状态
         int tradeStatus = (Integer) orderMap.get(Column.STATUS);
-        if (tradeStatus == 1) { // 订单已经处理过
+        if (tradeStatus != TradeStatus.NONE) { // 订单已经处理过
             LOGGER.info("订单号已经处理过 自订单号::" + outTradeNo);
             return 0;
         }
@@ -231,7 +234,7 @@ public class AppleReceiptVerifyController extends BasePayController {
             data.put("receipt-data", receipt);
             data.put("password", secret);
             String text = JsonUtil.makeData(data);
-            LOGGER.info("body::" + text + "\n" + data);
+            //LOGGER.info("body::" + text + "\n" + data);
             hurlBufOus.write(text.getBytes());
             hurlBufOus.flush();
 
