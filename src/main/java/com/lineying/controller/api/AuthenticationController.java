@@ -3,6 +3,7 @@ package com.lineying.controller.api;
 import cn.hutool.core.lang.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.lineying.manager.ApiLogManager;
 import com.lineying.manager.TableManager;
 import com.lineying.common.ErrorCode;
 import com.lineying.common.LoginType;
@@ -37,6 +38,7 @@ public class AuthenticationController extends BaseController {
 
     @RequestMapping("/login")
     public String login(HttpServletRequest request) {
+        ApiLogManager.saveLog(commonService, request);
         Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();

@@ -20,9 +20,11 @@ import com.lineying.common.*;
 import com.lineying.controller.Checker;
 import com.lineying.data.Column;
 import com.lineying.data.Param;
+import com.lineying.entity.ApiLog;
 import com.lineying.entity.AppEntity;
 import com.lineying.entity.AppleNotification;
 import com.lineying.entity.CommonSqlManager;
+import com.lineying.manager.ApiLogManager;
 import com.lineying.manager.AppcodeManager;
 import com.lineying.manager.TableManager;
 import com.lineying.util.*;
@@ -291,6 +293,7 @@ public class PayNotifyController extends BasePayController {
     @PostMapping("/pay/apple/notify")
     public int appleNotify(HttpServletRequest request) {
         LOGGER.info("接收到苹果订阅通知::" + request.getContentType() + " - " + request);
+        ApiLogManager.saveLog(commonService, request);
         String rawData = HttpUtil.readRaw(request);
         if ("".equals(rawData)) {
             return 0;

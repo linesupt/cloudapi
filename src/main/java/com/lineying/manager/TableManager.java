@@ -101,4 +101,12 @@ public class TableManager {
         return "version" + getTableSuffix(appcode);
     }
 
+    /**
+     * 获取日志表
+     * @return
+     */
+    public static String getApiLogTable() {
+        return "cloudapi_log";
+    }
+
 }

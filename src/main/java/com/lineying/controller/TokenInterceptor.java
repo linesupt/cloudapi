@@ -19,6 +19,7 @@ public class TokenInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
         if(request.getMethod().equals("OPTIONS")){
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
@@ -29,12 +30,12 @@ public class TokenInterceptor implements HandlerInterceptor {
         Logger.getGlobal().info("api path::" + servletPath + " token:" + token);
         int resultCode = -1;
         //System.out.println("token::" + token);
-        if (!"".equals(token) && !"null".equals(token)) {
+        if (token != null && !"".equals(token) && !"null".equals(token)) {
             try {
                 resultCode = TokenUtil.verify(token);
             } catch (Exception e) { e.printStackTrace(); }
             if(resultCode > 0){
-                Logger.getGlobal().info("通过拦截器");
+                Logger.getGlobal().info("通过拦截器::" + servletPath);
                 return true;
             }
         }
