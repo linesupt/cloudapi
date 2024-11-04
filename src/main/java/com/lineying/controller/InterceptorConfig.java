@@ -39,7 +39,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         excludePath.add("/api/pay/wxpay/notify");
         excludePath.add("/v3/pay/alipay/notify");
         excludePath.add("/v3/pay/wxpay/notify");
-        //excludePath.add("/api/pay/apple/notify");
+        excludePath.add("/api/pay/apple/notify");
         registry.addInterceptor(tokenInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(excludePath);

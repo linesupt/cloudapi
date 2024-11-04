@@ -23,10 +23,10 @@ public class TokenInterceptor implements HandlerInterceptor {
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
         }
-       /* String servletPath = request.getServletPath();
+        String servletPath = request.getServletPath();
         response.setCharacterEncoding(CommonConstant.CHARSET);
         String token = request.getHeader(Param.Key.TOKEN);
-        System.out.println("api path::" + servletPath + " token:" + token);
+        Logger.getGlobal().info("api path::" + servletPath + " token:" + token);
         int resultCode = -1;
         //System.out.println("token::" + token);
         if (!"".equals(token) && !"null".equals(token)) {
@@ -34,14 +34,14 @@ public class TokenInterceptor implements HandlerInterceptor {
                 resultCode = TokenUtil.verify(token);
             } catch (Exception e) { e.printStackTrace(); }
             if(resultCode > 0){
-                System.out.println("通过拦截器");
+                Logger.getGlobal().info("通过拦截器");
                 return true;
             }
         }
         response.setCharacterEncoding(CommonConstant.CHARSET);
         response.setContentType(CommonConstant.CONTENT_TYPE);
         String result = JsonCryptUtil.makeFail("token verify fail " + resultCode);
-        response.getWriter().append(result);*/
+        response.getWriter().append(result);
         return true;
     }
 
