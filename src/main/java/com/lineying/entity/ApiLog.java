@@ -5,16 +5,18 @@ package com.lineying.entity;
  */
 public class ApiLog {
 
-    public static final String TABLE = "cloud_api_log";
-
     // 接口路径
-    String apiUri;
+    String uri;
     // 接口名
-    String apiName;
+    String name;
     // body类型
     String contentType;
     // 请求头
     String header;
+    // 用户ID
+    int userId;
+    // 用户名
+    String username;
     // 请求参数
     String body;
     // 响应内容
@@ -33,7 +35,7 @@ public class ApiLog {
      * @return
      */
     public String getColumn() {
-        String column = String.format("`api_uri`,`api_name`,`content_type`,`header`,`body`,`data`,`model`,`ipaddr`,`create_time`,`update_time`");
+        String column = String.format("`uri`,`name`,`content_type`,`header`,`user_id`,`username`,`body`,`data`,`model`,`ipaddr`,`create_time`,`update_time`");
         return column;
     }
 
@@ -42,25 +44,25 @@ public class ApiLog {
      * @return
      */
     public String getValue() {
-        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'",
-                apiUri, apiName, contentType, header, body, data, model, ipaddr, createTime + "", updateTime + "");
+        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'",
+                uri, name, contentType, header, userId + "", username, body, data, model, ipaddr, createTime + "", updateTime + "");
         return value;
     }
 
-    public String getApiUri() {
-        return apiUri;
+    public String getUri() {
+        return uri;
     }
 
-    public void setApiUri(String apiUri) {
-        this.apiUri = apiUri;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
-    public String getApiName() {
-        return apiName;
+    public String getName() {
+        return name;
     }
 
-    public void setApiName(String apiName) {
-        this.apiName = apiName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getContentType() {
@@ -77,6 +79,22 @@ public class ApiLog {
 
     public void setHeader(String header) {
         this.header = header;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getBody() {
@@ -130,16 +148,18 @@ public class ApiLog {
     @Override
     public String toString() {
         return "ApiLog{" +
-                "apiUri='" + apiUri + '\'' +
-                ", apiName='" + apiName + '\'' +
+                "uri='" + uri + '\'' +
+                ", name='" + name + '\'' +
                 ", contentType='" + contentType + '\'' +
                 ", header='" + header + '\'' +
+                ", userId=" + userId +
+                ", username='" + username + '\'' +
                 ", body='" + body + '\'' +
                 ", data='" + data + '\'' +
+                ", model='" + model + '\'' +
                 ", ipaddr='" + ipaddr + '\'' +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +
                 '}';
     }
-
 }

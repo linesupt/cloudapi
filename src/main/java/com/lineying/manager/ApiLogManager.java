@@ -45,8 +45,8 @@ public class ApiLogManager {
         }
         String paramString = paramMap.toString();
         String ipaddr = IPUtil.getIpAddress(request);
-        log.setApiName("");
-        log.setApiUri(request.getRequestURI());
+        log.setName("");
+        log.setUri(request.getRequestURI());
         log.setIpaddr(ipaddr);
         log.setContentType(request.getContentType());
         log.setHeader(headerString);

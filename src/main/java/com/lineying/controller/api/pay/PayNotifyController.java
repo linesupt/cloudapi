@@ -20,7 +20,6 @@ import com.lineying.common.*;
 import com.lineying.controller.Checker;
 import com.lineying.data.Column;
 import com.lineying.data.Param;
-import com.lineying.entity.ApiLog;
 import com.lineying.entity.AppEntity;
 import com.lineying.entity.AppleNotification;
 import com.lineying.entity.CommonSqlManager;
