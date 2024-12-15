@@ -85,6 +85,40 @@ $ /usr/bin/java -jar -Xmx1024M -Xms256M  /project/dev/cloud.jar --server.port=80
 $ ps -ef | grep java
 $ kill -9 [pid]
 ```
+### https证书
+* 编辑配置nginx.conf文件中添加server 443端口配置、证书、密钥位置等配置
+* 在服务端上传申请的证书到server 443端口配置的路径
+```
+    server {  
+        listen 443 ssl;  # 配置443端口
+        server_name api.lineying.cn lineying.cn;  # 替换为您的域名或IP地址
+        root /www/server/nginx/linecloud;  # 替换为您的项目路径  
+        index index.html;
+        
+        ###证书配置start###
+        #单向认证
+		#配置服务端证书，所有证书文件建议放在Nginx文件夹下，避免SELINUX导致的证书文件读取错误
+		ssl_certificate /www/wwwroot/lineying.cn_bundle.crt;
+		#配置服务端秘钥
+		ssl_certificate_key /www/wwwroot/lineying.cn.key;
+		
+		ssl_session_cache shared:SSL:1m;
+		ssl_session_timeout  10m;
+		#ssl_ciphers HIGH:!aNULL:!MD5;
+		ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;    #加密算法
+		
+		#安全链接可选的加密协议
+		ssl_protocols TLSv1 TLSv1.1 TLSv1.2;    
+		ssl_prefer_server_ciphers off;
+        ###证书配置end###
+        
+        /// 以下部分与http 80端口一致
+        
+    }
+```
+
+
+
 
 
 
