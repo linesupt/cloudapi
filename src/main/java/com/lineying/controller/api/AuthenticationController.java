@@ -38,7 +38,7 @@ public class AuthenticationController extends BaseController {
 
     @RequestMapping("/login")
     public String login(HttpServletRequest request) {
-        ApiLogManager.saveLog(commonService, request);
+        //ApiLogManager.saveLog(commonService, request);
         Checker pair = doCheck(request);
         if (!pair.isValid()) {
             return pair.getResult();
