@@ -292,16 +292,26 @@ public class PayNotifyController extends BasePayController {
     @PostMapping("/pay/apple/notify")
     public int appleNotify(HttpServletRequest request) {
         LOGGER.info("接收到苹果订阅通知::" + request.getContentType() + " - " + request);
-        ApiLogManager.saveLog(commonService, request);
         String rawData = HttpUtil.readRaw(request);
         if ("".equals(rawData)) {
             return 0;
         }
+        LOGGER.info("rawData::" + rawData);
+        return handleAppleNotify(request, rawData);
+    }
+
+    /**
+     * 处理苹果原始通知数据
+     * @param rawData
+     */
+    public int handleAppleNotify(HttpServletRequest request, String rawData) {
         Map<String, Object> requestData = JsonUtil.fromJson(rawData);
+        LOGGER.info("requestData::" + requestData);
         String signedPayLoad = (String) requestData.get("signedPayload");
         //LOGGER.info("signedPayLoad::" + rawData + "\n" + signedPayLoad + "\n" + requestData);
         try {
             Map<String, Object> payload = verifyAppleNotify(signedPayLoad);
+            Map<String, Object> logData = new HashMap<>(payload);
             String notificationType = (String) payload.get("notificationType");
             // TODO 测试退款
             //notificationType = AppleNotificationType.REFUND;
@@ -318,6 +328,7 @@ public class PayNotifyController extends BasePayController {
             notification.setVersion(version);
 
             Map<String, Object> transactionInfo = verifyAppleNotify(notification.getSignedTransactionInfo());
+            logData.put("transactionInfo", transactionInfo);
             LOGGER.info("transactioninfo::" + transactionInfo);
             // transactioninfo::{transactionId=2000000748615906, originalTransactionId=2000000577510234, webOrderLineItemId=2000000078023884, bundleId=com.lineying.UnitConverter, productId=cal_vip_monthly, subscriptionGroupIdentifier=20889266, purchaseDate=1.729413101E12, originalPurchaseDate=1.713685492E12, expiresDate=1.729413401E12, quantity=1.0, type=Auto-Renewable Subscription, inAppOwnershipType=PURCHASED, signedDate=1.729413054664E12, environment=Sandbox, transactionReason=RENEWAL, storefront=CHN, storefrontId=143465, price=12000.0, currency=CNY}
             String transactionId = (String) transactionInfo.get("transactionId");
@@ -326,21 +337,28 @@ public class PayNotifyController extends BasePayController {
             notification.setTransactionId(transactionId);
             notification.setOriginalTransactionId(originalTransactionId);
             notification.setProductId(productId);
-
             String appcode = AppcodeManager.getAppcode(notification.getAppAppleId());
             LOGGER.info("notification::" + appcode + " - " + notification);
+            int[] uids = new int[1];
             // apple pay=====>>Sandbox - 2000000748615906 - 2000000577510234 - cal_vip_monthly
             switch (notificationType) {
                 case AppleNotificationType.DID_RENEW: // 处理订阅续期业务逻辑
-                    doHandleTransaction(appcode, "", notification.getAppAppleId(), transactionId, originalTransactionId);
+                    LOGGER.error("notificationType:{" + notificationType + "} 订阅收费");
+                    doHandleTransaction(appcode, "", notification.getAppAppleId(), transactionId, originalTransactionId, uids);
+                    break;
+                case AppleNotificationType.ONE_TIME_CHARGE: // 一次性收费
+                    LOGGER.error("notificationType:{" + notificationType + "} 一次性收费，前端已经验证");
+                    doHandleTransaction(appcode, "", notification.getAppAppleId(), transactionId, originalTransactionId, uids);
                     break;
                 case AppleNotificationType.REFUND: // 处理退款业务逻辑
-                    doHandleRefund(appcode, "", notification.getAppAppleId(), transactionId, originalTransactionId);
+                    LOGGER.error("notificationType:{" + notificationType + "} 退款业务逻辑");
+                    doHandleRefund(appcode, "", notification.getAppAppleId(), transactionId, originalTransactionId, uids);
                     break;
                 default:
                     LOGGER.error("notificationType:{" + notificationType + "}未处理");
                     break;
             }
+            ApiLogManager.saveLog(commonService, request, uids[0], rawData, JsonUtil.makeData(logData));
         } catch (CertificateException e) {
             LOGGER.error("apple server notification verify error:{" + e.getMessage() + "}");
             return 0;
@@ -357,7 +375,7 @@ public class PayNotifyController extends BasePayController {
      * @param originalTransactionId
      * @return
      */
-    public long doHandleRefund(String appcode, String outTradeNo, long productId, String transactionId, String originalTransactionId) {
+    public long doHandleRefund(String appcode, String outTradeNo, long productId, String transactionId, String originalTransactionId, int[] uids) {
         //获取商品id和订单号以后 此处可以处理本地的订单逻辑
         LOGGER.info("获取到产品退款id:" + productId + " 订单号:" + transactionId + " - " + originalTransactionId);
         List<Map<String, Object>> appleOrderList = commonService.list(CommonSqlManager.queryOrderForTradeNo(transactionId));
@@ -376,6 +394,7 @@ public class PayNotifyController extends BasePayController {
             return 0;
         }
         int uid = (Integer) orderMap.get(Column.UID);
+        uids[0] = uid;
         String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
         String table = TableManager.getUserTable(appcode);
         String tableGoods = TableManager.getGoodsTable(appcode);
@@ -416,12 +435,12 @@ public class PayNotifyController extends BasePayController {
      * @param originalTransactionId
      * @return
      */
-    public long doHandleTransaction(String appcode, String outTradeNo, long productId, String transactionId, String originalTransactionId) {
+    public long doHandleTransaction(String appcode, String outTradeNo, long productId, String transactionId, String originalTransactionId, int[] uids) {
         //获取商品id和订单号以后 此处可以处理本地的订单逻辑
         LOGGER.info("获取到产品id:" + productId + " 订单号:" + transactionId + " - " + originalTransactionId);
         List<Map<String, Object>> appleOrderList = commonService.list(CommonSqlManager.queryOrderForTradeNo(transactionId));
         boolean isRecord = false;
-        if (appleOrderList != null) {
+        if (appleOrderList != null) { // 保存订单成功
             if (appleOrderList.size() == 1) { // 判断状态
                 isRecord = true;
                 Map<String, Object> orderMap = appleOrderList.get(0);
@@ -441,6 +460,8 @@ public class PayNotifyController extends BasePayController {
                 // 需要保存交易数据
                 LOGGER.info("没有查询到订单数据::" + transactionId);
             }
+        } else {
+            LOGGER.info("保存订单失败，前端已经调用验证::" + transactionId);
         }
 
         // Apple支付通知可能没有outTradeNo
@@ -452,6 +473,7 @@ public class PayNotifyController extends BasePayController {
         }
         Map<String, Object> orderMap = orderList.get(0);
         int uid = (Integer) orderMap.get(Column.UID);
+        uids[0] = uid;
         String goodsCode = (String) orderMap.get(Column.GOODS_CODE);
         String table = TableManager.getUserTable(appcode);
         String tableGoods = TableManager.getGoodsTable(appcode);
@@ -463,7 +485,7 @@ public class PayNotifyController extends BasePayController {
             Map<String, Object> goodsMap = goodsList.get(0);
             String name = (String) goodsMap.get(Column.NAME);
             String price = (Float) goodsMap.get(Column.PRICE) + "";
-            Order order = makeOrder(appcode, uid, goodsCode, name, price, outTradeNo, productId, transactionId, originalTransactionId);
+            Order order = makeOrder(appcode, uid, goodsCode, name, price, outTradeNo, productId, transactionId, originalTransactionId, "");
             LOGGER.info("生成订单记录:" + order);
             orderList = commonService.list(CommonSqlManager.queryOrderForTradeNo(transactionId));
             if (orderList == null || orderList.size() != 1) {
@@ -519,12 +541,12 @@ public class PayNotifyController extends BasePayController {
      * @return
      */
     protected Order makeOrder(String appcode, int uid, String goodsCode, String body, String totalFee, String outTradeNo,
-                              long productId, String transactionId, String originalTransactionId) {
+                              long productId, String transactionId, String originalTransactionId, String appVersion) {
         int platform = Platform.iOS.getId();
         String payType = PayType.APPLE.getCode();
         String appid = productId + "";
         Order order = Order.makeOrder(uid, appcode, 0, goodsCode, outTradeNo, transactionId, originalTransactionId,
-                body, payType, appid, totalFee);
+                body, payType, appid, totalFee, appVersion);
         boolean result = false;
         try {
             // 保存订单

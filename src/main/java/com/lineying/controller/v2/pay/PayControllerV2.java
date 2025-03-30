@@ -226,7 +226,7 @@ public class PayControllerV2 extends PayController {
     }
 
     /**
-     * chu
+     * 处理过期时间
      * @param appcode
      * @param uid
      * @param durationAdd 待追加的时长

@@ -54,8 +54,8 @@ public class BasePayController extends BaseController {
     protected RSAAutoCertificateConfig makeWxpayConfig() throws FileNotFoundException {
         if (wxpayConfig == null) {
             URL url = getClass().getClassLoader().getResource(SecureConfig.WXPAY_PRI_KEY_PATH);
-            File file = new File(url.getFile());
             String keyString = FileUtil.readString(url, CommonConstant.CHARSET);
+            //File file = new File(url.getFile());
             //File file = ResourceUtils.getFile("classpath:" + SecureConfig.WXPAY_PRI_KEY_PATH);
             //String path = file.getAbsolutePath();
             //LOGGER.info("私钥key::" + keyString);
@@ -82,7 +82,8 @@ public class BasePayController extends BaseController {
         }
         JsonObject jsonObject = pair.getDataObject();
         // 生成订单号
-        int platform = Platform.get(request.getHeader(Column.PLATFORM)).getId();
+        int platform = Platform.get(pair.getPlatform()).getId();
+        String version = pair.getAppVersion();
         String payType = jsonObject.get(Column.PAY_TYPE).getAsString();
         String outTradeNo = PayType.get(payType).getId() + platform + TimeUtil.datetimeOrder(getCurrentTimeMs());
         int uid = jsonObject.get(Column.UID).getAsInt();
@@ -95,7 +96,7 @@ public class BasePayController extends BaseController {
         String appid = jsonObject.get(Column.APP_ID).getAsString();
         String totalFee = jsonObject.get(Column.TOTAL_FEE).getAsString();
         String body = jsonObject.get(Column.BODY).getAsString();
-        Order order = Order.makeOrder(uid, appcode, goodsId, goodsCode, outTradeNo, "", "", body, payType, appid, totalFee);
+        Order order = Order.makeOrder(uid, appcode, goodsId, goodsCode, outTradeNo, "", "", body, payType, appid, totalFee, version);
 
         boolean result = false;
         try {

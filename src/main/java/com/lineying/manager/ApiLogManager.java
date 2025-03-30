@@ -1,22 +1,15 @@
 package com.lineying.manager;
 
-import com.lineying.controller.Checker;
-import com.lineying.data.Param;
 import com.lineying.entity.ApiLog;
 import com.lineying.entity.CommonSqlManager;
 import com.lineying.service.ICommonService;
 import com.lineying.util.IPUtil;
-import com.lineying.util.JsonCryptUtil;
-import com.lineying.util.SignUtil;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.lineying.common.SignResult.KEY_ERROR;
-import static com.lineying.common.SignResult.SIGN_ERROR;
+import java.util.logging.Logger;
 
 /**
  * API日志管理
@@ -28,8 +21,11 @@ public class ApiLogManager {
     /**
      * 持久化接口日志
      * @param request
+     * @param uid 用户ID
+     * @param body 请求体
+     * @param data 响应内容
      */
-    public static void saveLog(ICommonService commonService, HttpServletRequest request) {
+    public static void saveLog(ICommonService commonService, HttpServletRequest request, int uid, String body, String data) {
         try {
             ApiLog log = new ApiLog();
             Enumeration<String> headerNames = request.getHeaderNames();
@@ -37,44 +33,59 @@ public class ApiLogManager {
             while (headerNames.hasMoreElements()) {
                 String key = headerNames.nextElement();
                 String value = request.getHeader(key);
+                //Logger.getGlobal().info("key:" + key + " value:" + value);
                 headerMap.put(key, value);
             }
             String headerString = headerMap.toString();
             if (headerString.length() > 500) {
                 headerString = headerString.substring(0, 500);
             }
-            Map<String, String> paramMap = new HashMap<>();
-            // 获取所有请求参数的名称
-            Enumeration<String> parameterNames = request.getParameterNames();
-            while (parameterNames.hasMoreElements()) {
-                String key = parameterNames.nextElement();
-                String[] values = request.getParameterValues(key);
-                String value = "";
-                if (values.length > 0) {
-                    value = values[0];
+            String bodyParam = body;
+            if ("".equals(body)) {
+                Map<String, String> paramMap = new HashMap<>();
+                // 获取所有请求参数的名称
+                Enumeration<String> parameterNames = request.getParameterNames();
+                while (parameterNames.hasMoreElements()) {
+                    String key = parameterNames.nextElement();
+                    String[] values = request.getParameterValues(key);
+                    String value = "";
+                    if (values.length > 0) {
+                        value = values[0];
+                    }
+                    paramMap.put(key, value);
                 }
-                paramMap.put(key, value);
+                String paramString = paramMap.toString();
+                if (paramString.length() > 500) {
+                    paramString = paramString.substring(0, 500);
+                }
+                bodyParam = paramString;
             }
-            String paramString = paramMap.toString();
-            if (paramString.length() > 500) {
-                paramString = paramString.substring(0, 500);
-            }
+
             String ipaddr = IPUtil.getIpAddress(request);
+            log.setUserId(uid);
             log.setName("");
             log.setUri(request.getRequestURI());
             log.setIpaddr(ipaddr);
             log.setContentType(request.getContentType());
             log.setHeader(headerString);
-            log.setBody(paramString);
-            log.setData("");
+            log.setBody(bodyParam);
+            log.setData(data);
             log.setModel("");
             long timestamp = System.currentTimeMillis();
             log.setCreateTime(timestamp);
             log.setUpdateTime(timestamp);
             boolean flag = commonService.add(CommonSqlManager.addColumnData(TableManager.getApiLogTable(), log.getColumn(), log.getValue()));
-            System.out.println("logger::" + flag + " - " + log);
+            System.out.println("logger::" + uid + " - " + flag + " - " + log);
         } catch (Exception e) {
             e.printStackTrace();
+            ApiLog log = new ApiLog();
+            log.setName("日志异常");
+            log.setData(e.getMessage());
+            long timestamp = System.currentTimeMillis();
+            log.setCreateTime(timestamp);
+            log.setUpdateTime(timestamp);
+            boolean flag = commonService.add(CommonSqlManager.addColumnData(TableManager.getApiLogTable(), log.getColumn(), log.getValue()));
+            System.out.println("logger::" + flag + " - " + log);
         }
     }
 

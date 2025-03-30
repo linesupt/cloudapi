@@ -67,4 +67,9 @@ public @interface AppleNotificationType {
      */
     String REVOKE = "REVOKE";
 
+    /**
+     * 一次性收费
+     */
+    String ONE_TIME_CHARGE = "ONE_TIME_CHARGE";
+
 }

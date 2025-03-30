@@ -26,6 +26,8 @@ public class Order {
     private String appid;
     // 总金额
     private String totalFee;
+    // 应用版本
+    private String appVersion;
 
     public Order() {
 
@@ -33,7 +35,7 @@ public class Order {
 
     public Order(int uid, String appcode, long goodsId, String goodsCode, String outTradeNo,
                  String tradeNo, String originalTradeNo, String body, String payType, int status,
-                 String appid, String totalFee, long createTime,
+                 String appid, String totalFee, String appVersion, long createTime,
                  long updateTime) {
         this.uid = uid;
         this.appcode = appcode;
@@ -47,6 +49,7 @@ public class Order {
         this.status = status;
         this.appid = appid;
         this.totalFee = totalFee;
+        this.appVersion = appVersion;
         this.createTime = createTime;
         this.updateTime = updateTime;
     }
@@ -62,8 +65,9 @@ public class Order {
      * @param payType
      * @return
      */
-    public static Order makeOrder(int uid, String appcode, long goodsId, String goodsCode, String outTradeNo, String tradeNo, String originalTradeNo, String body, String payType, String appid, String totalFee) {
-        return new Order(uid, appcode, goodsId, goodsCode, outTradeNo, tradeNo, originalTradeNo, body, payType, 0, appid, totalFee, System.currentTimeMillis(), System.currentTimeMillis());
+    public static Order makeOrder(int uid, String appcode, long goodsId, String goodsCode, String outTradeNo, String tradeNo, String originalTradeNo, String body, String payType, String appid, String totalFee, String appVersion) {
+        long timestamp = System.currentTimeMillis();
+        return new Order(uid, appcode, goodsId, goodsCode, outTradeNo, tradeNo, originalTradeNo, body, payType, 0, appid, totalFee, appVersion, timestamp, timestamp);
     }
 
     /**
@@ -71,15 +75,14 @@ public class Order {
      * @return
      */
     public String getColumn() {
-        String column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
+        String column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
                 Column.UID, Column.APPCODE, Column.GOODS_ID, Column.GOODS_CODE, Column.OUT_TRADE_NO, Column.TRADE_NO,
-                Column.ORIGINAL_TRADE_NO, Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.CREATE_TIME, Column.UPDATE_TIME);
+                Column.ORIGINAL_TRADE_NO, Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.APP_VERSION, Column.CREATE_TIME, Column.UPDATE_TIME);
         if ("".equals(outTradeNo)) {
-            column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
+            column = String.format("`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`",
                     Column.UID, Column.APPCODE, Column.GOODS_ID, Column.GOODS_CODE, Column.TRADE_NO,
-                    Column.ORIGINAL_TRADE_NO, Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.CREATE_TIME, Column.UPDATE_TIME);
+                    Column.ORIGINAL_TRADE_NO, Column.CONTENT, Column.PAY_TYPE, Column.STATUS, Column.APP_VERSION, Column.CREATE_TIME, Column.UPDATE_TIME);
         }
-
         return column;
     }
 
@@ -88,11 +91,11 @@ public class Order {
      * @return
      */
     public String getValue() {
-        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
-                goodsCode, outTradeNo, tradeNo, originalTradeNo, body, payType, status + "", createTime + "", updateTime + "");
+        String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
+                goodsCode, outTradeNo, tradeNo, originalTradeNo, body, payType, status + "", appVersion, createTime + "", updateTime + "");
         if ("".equals(outTradeNo)) {
-            value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
-                    goodsCode, tradeNo, originalTradeNo, body, payType, status + "", createTime + "", updateTime + "");
+            value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'", uid + "", appcode, goodsId + "",
+                    goodsCode, tradeNo, originalTradeNo, body, payType, status + "", appVersion, createTime + "", updateTime + "");
         }
         return value;
     }
@@ -223,10 +226,11 @@ public class Order {
                 ", body='" + body + '\'' +
                 ", payType='" + payType + '\'' +
                 ", status=" + status +
-                ", createTime=" + createTime +
-                ", updateTime=" + updateTime +
                 ", appid='" + appid + '\'' +
                 ", totalFee='" + totalFee + '\'' +
+                ", appVersion='" + appVersion + '\'' +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
                 '}';
     }
 }

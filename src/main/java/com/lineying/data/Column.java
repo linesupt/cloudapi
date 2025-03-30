@@ -70,7 +70,7 @@ public @interface Column {
      * 0表示所有都关闭，1：所有都开启、2：仅开启Android，4：仅开启iOS 6：开启Android和iOS
      */
     String STATUS = "status";
-    String VERSION = "version";
+    String APP_VERSION = "app_version";
     String APPCODE = "appcode";
     String CODE = "code";
     String NAME = "name";

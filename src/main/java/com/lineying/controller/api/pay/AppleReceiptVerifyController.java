@@ -59,7 +59,7 @@ public class AppleReceiptVerifyController extends BasePayController {
         //LOGGER.info("receipt::" + receipt);
         String secret = AppcodeManager.getSecret(appcode);
         String result = doVerify(CommonConstant.VERIFY_RECEIPT_BUY, receipt, secret);
-        LOGGER.info("verify result::" + result);
+        //LOGGER.info("verify result::" + result);
         if (TextUtils.isEmpty(result)) {
             return JsonCryptUtil.makeFail("verify result empty", ErrorCode.RECEIPT_VERIFY_EMPTY);
         }
@@ -74,7 +74,7 @@ public class AppleReceiptVerifyController extends BasePayController {
          */
         if (status == ReceiptCode.STATUS_21007) {// 沙盒环境二次验证
             result = doVerify(CommonConstant.VERIFY_RECEIPT_SANDBOX, receipt, secret);
-            LOGGER.info("verify result::" + result);
+            //LOGGER.info("verify result::" + result);
             if (TextUtils.isEmpty(result)) {
                 return JsonCryptUtil.makeFail("verify result empty", ErrorCode.RECEIPT_VERIFY_EMPTY);
             }
