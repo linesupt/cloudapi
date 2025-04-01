@@ -5,6 +5,10 @@ package com.lineying.entity;
  */
 public class ApiLog {
 
+    // 应用
+    String appcode;
+    // 用户ID
+    int uid;
     // 接口路径
     String uri;
     // 接口名
@@ -13,10 +17,6 @@ public class ApiLog {
     String contentType;
     // 请求头
     String header;
-    // 用户ID
-    int userId;
-    // 用户名
-    String username;
     // 请求参数
     String body;
     // 响应内容
@@ -35,7 +35,7 @@ public class ApiLog {
      * @return
      */
     public String getColumn() {
-        String column = String.format("`uri`,`name`,`content_type`,`header`,`user_id`,`username`,`body`,`data`,`model`,`ipaddr`,`create_time`,`update_time`");
+        String column = String.format("`appcode`,`uid`,`uri`,`name`,`content_type`,`header`,`body`,`data`,`model`,`ipaddr`,`create_time`,`update_time`");
         return column;
     }
 
@@ -45,8 +45,24 @@ public class ApiLog {
      */
     public String getValue() {
         String value = String.format("'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'",
-                uri, name, contentType, header, userId + "", username, body, data, model, ipaddr, createTime + "", updateTime + "");
+                appcode, uid + "", uri, name, contentType, header, body, data, model, ipaddr, createTime + "", updateTime + "");
         return value;
+    }
+
+    public String getAppcode() {
+        return appcode;
+    }
+
+    public void setAppcode(String appcode) {
+        this.appcode = appcode;
+    }
+
+    public int getUid() {
+        return uid;
+    }
+
+    public void setUid(int uid) {
+        this.uid = uid;
     }
 
     public String getUri() {
@@ -79,22 +95,6 @@ public class ApiLog {
 
     public void setHeader(String header) {
         this.header = header;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getBody() {
@@ -148,12 +148,12 @@ public class ApiLog {
     @Override
     public String toString() {
         return "ApiLog{" +
+                "appcode='" + appcode + '\'' +
+                "uid='" + uid + '\'' +
                 "uri='" + uri + '\'' +
                 ", name='" + name + '\'' +
                 ", contentType='" + contentType + '\'' +
                 ", header='" + header + '\'' +
-                ", userId=" + userId +
-                ", username='" + username + '\'' +
                 ", body='" + body + '\'' +
                 ", data='" + data + '\'' +
                 ", model='" + model + '\'' +

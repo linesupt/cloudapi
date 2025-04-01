@@ -21,13 +21,24 @@ public class ApiLogManager {
     /**
      * 持久化接口日志
      * @param request
+     * @param appcode 应用代码
      * @param uid 用户ID
      * @param body 请求体
      * @param data 响应内容
      */
-    public static void saveLog(ICommonService commonService, HttpServletRequest request, int uid, String body, String data) {
+    public static void saveLog(ICommonService commonService, HttpServletRequest request, String apiName, String appcode, int uid, String body, String data) {
+        ApiLog log = new ApiLog();
+        String ipaddr = IPUtil.getIpAddress(request);
+        log.setAppcode(appcode);
+        log.setUid(uid);
+        log.setName(apiName);
+        log.setUri(request.getRequestURI());
+        log.setIpaddr(ipaddr);
+        log.setContentType(request.getContentType());
+        long timestamp = System.currentTimeMillis();
+        log.setCreateTime(timestamp);
+        log.setUpdateTime(timestamp);
         try {
-            ApiLog log = new ApiLog();
             Enumeration<String> headerNames = request.getHeaderNames();
             Map<String, String> headerMap = new HashMap<>();
             while (headerNames.hasMoreElements()) {
@@ -60,32 +71,18 @@ public class ApiLogManager {
                 }
                 bodyParam = paramString;
             }
-
-            String ipaddr = IPUtil.getIpAddress(request);
-            log.setUserId(uid);
-            log.setName("");
-            log.setUri(request.getRequestURI());
-            log.setIpaddr(ipaddr);
-            log.setContentType(request.getContentType());
             log.setHeader(headerString);
             log.setBody(bodyParam);
             log.setData(data);
             log.setModel("");
-            long timestamp = System.currentTimeMillis();
-            log.setCreateTime(timestamp);
-            log.setUpdateTime(timestamp);
             boolean flag = commonService.add(CommonSqlManager.addColumnData(TableManager.getApiLogTable(), log.getColumn(), log.getValue()));
             System.out.println("logger::" + uid + " - " + flag + " - " + log);
         } catch (Exception e) {
-            e.printStackTrace();
-            ApiLog log = new ApiLog();
             log.setName("日志异常");
             log.setData(e.getMessage());
-            long timestamp = System.currentTimeMillis();
-            log.setCreateTime(timestamp);
-            log.setUpdateTime(timestamp);
             boolean flag = commonService.add(CommonSqlManager.addColumnData(TableManager.getApiLogTable(), log.getColumn(), log.getValue()));
             System.out.println("logger::" + flag + " - " + log);
+            e.printStackTrace();
         }
     }
 
